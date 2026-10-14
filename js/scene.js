@@ -93,8 +93,25 @@ const Scene = (() => {
     `<g transform="translate(${x} ${y}) scale(${sc})"><g class="cloud rain-cloud"><circle cx="0" cy="0" r="22"/><circle cx="24" cy="-8" r="26"/><circle cx="50" cy="2" r="20"/><circle cx="76" cy="-2" r="18"/><rect x="0" y="0" width="76" height="20"/></g></g>`).join('');
   const rainSVG = RAIN_CLOUDS.map(([x, y, sc], c) => Array.from({ length: 7 }, (_, k) => {
     const x1 = x + (6 + k * 11) * sc, y1 = y + 22 * sc;
-    return `<line x1="${x1.toFixed(0)}" y1="${y1.toFixed(0)}" x2="${(x1 - 26).toFixed(0)}" y2="505" style="animation-delay:${(-rnd(c * 7 + k) * 0.5).toFixed(2)}s"/>`;
+    const y2 = 505 + rnd(c * 7 + k + 50) * 380;   // some rain falls closer to us, further down the screen
+    return `<line x1="${x1.toFixed(0)}" y1="${y1.toFixed(0)}" x2="${(x1 - 26 * (y2 - y1) / (505 - y1)).toFixed(0)}" y2="${y2.toFixed(0)}" style="animation-delay:${(-rnd(c * 7 + k) * 0.5).toFixed(2)}s"/>`;
   }).join('')).join('');
+
+  // Storm cloud cover: solid layers with a soft, bumpy bottom edge (no gaps anywhere)
+  const stormLayer = (yBase, amp, step, shift, fill) => {
+    let d = `M-3000 -3000 H3800 V${yBase}`;
+    for (let x = 3800; x > -3000; x -= step) d += ` Q${x - step / 2 + shift} ${yBase + amp} ${x - step} ${yBase}`;
+    return `<path d="${d} Z" fill="${fill}"/>`;
+  };
+  const stormCloudsSVG = `<g class="storm-roll">${stormLayer(150, 46, 150, 0, '#5a6371')}</g>
+    <g class="storm-roll slow">${stormLayer(115, 40, 120, 30, '#4a525f')}</g>
+    <g class="storm-roll">${stormLayer(70, 34, 100, -20, '#3c434f')}</g>`;
+
+  // Raindrop ripples on the sea (smaller near the horizon, bigger close up)
+  const RIPPLES = Array.from({ length: 190 }, (_, k) => {
+    const y = 292 + Math.pow(rnd(k + 300), 1.25) * 560, x = -700 + rnd(k + 700) * 2200, sz = 3.5 + (y - 285) / 26;
+    return `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${sz.toFixed(1)}" ry="${(sz * 0.35).toFixed(1)}" style="animation-delay:${(-rnd(k + 900) * 1.4).toFixed(2)}s"/>`;
+  }).join('');
 
   // Night stars across the whole sky
   const STARS = Array.from({ length: 46 }, (_, k) =>
@@ -184,14 +201,9 @@ const Scene = (() => {
     <g class="night-moon" transform="translate(110 80)"><circle r="30" fill="#fff7d6" opacity=".25"/><circle r="22" fill="#fff4c2"/><circle cx="9" cy="-6" r="19" class="moon-cut"/></g>
   </g>
 
-  <g class="drift" style="animation-delay:-40s"><g transform="translate(60 70)"><g class="cloud"><circle cx="0" cy="0" r="22"/><circle cx="24" cy="-8" r="26"/><circle cx="50" cy="2" r="20"/><rect x="0" y="0" width="50" height="20"/></g></g></g>
-  <g data-k="stormClouds" class="fade hide">
-    <rect x="-3000" y="-3000" width="6800" height="3080" fill="#3f4652"/>
-    ${Array.from({ length: 30 }, (_, k) => `<circle cx="${-1000 + k * 100}" cy="${80 + (k % 3) * 14}" r="${62 + (k % 4) * 10}" fill="${k % 2 ? '#4a5260' : '#3f4652'}"/>`).join('')}
-    ${Array.from({ length: 22 }, (_, k) => `<circle cx="${-900 + k * 130}" cy="${150 + (k % 2) * 12}" r="${46 + (k % 3) * 8}" fill="#565f6d"/>`).join('')}
-  </g>
+  <g data-k="skyClouds"></g>
+  <g data-k="stormClouds" class="fade hide">${stormCloudsSVG}</g>
   <g data-k="rainClouds" class="fade hide">${rainCloudsSVG}</g>
-  <g class="drift" style="animation-delay:-38s;animation-duration:80s"><g transform="translate(0 140) scale(.7)"><g class="cloud"><circle cx="0" cy="0" r="22"/><circle cx="24" cy="-8" r="26"/><circle cx="50" cy="2" r="20"/><rect x="0" y="0" width="50" height="20"/></g></g></g>
 
   ${item('darkSmoke', 0, 0, `<g class="billow">
       <circle cx="690" cy="330" r="14"/><circle cx="682" cy="290" r="20"/><circle cx="672" cy="245" r="26"/>
@@ -201,6 +213,7 @@ const Scene = (() => {
 
   <rect x="-3000" y="285" width="6800" height="3000" fill="url(#${u}sea)"/>
   <rect data-k="murk" class="fade" x="-3000" y="285" width="6800" height="3000" fill="#6f7d3c" opacity="0"/>
+  <g data-k="ripples" class="ripples hide">${RIPPLES}</g>
   <g class="waves"><path d="M20 310 q15 -8 30 0 q15 8 30 0 M640 300 q15 -8 30 0 q15 8 30 0 M300 296 q15 -6 30 0 q15 6 30 0 M-260 320 q15 -8 30 0 q15 8 30 0 M-520 300 q15 -6 30 0 q15 6 30 0 M900 318 q15 -8 30 0 q15 8 30 0 M1160 300 q15 -6 30 0 q15 6 30 0 M-120 460 q15 -8 30 0 q15 8 30 0 M960 470 q15 -8 30 0 q15 8 30 0"/></g>
 
   <g data-k="land">
@@ -215,9 +228,9 @@ const Scene = (() => {
     <ellipse cx="0" cy="8" rx="46" ry="4.5" fill="#e6f9ff" opacity=".75"/></g></g></g>
   <ellipse class="lagoon" cx="400" cy="408" rx="560" ry="132"/>
   <ellipse class="lagoon" cx="400" cy="396" rx="450" ry="108"/>
-  <g data-k="farFish" class="fade"><g class="swim" style="animation-duration:60s;animation-delay:-10s"><g transform="translate(0 312) scale(.45)">${fish('#ffd23f')}</g></g>
-    <g class="swim" style="animation-duration:70s;animation-delay:-42s"><g transform="translate(0 300) scale(.4)">${fish('#ff8c42')}</g></g>
-    <g class="swim" style="animation-duration:66s;animation-delay:-25s"><g transform="translate(0 326) scale(.5)">${fish('#7ad3ff')}</g></g></g>
+  <g data-k="farFish" class="fade"><g class="swim" style="animation-duration:60s;animation-delay:-10s"><g transform="translate(0 312) scale(.3)">${fish('#ffd23f')}</g></g>
+    <g class="swim" style="animation-duration:70s;animation-delay:-42s"><g transform="translate(0 300) scale(.26)">${fish('#ff8c42')}</g></g>
+    <g class="swim" style="animation-duration:66s;animation-delay:-25s"><g transform="translate(0 326) scale(.34)">${fish('#7ad3ff')}</g></g></g>
   <ellipse cx="400" cy="372" rx="366" ry="100" fill="none" stroke="#e6f9ff" stroke-width="5" opacity=".7" class="foam"/>
   <ellipse cx="400" cy="368" rx="352" ry="94" fill="#ecc673"/>
   <ellipse cx="400" cy="362" rx="338" ry="84" fill="#fbe3a2"/>
@@ -316,25 +329,27 @@ const Scene = (() => {
   </g>
   <!-- deeper, bigger fish (they leave when the sea gets sick or is overfished) -->
   <g data-k="deepFish" class="fade">
-    <g class="swim" style="animation-duration:46s;animation-delay:-5s"><g transform="translate(0 560) scale(1.5)">${fish('#4fa3e0')}</g></g>
-    <g class="swim" style="animation-duration:52s;animation-delay:-30s"><g transform="translate(0 600) scale(1.3)">${fish('#ffd23f')}</g></g>
-    <g class="swim" style="animation-duration:58s;animation-delay:-18s"><g transform="translate(0 690) scale(1.8)">${fish('#ff8c42')}</g></g>
-    <g class="swim" style="animation-duration:50s;animation-delay:-40s"><g transform="translate(0 740) scale(1.4)">${fish('#7ad3ff')}</g></g>
-    <g class="swim" style="animation-duration:64s;animation-delay:-12s"><g transform="translate(0 820) scale(1.6)">${fish('#ff6fa8')}</g></g>
+    <g class="swim" style="animation-duration:46s;animation-delay:-5s"><g transform="translate(0 560) scale(.85)">${fish('#4fa3e0')}</g></g>
+    <g class="swim" style="animation-duration:52s;animation-delay:-30s"><g transform="translate(0 600) scale(.6)">${fish('#ffd23f')}</g></g>
+    <g class="swim" style="animation-duration:58s;animation-delay:-18s"><g transform="translate(0 690) scale(1.05)">${fish('#ff8c42')}</g></g>
+    <g class="swim" style="animation-duration:50s;animation-delay:-40s"><g transform="translate(0 740) scale(.7)">${fish('#7ad3ff')}</g></g>
+    <g class="swim" style="animation-duration:64s;animation-delay:-12s"><g transform="translate(0 820) scale(.9)">${fish('#ff6fa8')}</g></g>
   </g>
-  <g data-k="bigFish" class="fade"><g class="swim" style="animation-duration:80s;animation-delay:-20s"><g transform="translate(0 650) scale(3)">${fish('#3d7cc9')}</g></g></g>
-  <g data-k="seaTurtle" class="fade"><g class="swim" style="animation-duration:75s;animation-delay:-50s"><g transform="translate(0 540) scale(1.6)"><g class="float">${turtle(0, 0, 1)}</g></g></g></g>
+  <g data-k="bigFish" class="fade"><g class="swim" style="animation-duration:80s;animation-delay:-20s"><g transform="translate(0 650) scale(1.7)">${fish('#3d7cc9')}</g></g></g>
+  <g data-k="seaTurtle" class="fade"><g class="swim" style="animation-duration:75s;animation-delay:-50s"><g transform="translate(0 540) scale(1.1)"><g class="float">${turtle(0, 0, 1)}</g></g></g></g>
   <g data-k="critters">
     <g data-k="butterflies" class="fade">${butterfly(280, 300, '#ff8ad8', 0)}${butterfly(470, 300, '#ffd23f', -2)}${butterfly(360, 318, '#8fd3ff', -4)}</g>
     <g data-k="bees" class="fade">${bee(300, 330, 0)}${bee(626, 306, -1.2)}${bee(450, 330, -2.1)}</g>
     <g data-k="crabs" class="fade">${crab(150, 426, 0)}${crab(560, 440, -1.5)}</g>
     <g transform="translate(520 344)"><g data-k="frog" class="fade">${frog}</g></g>
   </g>
-  <g data-k="fish"><g class="swim" style="animation-duration:34s"><g transform="translate(0 482)">${fish()}</g></g><g class="swim" style="animation-delay:-14s;animation-duration:40s"><g transform="translate(0 470) scale(.8)">${fish('#ffd23f')}</g></g><g class="swim" style="animation-delay:-24s;animation-duration:30s"><g transform="translate(0 492) scale(.9)">${fish('#ff6fa8')}</g></g></g>
-  ${item('babyFish', 0, 0, `<g class="swim" style="animation-delay:-6s;animation-duration:26s"><g transform="translate(0 488) scale(.5)">${fish()}</g></g><g class="swim" style="animation-delay:-17s;animation-duration:28s"><g transform="translate(0 476) scale(.5)">${fish('#ffd23f')}</g></g><g class="swim" style="animation-delay:-2s;animation-duration:32s"><g transform="translate(0 494) scale(.45)">${fish('#ff6fa8')}</g></g>`, 'fade')}
+  <g data-k="fish"><g class="swim" style="animation-duration:34s"><g transform="translate(0 482) scale(.6)">${fish()}</g></g><g class="swim" style="animation-delay:-14s;animation-duration:40s"><g transform="translate(0 470) scale(.45)">${fish('#ffd23f')}</g></g><g class="swim" style="animation-delay:-24s;animation-duration:30s"><g transform="translate(0 494) scale(.52)">${fish('#ff6fa8')}</g></g>
+    <g class="swim" style="animation-delay:-8s;animation-duration:44s"><g transform="translate(0 504) scale(.38)">${fish('#7ad3ff')}</g></g><g class="swim" style="animation-delay:-31s;animation-duration:38s"><g transform="translate(0 462) scale(.7)">${fish('#ffb067')}</g></g></g>
+  ${item('babyFish', 0, 0, `<g class="swim" style="animation-delay:-6s;animation-duration:26s"><g transform="translate(0 488) scale(.3)">${fish()}</g></g><g class="swim" style="animation-delay:-17s;animation-duration:28s"><g transform="translate(0 476) scale(.28)">${fish('#ffd23f')}</g></g><g class="swim" style="animation-delay:-2s;animation-duration:32s"><g transform="translate(0 494) scale(.25)">${fish('#ff6fa8')}</g></g>`, 'fade')}
   ${item('jumper', 150, 474, `<g class="fishjump">${fish('#ffb627')}</g>`, 'fade')}
-  ${item('seaBottles', 0, 0, `<g class="float">${bottle(52, 452, 80, 1.5)}</g><g class="float" style="animation-delay:-1s">${bottle(735, 462, -60, 1.5)}</g><g class="float" style="animation-delay:-2s">${bottle(300, 486, 100, 1.4)}</g>`, 'fade')}
-  ${DEAD_SLOTS.map(([x, y, r, sc], k) => `<g data-k="dead${k}" class="fade hide">${deadFish(x, y, r, sc)}</g>`).join('')}
+  ${item('seaBottles', 0, 0, [[52, 452, 80], [735, 462, -60], [300, 486, 100], [560, 496, 30], [-120, 470, -20]].map(([x, y, r], k) =>
+    `<g class="wander" style="--wx:${k % 2 ? -1 : 1};animation-duration:${34 + k * 6}s;animation-delay:${-k * 9}s"><g class="float" style="animation-delay:-${k}s">${bottle(x, y, r, 1.4)}</g></g>`).join(''), 'fade')}
+  ${DEAD_SLOTS.map(([x, y, r, sc], k) => `<g data-k="dead${k}" class="fade hide"><g class="wander" style="--wx:${k % 2 ? 1 : -1};animation-duration:${30 + k * 5}s;animation-delay:${-k * 7}s">${deadFish(x, y, r, sc * 0.8)}</g></g>`).join('')}
 
   <g data-k="fx"></g>
 
@@ -528,6 +543,11 @@ const Scene = (() => {
     const svg = container.querySelector('svg');
     const q = (k) => svg.querySelector(`[data-k="${k}"]`);
     const land = q('land');
+    // A random sky every game: sometimes clear, sometimes a few clouds drifting by
+    q('skyClouds').innerHTML = Array.from({ length: [0, 1, 1, 2, 2, 3, 4][Math.floor(Math.random() * 7)] }, () => {
+      const y = 40 + Math.random() * 130, sc = 0.6 + Math.random() * 0.7, dur = 90 + Math.random() * 70;
+      return `<g class="drift" style="animation-duration:${dur.toFixed(0)}s;animation-delay:${(-Math.random() * dur).toFixed(0)}s"><g transform="translate(0 ${y.toFixed(0)}) scale(${sc.toFixed(2)})"><g class="cloud"><circle cx="0" cy="0" r="22"/><circle cx="24" cy="-8" r="26"/><circle cx="50" cy="2" r="20"/><rect x="0" y="0" width="50" height="20"/></g></g></g>`;
+    }).join('');
     const monkey = q('monkey');
     let mood = '';
     let matrix = TIME_MATRIX.day.slice();
@@ -665,6 +685,7 @@ const Scene = (() => {
       q('rain').classList.toggle('hide', !rainy);
       q('rainClouds').classList.toggle('hide', !rainy);
       q('gloom').classList.toggle('hide', !rainy);
+      q('ripples').classList.toggle('hide', !rainy);
       if (!rainy) q('stormClouds').classList.add('hide');
     }
 
@@ -849,6 +870,7 @@ const Scene = (() => {
         svg.classList.add('stormy');
         setWeather('rain');
         s.show('stormClouds');
+        s.hide('rainClouds');   // one seamless storm cover instead of separate clouds
         q('fxTop').insertAdjacentHTML('beforeend', `
           <rect class="storm-dark" x="-3000" y="-3000" width="6800" height="6800" fill="#1d2533"/>
           <path class="bolt" d="M430 0 L400 110 L436 110 L390 240 L470 90 L432 90 L462 0Z" fill="#fff36b"/>

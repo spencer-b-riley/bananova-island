@@ -12,7 +12,7 @@ const CHOICES = [
   { id: 'food',     good: { h: -8,  i: 4,  emoji: '🧺' }, bad: { h: 12, i: -10, emoji: '😋' }, time: 'day', disaster: 'heat' },
   { id: 'banana',   good: { h: -8,  i: 5,  emoji: '🌱' }, bad: { h: 8,  i: -10, emoji: '🍌' }, time: 'day', disaster: 'heat' },
   { id: 'fishing',  good: { h: -6,  i: 5,  emoji: '🎣' }, bad: { h: 10, i: -14, emoji: '🕸️' }, time: 'evening', disaster: 'flood' },
-  { id: 'compost',  good: { h: -8,  i: 5,  emoji: '♻️' }, bad: { h: 8,  i: -12, emoji: '🪰' }, time: 'day', rain: true, disaster: 'storm' },
+  { id: 'compost',  good: { h: -8,  i: 5,  emoji: '♻️' }, bad: { h: 8,  i: -12, emoji: '🪰' }, time: 'day', disaster: 'storm' },
   { id: 'fire',     good: { h: -14, i: 6, emoji: '💧' }, bad: { h: 8,  i: -18, emoji: '🔥' }, time: 'day', disaster: 'heat' },
   { id: 'firewood', good: { h: -6,  i: 4,  emoji: '🍂' }, bad: { h: 12, i: -12, emoji: '🪓' }, time: 'night', disaster: 'heat' },
   { id: 'water',    good: { h: -8,  i: 4,  emoji: '🌧️' }, bad: { h: 10, i: -12, emoji: '💦' }, time: 'day', disaster: 'heat' },

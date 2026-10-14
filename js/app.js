@@ -283,13 +283,28 @@
     if (matchMedia('(pointer: fine)').matches) input.focus();
   }
 
+  const shuffle = (arr) => {
+    for (let k = arr.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [arr[k], arr[j]] = [arr[j], arr[k]]; }
+    return arr;
+  };
+
   function startGame(name) {
+    // The home question always comes first; the other 9 come in a random order every game.
+    const seq = [0, ...shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])];
+    // Rainy days are random too (never at night, during the fire or on the hot day)
+    const rainTurns = new Set();
+    seq.forEach((ci, turn) => {
+      const c = CHOICES[ci];
+      if (turn > 0 && c.time !== 'night' && c.id !== 'fire' && c.id !== 'water' && Math.random() < 0.25) rainTurns.add(turn);
+    });
+    // Super rare solar eclipse (about 1 game in 100), on a dry daytime turn
+    const dayTurns = seq.map((ci, turn) => turn).filter((turn) => turn > 0 && CHOICES[seq[turn]].time === 'day' && !rainTurns.has(turn));
+    const eclipseTurn = Math.random() < 0.01 && dayTurns.length ? dayTurns[Math.floor(Math.random() * dayTurns.length)] : -1;
     G = {
+      seq, made: [], rainTurns, eclipseTurn,
       name, h: START.h, i: START.i, turn: 0, picks: [], order: [], payQueue: [],
       next: null, cardView: null, busy: false, disaster: null, cause: null,
       ending: null, newAch: [], recapIdx: 0, langs: new Set([lang]), sawWhale: false,
-      // Super rare: about 1 game in 100 has a solar eclipse during one of the daytime choices
-      eclipseAt: Math.random() < 0.01 ? [1, 2, 3, 6, 8][Math.floor(Math.random() * 5)] : -1,
       // The whale is rare too: it only visits in about 1 game in 4, and only if the island is very healthy
       whaleLuck: Math.random() < 0.25,
     };
@@ -356,7 +371,8 @@
     setMeter('mi', G.i);
     const dots = $('#dots').children;
     for (let k = 0; k < 10; k++) {
-      dots[k].className = G.picks[k] === true ? 'g' : G.picks[k] === false ? 'b' : k === G.turn ? 'now' : '';
+      const pk = G.picks[G.seq[k]];
+      dots[k].className = k < G.made.length ? (pk ? 'g' : 'b') : k === G.turn ? 'now' : '';
     }
     $('#turnTxt').textContent = `${Math.min(G.turn + 1, 10)}/10`;
     scene.setStats(G.h, G.i);
@@ -411,19 +427,19 @@
   }
 
   function showChoice() {
-    const idx = G.turn, ch = CHOICES[idx];
+    const turn = G.turn, idx = G.seq[turn], ch = CHOICES[idx];
     if (G.order[idx] === undefined) G.order[idx] = Math.random() < 0.5; // good option first?
     scene.event(ch.id);
     scene.setTime(ch.time);
-    scene.setWeather(ch.rain ? 'rain' : 'clear');
+    scene.setWeather(G.rainTurns.has(turn) ? 'rain' : 'clear');
     scene.react(REACT[ch.id], 0);
     if (idx === 0) {
       sayLine((sy) => sy.hello);
       setTimeout(() => { if (G && G.turn === 0) sayLine((sy) => sy.choices[0][0]); }, 2200);
     } else sayLine((sy) => sy.choices[idx][0]);
-    if (idx === G.eclipseAt) {
+    if (turn === G.eclipseTurn) {
       setTimeout(() => {
-        if (!G || G.turn !== idx) return;
+        if (!G || G.turn !== turn) return;
         scene.eclipse();
         scene.react('scared', 4000);  // wide-eyed amazement
         sayLine((sy) => sy.eclipse);
@@ -438,7 +454,7 @@
       ];
       if (!G.order[idx]) opts.reverse();
       card(`
-        <div class="card-head"><span class="pill">${t('turn', { n: idx + 1 })}</span><span class="topic">${ct(idx, 'topic')}</span></div>
+        <div class="card-head"><span class="pill">${t('turn', { n: turn + 1 })}</span><span class="topic">${ct(idx, 'topic')}</span></div>
         <p class="situation">${ct(idx, 'sit')}</p>
         <div class="choices">${opts.map((o) =>
           `<button class="choice-btn" data-action="pick" data-good="${o.good ? 1 : 0}"><span class="emo" aria-hidden="true">${o.emo}</span><span>${o.txt}</span></button>`).join('')}</div>`);
@@ -447,10 +463,11 @@
   }
 
   function pick(good) {
-    if (G.busy || G.picks[G.turn] !== undefined) return;
+    if (G.busy || G.picks[G.seq[G.turn]] !== undefined) return;
     G.busy = true;
-    const idx = G.turn, ch = CHOICES[idx], d = good ? ch.good : ch.bad;
+    const turn = G.turn, idx = G.seq[turn], ch = CHOICES[idx], d = good ? ch.good : ch.bad;
     G.picks[idx] = good;
+    G.made.push(idx);
     G.last = idx;
     scene.outcome(ch.id, good);
     scene.react(good ? 'yay' : 'sad');
@@ -458,7 +475,7 @@
     Sound.play(good ? 'good' : 'bad');
     if (!good && (ch.id === 'plastic' || ch.id === 'fishing')) setTimeout(() => Sound.play('splash'), 250);
     applyDelta(d.h, d.i);
-    if (good) G.payQueue.push({ idx, due: idx + PAYOFF_DELAY });
+    if (good) G.payQueue.push({ idx, due: turn + PAYOFF_DELAY });
 
     G.next = () => {
       G.turn++;
@@ -466,7 +483,7 @@
       else step();
     };
     G.cardView = () => card(`
-      <div class="card-head"><span class="pill">${t('turn', { n: idx + 1 })}</span><span class="topic">${ct(idx, 'topic')}</span></div>
+      <div class="card-head"><span class="pill">${t('turn', { n: turn + 1 })}</span><span class="topic">${ct(idx, 'topic')}</span></div>
       <div class="result"><span class="emo" aria-hidden="true">${d.emoji}</span><p>${ct(idx, good ? 'resGood' : 'resBad')}</p></div>
       ${deltaChips(d.h, d.i)}
       <div class="row end"><button class="btn primary" data-action="cont">${t('cont')}</button></div>`);
@@ -512,7 +529,7 @@
     const ending = G.disaster || (G.i >= 90 && G.h >= 70 ? 'hero' : G.i >= 70 ? 'friend' : G.i >= 40 ? 'okay' : 'struggle');
     G.ending = ending;
     const greens = G.picks.filter(Boolean).length;
-    store.games.push({ d: Date.now(), n: G.name, e: ending, h: G.h, i: G.i, g: greens, c: G.picks.length });
+    store.games.push({ d: Date.now(), n: G.name, e: ending, h: G.h, i: G.i, g: greens, c: G.made.length });
     Store.save(store);
 
     const earned = [];
@@ -570,11 +587,11 @@
   }
 
   function recapView() {
-    const made = G.picks.length;
-    const k = G.recapIdx, good = G.picks[k], ch = CHOICES[k];
+    const made = G.made.length;
+    const pos = G.recapIdx, k = G.made[pos], good = G.picks[k], ch = CHOICES[k];
     card(`
       <div class="recap">
-        <div class="card-head"><span class="pill">${k + 1} / ${made}</span><span class="topic">${ct(k, 'topic')}</span>
+        <div class="card-head"><span class="pill">${pos + 1} / ${made}</span><span class="topic">${ct(k, 'topic')}</span>
           <span class="spacer"></span><button class="link-btn" data-action="takeaways">${t('skip')}</button></div>
         <p class="verdict ${good ? 'good' : 'bad'}">${good ? t('great') : t('couldBetter')}</p>
         <p>${t('youChose')} ${good ? ch.good.emoji : ch.bad.emoji} ${ct(k, good ? 'good' : 'bad')}</p>
@@ -582,7 +599,7 @@
         ${good ? '' : `<p><b>${t('better')}</b> ${ch.good.emoji} ${ct(k, 'good')}</p>`}
         <div class="fact"><b>${t('didYouKnow')}</b>${ct(k, 'fact')}</div>
         <div class="recap-nav">
-          <button class="btn ghost small" data-action="recapPrev" ${k === 0 ? 'disabled' : ''}>${t('prev')}</button>
+          <button class="btn ghost small" data-action="recapPrev" ${pos === 0 ? 'disabled' : ''}>${t('prev')}</button>
           <button class="btn primary small" data-action="recapNext">${t('next')}</button>
         </div>
       </div>`);
@@ -632,7 +649,7 @@
       case 'recap': G.recapIdx = 0; G.cardView = recapView; recapView(); break;
       case 'recapPrev': G.recapIdx = Math.max(0, G.recapIdx - 1); recapView(); break;
       case 'recapNext':
-        if (G.recapIdx < G.picks.length - 1) { G.recapIdx++; recapView(); }
+        if (G.recapIdx < G.made.length - 1) { G.recapIdx++; recapView(); }
         else {
           unlockWithToast('learner');
           G.cardView = takeawaysView; takeawaysView();

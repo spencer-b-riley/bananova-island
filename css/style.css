@@ -441,6 +441,22 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 @keyframes rainfall { to { stroke-dashoffset: -42; } }
 .rainy .cloud { fill: #8d97a5; }
 .rain-cloud { fill: #77818f; }
+/* raindrop ripples on the water */
+.ripples ellipse { fill: none; stroke: #f2fbff; stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.ripples:not(.hide) ellipse { animation: ripple 1.4s ease-out infinite; }
+@keyframes ripple { 0% { transform: scale(0.15); opacity: 1; } 100% { transform: scale(1.9); opacity: 0; } }
+/* storm cloud cover slowly rolling */
+.storm-roll { animation: stormRoll 9s ease-in-out infinite alternate; }
+.storm-roll.slow { animation-duration: 13s; }
+@keyframes stormRoll { from { transform: translateX(-30px); } to { transform: translateX(30px); } }
+/* dead fish and bottles drifting around the sea */
+.wander { animation: wander 36s ease-in-out infinite; }
+@keyframes wander {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(calc(var(--wx, 1) * 110px), 6px); }
+  50% { transform: translate(calc(var(--wx, 1) * 200px), -4px); }
+  75% { transform: translate(calc(var(--wx, 1) * 90px), 9px); }
+}
 .foam { animation: foam 4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
 
 .swim { animation: swim 34s linear infinite; }
