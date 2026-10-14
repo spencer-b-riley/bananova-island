@@ -297,11 +297,23 @@
       const c = CHOICES[ci];
       if (turn > 0 && c.time !== 'night' && c.id !== 'fire' && c.id !== 'water' && Math.random() < 0.25) rainTurns.add(turn);
     });
+    // Time of day: the first three go morning → day → day, after that it's random,
+    // except where the story needs a certain time (cold night, hot day, turtles at sunset/night)
+    const TIME_RULES = { firewood: ['night'], water: ['day'], turtles: ['evening', 'night'] };
+    const FIRST = ['morning', 'day', 'day'];
+    const ALL = ['morning', 'day', 'day', 'evening', 'night'];
+    const times = seq.map((ci, turn) => {
+      const allowed = TIME_RULES[CHOICES[ci].id];
+      if (allowed) return allowed[Math.floor(Math.random() * allowed.length)];
+      return turn < 3 ? FIRST[turn] : ALL[Math.floor(Math.random() * ALL.length)];
+    });
     // Super rare solar eclipse (about 1 game in 100), on a dry daytime turn
-    const dayTurns = seq.map((ci, turn) => turn).filter((turn) => turn > 0 && CHOICES[seq[turn]].time === 'day' && !rainTurns.has(turn));
+    const dayTurns = seq.map((ci, turn) => turn).filter((turn) => turn > 0 && times[turn] === 'day' && !rainTurns.has(turn));
     const eclipseTurn = Math.random() < 0.01 && dayTurns.length ? dayTurns[Math.floor(Math.random() * dayTurns.length)] : -1;
     G = {
-      seq, made: [], rainTurns, eclipseTurn,
+      seq, made: [], rainTurns, eclipseTurn, times,
+      // Super rare: about 1 game in 100, pirates show up (any time, any weather)
+      pirateTurn: Math.random() < 0.01 ? 2 + Math.floor(Math.random() * 8) : -1, piratesDone: false,
       name, h: START.h, i: START.i, turn: 0, picks: [], order: [], payQueue: [],
       next: null, cardView: null, busy: false, disaster: null, cause: null,
       ending: null, newAch: [], recapIdx: 0, langs: new Set([lang]), sawWhale: false,
@@ -421,6 +433,7 @@
   function step() {
     const q = G.payQueue;
     if (q.length && q[0].due <= G.turn) return showPayoff(q.shift());
+    if (G.turn === G.pirateTurn && !G.piratesDone) return showPirates();
     if (G.turn < 10) return showChoice();
     if (q.length) return showPayoff(q.shift());
     finish();
@@ -430,7 +443,7 @@
     const turn = G.turn, idx = G.seq[turn], ch = CHOICES[idx];
     if (G.order[idx] === undefined) G.order[idx] = Math.random() < 0.5; // good option first?
     scene.event(ch.id);
-    scene.setTime(ch.time);
+    scene.setTime(G.times[turn]);
     scene.setWeather(G.rainTurns.has(turn) ? 'rain' : 'clear');
     scene.react(REACT[ch.id], 0);
     if (idx === 0) {
@@ -506,6 +519,28 @@
         <p class="because">${t('because')} ${ct(idx, 'good')}</p></div></div>
       ${deltaChips(PAYOFF.h, PAYOFF.i)}
       <div class="row end"><button class="btn primary" data-action="cont">${t('cont')}</button></div>`);
+    G.cardView();
+  }
+
+  /* Super rare pirate raid: not caused by the player's choices, so it doesn't end the game,
+     but the pirates take some loot and the monkey is sad about it. */
+  async function showPirates() {
+    G.piratesDone = true;
+    G.next = null;
+    G.cardView = () => card(`
+      <div class="card-head"><span class="pill">⚓ ${t('pirateTitle')}</span></div>
+      <div class="result"><span class="emo" aria-hidden="true">🏴‍☠️</span><p>${t('pirateText')}</p></div>
+      ${deltaChips(-10, 0)}
+      <div class="row end"><button class="btn primary" data-action="cont" ${G.next ? '' : 'disabled'}>${t('cont')}</button></div>`);
+    G.cardView();
+    Sound.play('pirate');
+    sayLine((sy) => sy.pirates);
+    await scene.pirates();
+    if (!G) return;
+    sayLine((sy) => sy.piratesGone);
+    applyDelta(-10, 0);
+    unlockWithToast('pirates');
+    G.next = () => { if (G.h <= 0) doDisaster(); else step(); };
     G.cardView();
   }
 

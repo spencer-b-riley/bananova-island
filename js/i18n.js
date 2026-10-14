@@ -73,10 +73,12 @@ const I18N = {
       deleted: 'All gone! Your games and achievements were deleted.',
       music: 'Music', sound: 'Sound effects', language: 'Language', home: 'Menu',
       mystery: 'Mystery achievement',
+      pirateTitle: 'Pirates!',
+      pirateText: "Ahoy! A pirate ship sailed in and the pirates grabbed some of {name}'s things! Then they sailed away.",
     },
     // Speech bubbles: [problem, green choice, other choice, reward] for each choice
     say: {
-      hello: "Hi! I'm {name}!", storm: 'Quick, into the cave!', eclipse: 'Whoa! The sun is hiding!', whale: 'A whale! Hi there!', flood: 'Up the hill, quick!', heat: 'Too hot! To the sea!', hero: 'We did it!', safe: "Phew… I'm safe.",
+      hello: "Hi! I'm {name}!", storm: 'Quick, into the cave!', eclipse: 'Whoa! The sun is hiding!', whale: 'A whale! Hi there!', pirates: "Hey! That's mine!", piratesGone: 'They took my stuff…', flood: 'Up the hill, quick!', heat: 'Too hot! To the sea!', hero: 'We did it!', safe: "Phew… I'm safe.",
       choices: [
         ['Where should I live?', 'So cozy in here!', 'Big house! But… the trees!', 'Coconuts! Yum!'],
         ['Eww, plastic!', 'All clean!', 'Oh no, the fish!', 'Pretty flowers!'],
@@ -129,6 +131,7 @@ const I18N = {
       whale: ['Whale Hello!', 'Make the island so healthy that a whale visits'],
       stormchaser: ['Storm Chaser', 'See all 3 natural disasters'],
       eclipse: ['Eclipse Watcher', 'See a super rare solar eclipse'],
+      pirates: ['Ahoy, Pirates!', 'Survive a super rare pirate raid'],
       legend: ['Climate Legend', 'Unlock every other achievement'],
     },
     choices: [
@@ -325,9 +328,11 @@ const I18N = {
       deleted: 'Erledigt! Deine Spiele und Erfolge wurden gelöscht.',
       music: 'Musik', sound: 'Soundeffekte', language: 'Sprache', home: 'Menü',
       mystery: 'Geheimer Erfolg',
+      pirateTitle: 'Piraten!',
+      pirateText: 'Ahoi! Ein Piratenschiff hat angelegt und die Piraten haben ein paar Sachen von {name} mitgenommen! Dann sind sie davongesegelt.',
     },
     say: {
-      hello: 'Hallo! Ich bin {name}!', storm: 'Schnell, in die Höhle!', eclipse: 'Wow! Die Sonne versteckt sich!', whale: 'Ein Wal! Hallo!', flood: 'Schnell, auf den Hügel!', heat: 'Zu heiss! Ab ins Meer!', hero: "Wir haben's geschafft!", safe: 'Puh … ich bin sicher.',
+      hello: 'Hallo! Ich bin {name}!', storm: 'Schnell, in die Höhle!', eclipse: 'Wow! Die Sonne versteckt sich!', whale: 'Ein Wal! Hallo!', pirates: 'He! Das gehört mir!', piratesGone: 'Sie haben meine Sachen geklaut …', flood: 'Schnell, auf den Hügel!', heat: 'Zu heiss! Ab ins Meer!', hero: "Wir haben's geschafft!", safe: 'Puh … ich bin sicher.',
       choices: [
         ['Wo soll ich wohnen?', 'So gemütlich hier!', 'Grosses Haus! Aber … die Bäume!', 'Kokosnüsse! Lecker!'],
         ['Igitt, Plastik!', 'Alles sauber!', 'Oh nein, die Fische!', 'Schöne Blumen!'],
@@ -380,6 +385,7 @@ const I18N = {
       whale: ['Wal-Besuch', 'Mach die Insel so gesund, dass ein Wal vorbeikommt'],
       stormchaser: ['Sturmjäger', 'Erlebe alle 3 Naturkatastrophen'],
       eclipse: ['Finsternis-Fan', 'Sieh eine super seltene Sonnenfinsternis'],
+      pirates: ['Ahoi, Piraten!', 'Überlebe einen super seltenen Piratenüberfall'],
       legend: ['Klima-Legende', 'Schalte alle anderen Erfolge frei'],
     },
     choices: [
@@ -576,9 +582,11 @@ const I18N = {
       deleted: 'Fatto! Partite e traguardi sono stati cancellati.',
       music: 'Musica', sound: 'Effetti sonori', language: 'Lingua', home: 'Menu',
       mystery: 'Traguardo misterioso',
+      pirateTitle: 'Pirati!',
+      pirateText: 'Ahoy! Una nave pirata è arrivata e i pirati hanno preso alcune cose di {name}! Poi se ne sono andati.',
     },
     say: {
-      hello: 'Ciao! Sono {name}!', storm: 'Presto, nella grotta!', eclipse: 'Wow! Il sole si nasconde!', whale: 'Una balena! Ciao!', flood: 'Presto, sulla collina!', heat: 'Troppo caldo! Al mare!', hero: 'Ce l’abbiamo fatta!', safe: 'Uff… sono al sicuro.',
+      hello: 'Ciao! Sono {name}!', storm: 'Presto, nella grotta!', eclipse: 'Wow! Il sole si nasconde!', whale: 'Una balena! Ciao!', pirates: 'Ehi! È mio!', piratesGone: 'Hanno preso le mie cose…', flood: 'Presto, sulla collina!', heat: 'Troppo caldo! Al mare!', hero: 'Ce l’abbiamo fatta!', safe: 'Uff… sono al sicuro.',
       choices: [
         ['Dove posso vivere?', 'Che bello qui dentro!', 'Casa grande! Ma… gli alberi!', 'Noci di cocco! Gnam!'],
         ['Che schifo, plastica!', 'Tutto pulito!', 'Oh no, i pesci!', 'Che bei fiori!'],
@@ -631,6 +639,7 @@ const I18N = {
       whale: ['Ciao balena!', 'Rendi l’isola così sana che arriva una balena'],
       stormchaser: ['Cacciatore di tempeste', 'Vedi tutti e 3 i disastri naturali'],
       eclipse: ['Osservatore dell’eclissi', 'Vedi una rarissima eclissi di sole'],
+      pirates: ['Ahoy, pirati!', 'Sopravvivi a un rarissimo attacco dei pirati'],
       legend: ['Leggenda del clima', 'Sblocca tutti gli altri traguardi'],
     },
     choices: [
@@ -827,9 +836,11 @@ const I18N = {
       deleted: 'C’est fait ! Tes parties et tes succès ont été effacés.',
       music: 'Musique', sound: 'Effets sonores', language: 'Langue', home: 'Menu',
       mystery: 'Succès mystère',
+      pirateTitle: 'Pirates !',
+      pirateText: 'Ohé ! Un bateau pirate a accosté et les pirates ont pris des affaires de {name} ! Puis ils sont repartis.',
     },
     say: {
-      hello: 'Salut ! Je suis {name} !', storm: 'Vite, dans la grotte !', eclipse: 'Waouh ! Le soleil se cache !', whale: 'Une baleine ! Coucou !', flood: 'Vite, sur la colline !', heat: 'Trop chaud ! À la mer !', hero: 'On a réussi !', safe: 'Ouf… je suis à l’abri.',
+      hello: 'Salut ! Je suis {name} !', storm: 'Vite, dans la grotte !', eclipse: 'Waouh ! Le soleil se cache !', whale: 'Une baleine ! Coucou !', pirates: 'Hé ! C’est à moi !', piratesGone: 'Ils ont pris mes affaires…', flood: 'Vite, sur la colline !', heat: 'Trop chaud ! À la mer !', hero: 'On a réussi !', safe: 'Ouf… je suis à l’abri.',
       choices: [
         ['Où vais-je habiter ?', 'Trop bien ici !', 'Grande maison ! Mais… les arbres !', 'Des noix de coco ! Miam !'],
         ['Beurk, du plastique !', 'Tout propre !', 'Oh non, les poissons !', 'Jolies fleurs !'],
@@ -882,6 +893,7 @@ const I18N = {
       whale: ['Coucou la baleine !', 'Rends l’île si saine qu’une baleine vient la voir'],
       stormchaser: ['Chasseur de tempêtes', 'Vois les 3 catastrophes naturelles'],
       eclipse: ['Témoin de l’éclipse', 'Vois une éclipse de soleil super rare'],
+      pirates: ['Ohé, les pirates !', 'Survis à une attaque de pirates super rare'],
       legend: ['Légende du climat', 'Débloque tous les autres succès'],
     },
     choices: [

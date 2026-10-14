@@ -397,10 +397,14 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 :root[data-time="night"] .nightsky, :root[data-time="eclipse"] .nightsky { opacity: 1; }
 .star { fill: #fff8d8; animation: twinkle 2.6s ease-in-out infinite; }
 .moon-cut { fill: var(--sky-top-c); }
-:root[data-time="morning"] .sun { transform: translateY(70px); }
-:root[data-time="evening"] .sun { transform: translateY(170px); }
-:root[data-time="night"] .sun { transform: translateY(240px); opacity: 0; }
-.sun { transition: transform 1.6s ease-in-out, opacity 1.4s; }
+/* The sun travels across the sky: rises low on the left, high at midday, sets low on the right */
+.sun { transform: translate(-160px, -10px); transition: transform 2.2s ease-in-out, opacity 1.4s; }
+:root[data-time="morning"] .sun { transform: translate(-530px, 140px); }
+:root[data-time="evening"] .sun { transform: translate(30px, 165px); }
+:root[data-time="night"] .sun { transform: translate(80px, 260px); opacity: 0; }
+.sun-tint { opacity: 0; transition: opacity 2s; }
+:root[data-time="morning"] .sun-tint { opacity: 0.35; }
+:root[data-time="evening"] .sun-tint { opacity: 0.7; }
 .glows circle { opacity: 0; transition: opacity 1.2s; pointer-events: none; }
 .glows circle.on { opacity: 1; animation: glowFlicker 2.4s ease-in-out infinite alternate; }
 @keyframes glowFlicker { 50% { opacity: 0.8; } }
@@ -441,10 +445,6 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 @keyframes rainfall { to { stroke-dashoffset: -42; } }
 .rainy .cloud { fill: #8d97a5; }
 .rain-cloud { fill: #77818f; }
-/* raindrop ripples on the water */
-.ripples ellipse { fill: none; stroke: #f2fbff; stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
-.ripples:not(.hide) ellipse { animation: ripple 1.4s ease-out infinite; }
-@keyframes ripple { 0% { transform: scale(0.15); opacity: 1; } 100% { transform: scale(1.9); opacity: 0; } }
 /* storm cloud cover slowly rolling */
 .storm-roll { animation: stormRoll 9s ease-in-out infinite alternate; }
 .storm-roll.slow { animation-duration: 13s; }
@@ -533,8 +533,8 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 .mjump.jump { animation: jump 0.7s ease; }
 .mjump.droop { animation: droop 0.9s ease; transform-box: fill-box; transform-origin: 50% 100%; }
 .stormy .sway { transform-box: fill-box; transform-origin: 50% 100%; animation: sway 0.9s ease-in-out infinite alternate; }
-.sun { transform-box: fill-box; transform-origin: center; transition: transform 2s; }
-.dry .sun { transform: scale(1.45); }
+.sun { transform-box: fill-box; transform-origin: center; }
+.dry .sun { transform: translate(-160px, -10px) scale(1.45); }
 .stormy .sun, .rainy .sun { opacity: 0.15; transition: opacity 1.5s; }
 .stormy .cloud { fill: #6d7682; transition: fill 1.5s; }
 

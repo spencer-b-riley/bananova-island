@@ -86,11 +86,8 @@ const Scene = (() => {
   // simple repeatable "random" so every screen draws the same scene
   const rnd = (n) => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };
 
-  // Rain clouds across the whole sky (also past the edges, for wide screens),
-  // with rain falling from underneath each cloud down to the sea.
+  // Rain falls from under the cloud cover (also past the edges, for wide screens) down to the sea.
   const RAIN_CLOUDS = Array.from({ length: 13 }, (_, k) => [-900 + k * 210, 28 + (k % 3) * 18, 1.35 + (k % 2) * 0.25]);
-  const rainCloudsSVG = RAIN_CLOUDS.map(([x, y, sc]) =>
-    `<g transform="translate(${x} ${y}) scale(${sc})"><g class="cloud rain-cloud"><circle cx="0" cy="0" r="22"/><circle cx="24" cy="-8" r="26"/><circle cx="50" cy="2" r="20"/><circle cx="76" cy="-2" r="18"/><rect x="0" y="0" width="76" height="20"/></g></g>`).join('');
   const rainSVG = RAIN_CLOUDS.map(([x, y, sc], c) => Array.from({ length: 7 }, (_, k) => {
     const x1 = x + (6 + k * 11) * sc, y1 = y + 22 * sc;
     const y2 = 505 + rnd(c * 7 + k + 50) * 380;   // some rain falls closer to us, further down the screen
@@ -103,15 +100,12 @@ const Scene = (() => {
     for (let x = 3800; x > -3000; x -= step) d += ` Q${x - step / 2 + shift} ${yBase + amp} ${x - step} ${yBase}`;
     return `<path d="${d} Z" fill="${fill}"/>`;
   };
+  const rainCoverSVG = `<g class="storm-roll">${stormLayer(165, 44, 150, 10, '#9aa3ae')}</g>
+    <g class="storm-roll slow">${stormLayer(125, 38, 120, -25, '#8a939f')}</g>
+    <g class="storm-roll">${stormLayer(80, 32, 100, 15, '#7c8591')}</g>`;
   const stormCloudsSVG = `<g class="storm-roll">${stormLayer(150, 46, 150, 0, '#5a6371')}</g>
     <g class="storm-roll slow">${stormLayer(115, 40, 120, 30, '#4a525f')}</g>
     <g class="storm-roll">${stormLayer(70, 34, 100, -20, '#3c434f')}</g>`;
-
-  // Raindrop ripples on the sea (smaller near the horizon, bigger close up)
-  const RIPPLES = Array.from({ length: 190 }, (_, k) => {
-    const y = 292 + Math.pow(rnd(k + 300), 1.25) * 560, x = -700 + rnd(k + 700) * 2200, sz = 3.5 + (y - 285) / 26;
-    return `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${sz.toFixed(1)}" ry="${(sz * 0.35).toFixed(1)}" style="animation-delay:${(-rnd(k + 900) * 1.4).toFixed(2)}s"/>`;
-  }).join('');
 
   // Night stars across the whole sky
   const STARS = Array.from({ length: 46 }, (_, k) =>
@@ -194,6 +188,7 @@ const Scene = (() => {
   <rect data-k="gloom" class="fade hide" x="-3000" y="-3000" width="6800" height="6800" fill="#4b5563" opacity=".3"/>
   <g data-k="sun" class="sun"><circle data-k="heatGlow" class="fade hide" cx="680" cy="80" r="95" fill="#ffb03a" opacity=".45"/>
     <circle cx="680" cy="80" r="62" fill="#ffe680" opacity=".35"/><circle cx="680" cy="80" r="42" fill="url(#${u}sun)"/>
+    <circle class="sun-tint" cx="680" cy="80" r="42" fill="#ff7a3d"/>
     <circle class="corona" cx="680" cy="80" r="50" fill="none" stroke="#fff6c8" stroke-width="7"/>
     <circle class="eclipse-moon" cx="680" cy="80" r="44" fill="#151a2b"/></g>
   <g class="nightsky">
@@ -203,7 +198,7 @@ const Scene = (() => {
 
   <g data-k="skyClouds"></g>
   <g data-k="stormClouds" class="fade hide">${stormCloudsSVG}</g>
-  <g data-k="rainClouds" class="fade hide">${rainCloudsSVG}</g>
+  <g data-k="rainCover" class="fade hide">${rainCoverSVG}</g>
 
   ${item('darkSmoke', 0, 0, `<g class="billow">
       <circle cx="690" cy="330" r="14"/><circle cx="682" cy="290" r="20"/><circle cx="672" cy="245" r="26"/>
@@ -213,7 +208,6 @@ const Scene = (() => {
 
   <rect x="-3000" y="285" width="6800" height="3000" fill="url(#${u}sea)"/>
   <rect data-k="murk" class="fade" x="-3000" y="285" width="6800" height="3000" fill="#6f7d3c" opacity="0"/>
-  <g data-k="ripples" class="ripples hide">${RIPPLES}</g>
   <g class="waves"><path d="M20 310 q15 -8 30 0 q15 8 30 0 M640 300 q15 -8 30 0 q15 8 30 0 M300 296 q15 -6 30 0 q15 6 30 0 M-260 320 q15 -8 30 0 q15 8 30 0 M-520 300 q15 -6 30 0 q15 6 30 0 M900 318 q15 -8 30 0 q15 8 30 0 M1160 300 q15 -6 30 0 q15 6 30 0 M-120 460 q15 -8 30 0 q15 8 30 0 M960 470 q15 -8 30 0 q15 8 30 0"/></g>
 
   <g data-k="land">
@@ -452,7 +446,7 @@ const Scene = (() => {
         s.task(250, 418, () => {
           s.hide('bottles');
           [[52, 452], [300, 486], [735, 462]].forEach(([x, y], k) =>
-            setTimeout(() => s.toss(250, 380, x, y, BOTTLE, 900, () => { s.splash(x, y); if (k === 2) { s.show('seaBottles'); s.addDead(1); s.murk += 0.22; } }), k * 260));
+            setTimeout(() => s.toss(250, 380, x, y, BOTTLE, 900, () => { s.splash(x, y); if (k === 2) { s.show('seaBottles'); s.murk += 0.22; } }), k * 260));
         }, 2300);
       },
       pay(s) { s.show('pots'); s.sparkle(225, 400); },
@@ -639,7 +633,7 @@ const Scene = (() => {
         setTimeout(() => g.remove(), 900);
       },
       addDead(n) {
-        deadCount = Math.min(DEAD_SLOTS.length, deadCount + n);
+        deadCount = Math.min(6, deadCount + n);
         for (let k = 0; k < deadCount; k++) s.show('dead' + k);
       },
       rain(ms) { setWeather('rain'); clearTimeout(s.rainTimer); s.rainTimer = setTimeout(() => setWeather('clear'), ms); },
@@ -683,9 +677,8 @@ const Scene = (() => {
       const rainy = w === 'rain';
       svg.classList.toggle('rainy', rainy);
       q('rain').classList.toggle('hide', !rainy);
-      q('rainClouds').classList.toggle('hide', !rainy);
+      q('rainCover').classList.toggle('hide', !rainy);
       q('gloom').classList.toggle('hide', !rainy);
-      q('ripples').classList.toggle('hide', !rainy);
       if (!rainy) q('stormClouds').classList.add('hide');
     }
 
@@ -837,6 +830,49 @@ const Scene = (() => {
       setTimeout(() => { svg.classList.remove('eclipse'); setTime(before); }, 7000);
     }
 
+    /* Super rare: a pirate ship sails in, the pirates grab some loot from the island and sail away. */
+    const SHIP = `<g class="float"><g transform="scale(1.5)">
+        <path d="M-70 -6 L70 -6 L56 22 L-58 22Z" fill="#7a4a24"/><path d="M-70 -6 L70 -6 L67 0 L-68 0Z" fill="#5a3518"/>
+        <path d="M-64 6 H62" stroke="#f2c94c" stroke-width="3"/>
+        <circle cx="-30" cy="12" r="4" fill="#3b2a1a"/><circle cx="0" cy="12" r="4" fill="#3b2a1a"/><circle cx="30" cy="12" r="4" fill="#3b2a1a"/>
+        <path d="M-12 -6 V-104 M30 -6 V-80" stroke="#5a3518" stroke-width="5"/>
+        <path d="M-10 -100 Q24 -76 -10 -24Z" fill="#f4ecd8"/><path d="M-14 -96 Q-48 -70 -14 -28Z" fill="#efe4c8"/><path d="M32 -76 Q58 -56 32 -24Z" fill="#f4ecd8"/>
+        <path d="M-12 -104 h26 l-6 8 l6 8 h-26Z" fill="#23313f"/><circle cx="-1" cy="-97" r="3.6" fill="#fff"/><path d="M-6 -91 l10 4 M4 -91 l-10 4" stroke="#fff" stroke-width="1.6"/>
+        <g class="pirate-crew">
+          <circle cx="-44" cy="-14" r="7" fill="#e8c39e"/><path d="M-51 -16 Q-44 -26 -37 -16Z" fill="#e63946"/><circle cx="-42" cy="-14" r="1.3" fill="#23313f"/>
+          <circle cx="48" cy="-14" r="7" fill="#c98f5f"/><path d="M41 -16 Q48 -26 55 -16Z" fill="#2f80ed"/><circle cx="50" cy="-14" r="1.3" fill="#23313f"/><path d="M44 -15 h4" stroke="#23313f" stroke-width="2.5"/>
+          <circle cx="8" cy="-14" r="7" fill="#e8c39e"/><path d="M1 -16 Q8 -26 15 -16Z" fill="#23313f"/><circle cx="10" cy="-14" r="1.3" fill="#23313f"/>
+        </g></g></g>`;
+    const LOOT = ['basket', 'barrel', 'woodpile', 'caveLamp', 'pots', 'rod', 'bucket', 'fruitpile', 'compost', 'bin', 'caveBed', 'campfire'];
+    function pirates() {
+      const ship = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      ship.innerHTML = SHIP;
+      q('fx').appendChild(ship);
+      const sail = (from, to, ms) => new Promise((done) => {
+        const t0 = performance.now();
+        const frame = (now) => {
+          const k = Math.min(1, (now - t0) / ms), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+          ship.setAttribute('transform', `translate(${(from + (to - from) * e).toFixed(1)} 470)`);
+          if (k < 1) requestAnimationFrame(frame); else done();
+        };
+        requestAnimationFrame(frame);
+      });
+      react('scared', 0);
+      return sail(1300, 660, 2800).then(() => new Promise((done) => {
+        // grab up to 4 things the monkey owns (or the coconuts if there's nothing else)
+        const stolen = LOOT.filter((k) => visible(q(k))).slice(0, 4);
+        if (!stolen.length) svg.querySelectorAll('.cocos:not(.hide)').forEach((c) => c.classList.add('hide'));
+        stolen.forEach((k, n) => setTimeout(() => {
+          const el = q(k), r = el.getBoundingClientRect(), m = svg.getScreenCTM();
+          let x = 400, y = 380;
+          if (m && r.width) { const pt = svg.createSVGPoint(); pt.x = r.left + r.width / 2; pt.y = r.top + r.height / 2; const p = pt.matrixTransform(m.inverse()); x = p.x; y = p.y; }
+          s.hide(k);
+          s.toss(x, y, 660, 430, '<g transform="scale(.8)"><rect x="-10" y="-8" width="20" height="16" rx="3" fill="#c98f4f" stroke="#7a4a24" stroke-width="2"/><path d="M-10 -2 H10" stroke="#f2c94c" stroke-width="2"/></g>', 750);
+        }, n * 450));
+        setTimeout(done, stolen.length * 450 + 1100);
+      })).then(() => sail(660, -900, 3600)).then(() => { ship.remove(); react('sad', 2600); });
+    }
+
     function disaster(type) {
       const fx = q('fx');
       taskId++;
@@ -870,7 +906,7 @@ const Scene = (() => {
         svg.classList.add('stormy');
         setWeather('rain');
         s.show('stormClouds');
-        s.hide('rainClouds');   // one seamless storm cover instead of separate clouds
+        s.hide('rainCover');    // the darker storm cover replaces the rain cover
         q('fxTop').insertAdjacentHTML('beforeend', `
           <rect class="storm-dark" x="-3000" y="-3000" width="6800" height="6800" fill="#1d2533"/>
           <path class="bolt" d="M430 0 L400 110 L436 110 L390 240 L470 90 L432 90 L462 0Z" fill="#fff36b"/>
@@ -901,6 +937,7 @@ const Scene = (() => {
         }
       },
       eclipse,
+      pirates,
       allowWhale(on) { whaleAllowed = on; },
       payoff: (id) => ACTIONS[id].pay(s),
       disaster,

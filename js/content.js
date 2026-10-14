@@ -46,6 +46,7 @@ const ACHIEVEMENTS = [
   { id: 'whale',       emoji: '🐋', mystery: true },
   { id: 'stormchaser', emoji: '🌪️', mystery: true },
   { id: 'eclipse',     emoji: '🌑', mystery: true }, // about 1 game in 100
+  { id: 'pirates',     emoji: '🏴‍☠️', mystery: true }, // about 1 game in 100
   { id: 'legend',      emoji: '👑', mystery: true }, // unlock every other achievement
 ];
 

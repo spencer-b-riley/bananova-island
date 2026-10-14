@@ -67,6 +67,7 @@ const Sound = (() => {
     },
     lose: (t) => [67, 66, 65, 64].forEach((n, k) => note(midi(n), t + k * 0.25, 0.4, { type: 'sawtooth', vol: 0.05 })),
     splash: (t) => noise(t, 0.6, { vol: 0.25, freq: 2500, to: 300 }),
+    pirate: (t) => [57, 60, 64, 62, 60, 57, 55, 57].forEach((n, k) => note(midi(n + 12), t + k * 0.16, 0.22, { type: 'square', vol: 0.06 })),
     pop: (t) => note(midi(80), t, 0.12, { type: 'sine', vol: 0.2, to: midi(92) }),
     flood: (t) => {
       noise(t, 3.2, { vol: 0.45, freq: 300, to: 1800, attack: 1.2 });
