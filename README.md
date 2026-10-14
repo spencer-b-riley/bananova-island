@@ -1,4 +1,4 @@
-# 🐒 Palmwise Island 🏝️
+# 🐒 Climate Island 🏝️
 
 A climate game for kids aged 8–14. A monkey is alone on an island and the player makes
 **10 two-option choices**. Each choice balances the monkey's happiness now 🐒 against the
@@ -72,16 +72,15 @@ Then go to http://localhost:8000.
 ## Deploy on Vercel
 
 1. Go to https://vercel.com and sign in with GitHub.
-2. Click **Add New… → Project** and import the `palmwise-island` repository.
+2. Click **Add New… → Project** and import the `climate-island` repository.
 3. Framework preset: **Other**. Leave the build command and output directory empty.
 4. Click **Deploy**. Every push to `main` updates the live site automatically.
 
 ## Originality, credits and licenses
 
-- **Name:** "Palmwise Island" is a made-up name (palm + wise, as in wise choices on a palm
-  island). We chose it to avoid "Monkey Island", the name of a video game series owned by
-  Disney/LucasArts. Web searches found no game, app, brand or trademark called "Palmwise"
-  (this was not a formal trademark clearance).
+- **Name:** "Climate Island" is a plain descriptive name chosen by our group to match our
+  climate communication class. A web search found no game with this exact title (this was not a
+  formal trademark clearance). We avoided "Monkey Island", a Disney/LucasArts game series.
 - **Art:** every drawing (island, monkey, animals and disasters) is original SVG made in code
   for this project. No images, sprites or fonts are downloaded.
 - **Music and sounds:** an original melody and effects, generated live with the Web Audio API.

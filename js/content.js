@@ -42,6 +42,10 @@ const ACHIEVEMENTS = [
   { id: 'learner',     emoji: '📚' },
   { id: 'survivor',    emoji: '⛈️' },
   { id: 'three',       emoji: '🔁' },
+  // Mystery achievements: hidden as "???" until unlocked
+  { id: 'whale',       emoji: '🐋', mystery: true },
+  { id: 'stormchaser', emoji: '🌪️', mystery: true },
+  { id: 'eclipse',     emoji: '🌑', mystery: true }, // about 1 game in 50
 ];
 
 const TAKEAWAY_EMOJI = ['🗑️', '♻️', '🍎', '🌱', '💧', '🐢'];

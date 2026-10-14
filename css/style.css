@@ -1,4 +1,4 @@
-/* ───────── Palmwise Island – styles ───────── */
+/* ───────── Climate Island – styles ───────── */
 /* Sky + sea colours for each time of day. Used by the island drawing AND the page
    background, so inside and outside the game always match. */
 @property --sky-top-c { syntax: '<color>'; inherits: true; initial-value: #5ec8f5; }
@@ -13,6 +13,7 @@
 :root[data-time="morning"] { --sky-top-c: #7cc8ef; --sky-bot-c: #ffe3c4; --sea-top-c: #45b4dc; --sea-bot-c: #1a7fb6; --cloud-c: #fff6ec; }
 :root[data-time="evening"] { --sky-top-c: #5b5fb0; --sky-bot-c: #ffae80; --sea-top-c: #3f86b8; --sea-bot-c: #1b4f86; --cloud-c: #ffd9c7; }
 :root[data-time="night"]   { --sky-top-c: #0c1838; --sky-bot-c: #283c78; --sea-top-c: #1a4470; --sea-bot-c: #0a2242; --cloud-c: #6c7896; }
+:root[data-time="eclipse"] { --sky-top-c: #141c38; --sky-bot-c: #3d4475; --sea-top-c: #1d3b5e; --sea-bot-c: #0b2342; --cloud-c: #5c6684; }
 
 :root {
   --sky: #7fd3f7;
@@ -132,11 +133,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   margin: 4px auto 0; max-width: 560px; font-weight: 800; font-size: clamp(14px, 2.2vh, 19px);
   color: var(--ink); background: rgba(255, 255, 255, 0.75); border-radius: 999px; padding: 6px 16px;
 }
-.title-scene {
-  flex: 1 1 auto; min-height: 90px; position: relative; width: 100%; max-width: 900px; margin: 4px auto;
-  border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); border: 4px solid #fff;
-}
-.title-scene svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.title-scene { flex: 1 1 auto; min-height: 90px; position: relative; z-index: 0; width: 100%; margin: 4px auto; pointer-events: none; }
+.title-scene svg { position: absolute; inset: 0; }
 .title-actions { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .lang-chips { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
 .lang-chips button {
@@ -195,11 +193,11 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .dots .now { box-shadow: 0 0 0 2px var(--ink); }
 .turn-txt { display: none; font-weight: 900; font-size: 14px; white-space: nowrap; }
 
-.scene-wrap {
-  min-height: 0; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow);
-  background: linear-gradient(#5ec8f5, #c4f0ff 57%, #2bb3e0 57%, #1279b8);
-}
-.scene-wrap svg { width: 100%; height: 100%; display: block; }
+/* The island has no frame: the drawing's sky and sea spill out over the whole screen,
+   behind the top bar, the meters and the cards. */
+.scene-wrap { min-height: 0; position: relative; z-index: 0; pointer-events: none; }
+.scene-wrap svg, .title-scene svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.topbar, .hud, .card, .tabs, .title-actions, .logo, .subtitle, .credits { position: relative; z-index: 2; }
 
 .card {
   background: var(--paper); border-radius: var(--radius); box-shadow: var(--shadow);
@@ -273,10 +271,10 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .pager { display: flex; gap: 10px; align-items: center; justify-content: center; font-weight: 800; }
 
 /* ── achievements ── */
-.ach-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+.ach-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
 .badge { background: #fff; border-radius: 16px; padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .badge .emo { font-size: clamp(26px, 4.4vh, 38px); line-height: 1.1; }
-.badge b { font-size: 13px; line-height: 1.15; }
+.badge b { font-size: 13px; line-height: 1.15; max-width: 100%; overflow-wrap: anywhere; hyphens: auto; }
 .badge small { font-size: 11px; color: var(--ink2); font-weight: 700; line-height: 1.2; }
 .badge.locked .emo { filter: grayscale(1); opacity: 0.35; }
 .badge.locked b { color: var(--ink2); }
@@ -311,7 +309,10 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 @media (max-width: 600px) {
   .choices { grid-template-columns: 1fr; gap: 8px; }
   .meter small { display: none; }
-  .ach-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .ach-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .badge { padding: 6px 4px; }
+  .badge b { font-size: 11.5px; }
+  .badge .emo { font-size: 26px; }
   .badge small { display: none; }
   .takeaways { grid-template-columns: 1fr; gap: 5px; }
   .brand { font-size: 15px; }
@@ -349,7 +350,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   .icon-btn { width: 32px; }
   .tabs { padding: 2px 12px 6px; }
   .tabs button .ti { font-size: 16px; }
-  .ach-grid { grid-template-columns: repeat(6, 1fr); }
+  .ach-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
   .title-screen { gap: 2px; }
   .logo { font-size: 38px; -webkit-text-stroke: 2px var(--ink); text-shadow: 0 3px 0 var(--ink); }
 }
@@ -389,9 +390,9 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 :root[data-time="evening"] .st-haze-bot { stop-color: #d9917a; }
 :root[data-time="night"] .st-haze-top { stop-color: #161b2a; }
 :root[data-time="night"] .st-haze-bot { stop-color: #3a3d52; }
-.rainy .cloud, .rain-cloud { fill: #8d97a5; }
+
 .nightsky { opacity: 0; transition: opacity 1.4s; }
-:root[data-time="night"] .nightsky { opacity: 1; }
+:root[data-time="night"] .nightsky, :root[data-time="eclipse"] .nightsky { opacity: 1; }
 .star { fill: #fff8d8; animation: twinkle 2.6s ease-in-out infinite; }
 .moon-cut { fill: var(--sky-top-c); }
 :root[data-time="morning"] .sun { transform: translateY(70px); }
@@ -416,8 +417,9 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 @keyframes shiver { 25% { transform: translateX(-1.5px); } 75% { transform: translateX(1.5px); } }
 @keyframes heartUp { 0% { transform: translateY(4px) scale(0.8); opacity: 0.4; } 50% { opacity: 1; } 100% { transform: translateY(-8px) scale(1.1); opacity: 0.2; } }
 @keyframes drip { from { transform: translateY(0); } to { transform: translateY(6px); opacity: 0.3; } }
-.wade { opacity: 0; transition: opacity 0.8s 1s; }
-.dry .wade { opacity: 1; }
+.wade-water { opacity: 0; transition: opacity 0.6s 1.1s; }
+.dry .wade-water { opacity: 1; }
+.wade-foam { animation: foam 2s ease-in-out infinite; }
 
 /* speech bubble */
 .bubble { transition: opacity 0.25s; pointer-events: none; }
@@ -432,16 +434,69 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 .billow circle { fill: #59606b; opacity: 0.75; }
 .puff circle { fill: #c9ced4; opacity: 0.85; }
 .flies circle { fill: #222; animation: buzz 0.9s linear infinite; }
-.rain line { stroke: #b9e2ff; stroke-width: 2.4; stroke-linecap: round; opacity: 0.85; }
-.rain:not(.hide) line { animation: fall 0.55s linear infinite; }
+.rain line { stroke: #c9ddef; stroke-width: 2; stroke-dasharray: 16 26; opacity: 0.75; }
+.rain:not(.hide) line { animation: rainfall 0.45s linear infinite; }
+@keyframes rainfall { to { stroke-dashoffset: -42; } }
+.rainy .cloud { fill: #8d97a5; }
+.rain-cloud { fill: #77818f; }
 .foam { animation: foam 4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
 
 .swim { animation: swim 16s linear infinite; }
 .bob { animation: bob 2.4s ease-in-out infinite; }
 .float { animation: floaty 3s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
 .flicker { transform-box: fill-box; transform-origin: 50% 100%; animation: flicker 0.32s ease-in-out infinite alternate; }
-.drift { animation: drift 60s linear infinite; }
-.glide { animation: glide 22s ease-in-out infinite alternate; }
+.drift { animation: drift 110s linear infinite; }
+/* seagulls: fly across, glide up and down, flap their wings */
+.fly { animation: fly 20s linear infinite; }
+.soar { animation: soar 3s ease-in-out infinite; }
+.wing { animation: flap 0.42s ease-in-out infinite alternate; }
+.wing.far { animation-delay: -0.08s; }
+@keyframes fly { from { transform: translateX(-600px); } to { transform: translateX(1500px); } }
+@keyframes soar { 50% { transform: translateY(-14px); } }
+@keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(-0.75); } }
+
+/* bushes, grass, critters */
+.bush-d { fill: #3f9e3a; transition: fill 1.5s; }
+.bush-l { fill: #5cc148; transition: fill 1.5s; }
+.berry { fill: #ff5a7a; transition: opacity 1s; }
+.tuft { stroke: #5aa83c; stroke-width: 3; fill: none; stroke-linecap: round; transition: stroke 1.5s; }
+.unhealthy .bush-d { fill: #8a9a45; } .unhealthy .bush-l { fill: #a5b25a; } .unhealthy .berry { opacity: 0; } .unhealthy .tuft { stroke: #a39a55; }
+.dry .bush-d { fill: #a27c3a; } .dry .bush-l { fill: #c0954a; } .dry .tuft { stroke: #b8913f; }
+.flutter { animation: flutter 7s ease-in-out infinite; }
+.bfly .bwing { transform-box: fill-box; transform-origin: center; }
+.bfly { animation: wingbeat 0.25s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+@keyframes wingbeat { to { transform: scaleX(0.35); } }
+@keyframes flutter { 25% { transform: translate(26px, -14px); } 50% { transform: translate(44px, 4px); } 75% { transform: translate(14px, 12px); } }
+.beefly { animation: beefly 4s ease-in-out infinite; }
+.beefly .bwing { animation: flicker 0.08s linear infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes beefly { 25% { transform: translate(14px, -10px); } 50% { transform: translate(-6px, -18px); } 75% { transform: translate(-14px, -4px); } }
+.scuttle { animation: scuttle 5s ease-in-out infinite; }
+@keyframes scuttle { 0%, 100% { transform: translateX(0); } 40% { transform: translateX(22px); } 60% { transform: translateX(22px); } }
+.hop { animation: hop 3.4s ease-in-out infinite; }
+@keyframes hop { 0%, 80%, 100% { transform: translateY(0); } 88% { transform: translateY(-10px); } }
+
+/* coral reef: colourful when healthy, pale, then white when bleached */
+.lagoon { fill: #7fe3e6; opacity: 0.22; }
+.reef { opacity: 0.88; }
+.coral { transition: color 2s; }
+.c-a { color: #ff6f91; } .c-b { color: #ff9f43; } .c-c { color: #a77bff; } .c-d { color: #22c3b0; }
+.coral-pale .c-a { color: #f7b6c4; } .coral-pale .c-b { color: #f6c9a0; } .coral-pale .c-c { color: #cdb8f2; } .coral-pale .c-d { color: #a4ded6; }
+.coral-bleached .coral { color: #f1efe8; }
+
+/* the whale */
+.whale-bob { animation: whale 4s ease-in-out infinite; }
+@keyframes whale { 50% { transform: translateY(4px); } }
+.spout { transform-box: fill-box; transform-origin: 50% 100%; animation: spout 4s ease-out infinite; }
+@keyframes spout { 0%, 55% { transform: scale(0.2); opacity: 0; } 65% { transform: scale(1.1); opacity: 1; } 90% { transform: scale(1); opacity: 0.8; } 100% { opacity: 0; } }
+
+/* solar eclipse */
+.corona, .eclipse-moon { opacity: 0; }
+.eclipse .eclipse-moon { animation: moonPass 7s ease-in-out forwards; }
+.eclipse .corona { animation: corona 7s ease-in-out forwards; }
+.eclipse .nightsky { opacity: 0.8; }
+.eclipse .night-moon { opacity: 0; }  /* the moon is busy covering the sun */
+@keyframes moonPass { 0% { transform: translateX(-120px); opacity: 1; } 40%, 62% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(120px); opacity: 1; } }
+@keyframes corona { 0%, 33% { opacity: 0; } 42%, 60% { opacity: 1; } 70%, 100% { opacity: 0; } }
 .crawl { animation: crawl 4s ease-in infinite; }
 .swimaway { animation: swimaway 4s ease-in forwards; }
 .fishjump { transform-box: fill-box; transform-origin: center; animation: fishjump 2.8s ease-in-out infinite; }
@@ -451,14 +506,14 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 .stormy .sway { transform-box: fill-box; transform-origin: 50% 100%; animation: sway 0.9s ease-in-out infinite alternate; }
 .sun { transform-box: fill-box; transform-origin: center; transition: transform 2s; }
 .dry .sun { transform: scale(1.45); }
-.stormy .sun { opacity: 0.12; transition: opacity 1.5s; }
+.stormy .sun, .rainy .sun { opacity: 0.15; transition: opacity 1.5s; }
 .stormy .cloud { fill: #6d7682; transition: fill 1.5s; }
 
 @keyframes swim { from { transform: translateX(-80px); } to { transform: translateX(880px); } }
 @keyframes bob { 50% { transform: translateY(-4px); } }
 @keyframes floaty { 50% { transform: translateY(3px) rotate(5deg); } }
 @keyframes flicker { to { transform: scale(1.08, 1.2); } }
-@keyframes drift { from { transform: translateX(-200px); } to { transform: translateX(900px); } }
+@keyframes drift { from { transform: translateX(-900px); } to { transform: translateX(1700px); } }
 @keyframes glide { from { transform: translateX(-60px); } to { transform: translateX(160px) translateY(-10px); } }
 @keyframes buzz { 25% { transform: translate(4px, -3px); } 50% { transform: translate(0, -6px); } 75% { transform: translate(-4px, -3px); } }
 @keyframes fall { from { transform: translateY(-60px); } to { transform: translateY(60px); } }
@@ -475,7 +530,7 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 [data-k="monkey"] { transition: transform 1.4s ease-in-out; }
 /* flood: the monkey climbs to the top of the hill; storm/heatwave: it hides in the cave */
 .flooded [data-k="monkey"] { transform: translate(0, -192px) scale(0.85); }          /* runs up the hill */
-.stormy [data-k="monkey"] { transform: translate(-150px, -40px) scale(0.62); }        /* holds on behind the big rock */
+.stormy [data-k="monkey"] { transform: translate(-242px, -72px) scale(0.45); }        /* hides inside the cave */
 .dry [data-k="monkey"] { transform: translate(130px, 66px); }                         /* waits in the cool sea */
 .scorched { transform-box: fill-box; transform-origin: 50% 100%; animation: scorch 1.6s ease-in var(--delay, 0s) forwards; }
 @keyframes scorch { 40% { opacity: 1; } 100% { opacity: 0; transform: scale(0.85, 0.3); } }

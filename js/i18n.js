@@ -72,10 +72,11 @@ const I18N = {
       deletedGames: 'Game history deleted. Your achievements are safe! 🏆',
       deleted: 'All gone! Your games and achievements were deleted.',
       music: 'Music', sound: 'Sound effects', language: 'Language', home: 'Menu',
+      mystery: 'Mystery achievement',
     },
     // Speech bubbles: [problem, green choice, other choice, reward] for each choice
     say: {
-      hello: "Hi! I'm {name}!", storm: 'Hold on tight!', flood: 'Up the hill, quick!', heat: 'Too hot! To the sea!', hero: 'We did it!', safe: "Phew… I'm safe.",
+      hello: "Hi! I'm {name}!", storm: 'Quick, into the cave!', eclipse: 'Whoa! The sun is hiding!', whale: 'A whale! Hi there!', flood: 'Up the hill, quick!', heat: 'Too hot! To the sea!', hero: 'We did it!', safe: "Phew… I'm safe.",
       choices: [
         ['Where should I live?', 'So cozy in here!', 'Big house! But… the trees!', 'Coconuts! Yum!'],
         ['Eww, plastic!', 'All clean!', 'Oh no, the fish!', 'Pretty flowers!'],
@@ -110,7 +111,7 @@ const I18N = {
       struggle: ['Island in Trouble', '{name} had fun, but the island is very sick. Nature needs our help. You can do better next time!'],
       flood: ['Giant Waves!', 'The sea rose higher and giant storm waves washed everything away. {name} ran up the hill and is safe, but the island needs lots of help.'],
       heat: ['Heatwave & Wildfire!', 'The hot, dry weather started a wildfire that burned everything. {name} waited in the cool sea and is safe, but the island is badly hurt.'],
-      storm: ['Huge Thunderstorm!', 'A huge storm blew everything away. {name} held on tight behind the big rock and is safe, but the island is badly damaged.'],
+      storm: ['Huge Thunderstorm!', 'A huge storm blew everything away, even the things in the cave. {name} hid deep inside the cave and is safe, but the island is badly damaged.'],
     },
     ach: {
       first: ['First Steps', 'Finish your first game'],
@@ -125,6 +126,9 @@ const I18N = {
       learner: ['Super Learner', 'Read the whole recap'],
       survivor: ['Storm Survivor', 'Survive a natural disaster'],
       three: ['Never Give Up', 'Play 3 games'],
+      whale: ['Whale Hello!', 'Make the island so healthy that a whale visits'],
+      stormchaser: ['Storm Chaser', 'See all 3 natural disasters'],
+      eclipse: ['Eclipse Watcher', 'See a super rare solar eclipse'],
     },
     choices: [
       {
@@ -319,9 +323,10 @@ const I18N = {
       deletedGames: 'Spielgeschichte gelöscht. Deine Erfolge sind sicher! 🏆',
       deleted: 'Erledigt! Deine Spiele und Erfolge wurden gelöscht.',
       music: 'Musik', sound: 'Soundeffekte', language: 'Sprache', home: 'Menü',
+      mystery: 'Geheimer Erfolg',
     },
     say: {
-      hello: 'Hallo! Ich bin {name}!', storm: 'Gut festhalten!', flood: 'Schnell, auf den Hügel!', heat: 'Zu heiss! Ab ins Meer!', hero: "Wir haben's geschafft!", safe: 'Puh … ich bin sicher.',
+      hello: 'Hallo! Ich bin {name}!', storm: 'Schnell, in die Höhle!', eclipse: 'Wow! Die Sonne versteckt sich!', whale: 'Ein Wal! Hallo!', flood: 'Schnell, auf den Hügel!', heat: 'Zu heiss! Ab ins Meer!', hero: "Wir haben's geschafft!", safe: 'Puh … ich bin sicher.',
       choices: [
         ['Wo soll ich wohnen?', 'So gemütlich hier!', 'Grosses Haus! Aber … die Bäume!', 'Kokosnüsse! Lecker!'],
         ['Igitt, Plastik!', 'Alles sauber!', 'Oh nein, die Fische!', 'Schöne Blumen!'],
@@ -356,7 +361,7 @@ const I18N = {
       struggle: ['Insel in Not', '{name} hatte Spass, aber die Insel ist sehr krank. Die Natur braucht unsere Hilfe. Nächstes Mal schaffst du es besser!'],
       flood: ['Riesenwellen!', 'Das Meer stieg an und riesige Sturmwellen spülten alles weg. {name} ist auf den Hügel gerannt und in Sicherheit, aber die Insel braucht viel Hilfe.'],
       heat: ['Hitzewelle & Waldbrand!', 'Das heisse, trockene Wetter hat einen Waldbrand ausgelöst, der alles verbrannt hat. {name} hat im kühlen Meer gewartet und ist in Sicherheit, aber die Insel ist schwer verletzt.'],
-      storm: ['Riesiges Gewitter!', 'Ein riesiger Sturm hat alles weggeweht. {name} hat sich hinter dem grossen Felsen festgehalten und ist in Sicherheit, aber die Insel ist schwer beschädigt.'],
+      storm: ['Riesiges Gewitter!', 'Ein riesiger Sturm hat alles weggeweht, sogar die Sachen in der Höhle. {name} hat sich tief in der Höhle versteckt und ist in Sicherheit, aber die Insel ist schwer beschädigt.'],
     },
     ach: {
       first: ['Erste Schritte', 'Beende dein erstes Spiel'],
@@ -371,6 +376,9 @@ const I18N = {
       learner: ['Superschlau', 'Lies die ganze Zusammenfassung'],
       survivor: ['Sturm-Überlebender', 'Überlebe eine Naturkatastrophe'],
       three: ['Gib nie auf', 'Spiele 3 Spiele'],
+      whale: ['Wal-Besuch', 'Mach die Insel so gesund, dass ein Wal vorbeikommt'],
+      stormchaser: ['Sturmjäger', 'Erlebe alle 3 Naturkatastrophen'],
+      eclipse: ['Finsternis-Fan', 'Sieh eine super seltene Sonnenfinsternis'],
     },
     choices: [
       {
@@ -565,9 +573,10 @@ const I18N = {
       deletedGames: 'Cronologia cancellata. I tuoi traguardi sono al sicuro! 🏆',
       deleted: 'Fatto! Partite e traguardi sono stati cancellati.',
       music: 'Musica', sound: 'Effetti sonori', language: 'Lingua', home: 'Menu',
+      mystery: 'Traguardo misterioso',
     },
     say: {
-      hello: 'Ciao! Sono {name}!', storm: 'Tieniti forte!', flood: 'Presto, sulla collina!', heat: 'Troppo caldo! Al mare!', hero: 'Ce l’abbiamo fatta!', safe: 'Uff… sono al sicuro.',
+      hello: 'Ciao! Sono {name}!', storm: 'Presto, nella grotta!', eclipse: 'Wow! Il sole si nasconde!', whale: 'Una balena! Ciao!', flood: 'Presto, sulla collina!', heat: 'Troppo caldo! Al mare!', hero: 'Ce l’abbiamo fatta!', safe: 'Uff… sono al sicuro.',
       choices: [
         ['Dove posso vivere?', 'Che bello qui dentro!', 'Casa grande! Ma… gli alberi!', 'Noci di cocco! Gnam!'],
         ['Che schifo, plastica!', 'Tutto pulito!', 'Oh no, i pesci!', 'Che bei fiori!'],
@@ -602,7 +611,7 @@ const I18N = {
       struggle: ['Isola in pericolo', "{name} si è divertito, ma l'isola sta molto male. La natura ha bisogno del nostro aiuto. La prossima volta puoi fare meglio!"],
       flood: ['Onde giganti!', "Il mare si è alzato e onde giganti hanno portato via tutto. {name} è corso sulla collina ed è al sicuro, ma l'isola ha bisogno di tanto aiuto."],
       heat: ['Caldo e incendio!', "Il tempo caldo e secco ha acceso un incendio che ha bruciato tutto. {name} ha aspettato nel mare fresco ed è al sicuro, ma l'isola è molto ferita."],
-      storm: ['Temporale enorme!', "Una tempesta enorme ha spazzato via tutto. {name} si è tenuto forte dietro la grande roccia ed è al sicuro, ma l'isola è molto danneggiata."],
+      storm: ['Temporale enorme!', "Una tempesta enorme ha spazzato via tutto, anche le cose nella grotta. {name} si è nascosto in fondo alla grotta ed è al sicuro, ma l'isola è molto danneggiata."],
     },
     ach: {
       first: ['Primi passi', 'Finisci la tua prima partita'],
@@ -617,6 +626,9 @@ const I18N = {
       learner: ['Super studente', 'Leggi tutto il riepilogo'],
       survivor: ['Sopravvissuto', 'Sopravvivi a un disastro naturale'],
       three: ['Mai arrendersi', 'Gioca 3 partite'],
+      whale: ['Ciao balena!', 'Rendi l’isola così sana che arriva una balena'],
+      stormchaser: ['Cacciatore di tempeste', 'Vedi tutti e 3 i disastri naturali'],
+      eclipse: ['Osservatore dell’eclissi', 'Vedi una rarissima eclissi di sole'],
     },
     choices: [
       {
@@ -811,9 +823,10 @@ const I18N = {
       deletedGames: 'Historique effacé. Tes succès sont en sécurité ! 🏆',
       deleted: 'C’est fait ! Tes parties et tes succès ont été effacés.',
       music: 'Musique', sound: 'Effets sonores', language: 'Langue', home: 'Menu',
+      mystery: 'Succès mystère',
     },
     say: {
-      hello: 'Salut ! Je suis {name} !', storm: 'Accroche-toi !', flood: 'Vite, sur la colline !', heat: 'Trop chaud ! À la mer !', hero: 'On a réussi !', safe: 'Ouf… je suis à l’abri.',
+      hello: 'Salut ! Je suis {name} !', storm: 'Vite, dans la grotte !', eclipse: 'Waouh ! Le soleil se cache !', whale: 'Une baleine ! Coucou !', flood: 'Vite, sur la colline !', heat: 'Trop chaud ! À la mer !', hero: 'On a réussi !', safe: 'Ouf… je suis à l’abri.',
       choices: [
         ['Où vais-je habiter ?', 'Trop bien ici !', 'Grande maison ! Mais… les arbres !', 'Des noix de coco ! Miam !'],
         ['Beurk, du plastique !', 'Tout propre !', 'Oh non, les poissons !', 'Jolies fleurs !'],
@@ -848,7 +861,7 @@ const I18N = {
       struggle: ['Île en danger', '{name} s’est amusé, mais l’île est très malade. La nature a besoin de notre aide. Tu peux faire mieux la prochaine fois !'],
       flood: ['Vagues géantes !', 'La mer est montée et des vagues géantes ont tout emporté. {name} a couru sur la colline et est en sécurité, mais l’île a besoin de beaucoup d’aide.'],
       heat: ['Canicule et incendie !', 'Le temps chaud et sec a déclenché un incendie qui a tout brûlé. {name} a attendu dans la mer fraîche et est en sécurité, mais l’île est très abîmée.'],
-      storm: ['Orage géant !', 'Un orage géant a tout emporté. {name} s’est accroché derrière le gros rocher et est en sécurité, mais l’île est très abîmée.'],
+      storm: ['Orage géant !', 'Un orage géant a tout emporté, même les affaires de la grotte. {name} s’est caché au fond de la grotte et est en sécurité, mais l’île est très abîmée.'],
     },
     ach: {
       first: ['Premiers pas', 'Termine ta première partie'],
@@ -863,6 +876,9 @@ const I18N = {
       learner: ['Super élève', 'Lis tout le résumé'],
       survivor: ['Survivant', 'Survis à une catastrophe naturelle'],
       three: ['N’abandonne jamais', 'Joue 3 parties'],
+      whale: ['Coucou la baleine !', 'Rends l’île si saine qu’une baleine vient la voir'],
+      stormchaser: ['Chasseur de tempêtes', 'Vois les 3 catastrophes naturelles'],
+      eclipse: ['Témoin de l’éclipse', 'Vois une éclipse de soleil super rare'],
     },
     choices: [
       {

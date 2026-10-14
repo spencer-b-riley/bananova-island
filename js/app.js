@@ -1,4 +1,4 @@
-/* Palmwise Island – main game flow.
+/* Climate Island – main game flow.
    Screens: title → name → intro → 10 choices (with payoffs) → ending → recap → takeaways.
    Menu tabs: Play, My Games, Achievements, Privacy. */
 
@@ -143,6 +143,11 @@
   }
   const achName = (id) => esc(L().ach[id][0]);
   const achEmoji = (id) => ACHIEVEMENTS.find((a) => a.id === id).emoji;
+  function unlockWithToast(id) {
+    if (!unlock(id)) return;
+    toast(achEmoji(id), t('newAch'), achName(id));
+    Sound.play('achieve');
+  }
 
   /* ═════════════════════ MENU SCREENS ═════════════════════ */
 
@@ -151,7 +156,7 @@
     G = null;
     setScreen(`
       <section class="screen title-screen">
-        <h1 class="logo"><span class="w1">Palmwise</span> <span class="w2">Island</span></h1>
+        <h1 class="logo"><span class="w1">Climate</span> <span class="w2">Island</span></h1>
         <p class="subtitle">${t('subtitle')}</p>
         <div class="title-scene" id="titleScene" aria-hidden="true"></div>
         <div class="title-actions">
@@ -200,8 +205,11 @@
         <p class="muted small">${t('achCount', { a: got, b: ACHIEVEMENTS.length })} · ${t('savedLocal')}</p>
         <div class="ach-grid">${ACHIEVEMENTS.map((a) => {
           const has = !!store.ach[a.id];
-          return `<div class="badge ${has ? 'got' : 'locked'}" title="${esc(L().ach[a.id][1])}">
-            <span class="emo">${has ? a.emoji : a.emoji}</span><b>${has ? '' : '🔒 '}${achName(a.id)}</b><small>${esc(L().ach[a.id][1])}</small></div>`;
+          const secret = a.mystery && !has;
+          const name = secret ? t('mystery') : achName(a.id);
+          const desc = secret ? '???' : esc(L().ach[a.id][1]);
+          return `<div class="badge ${has ? 'got' : 'locked'} ${a.mystery ? 'mystery' : ''}" title="${desc}">
+            <span class="emo">${secret ? '❓' : a.emoji}</span><b>${has ? '' : '🔒 '}${name}</b><small>${desc}</small></div>`;
         }).join('')}</div>
       </div></section>`, { tab: 'ach' });
   }
@@ -276,7 +284,9 @@
     G = {
       name, h: START.h, i: START.i, turn: 0, picks: [], order: [], payQueue: [],
       next: null, cardView: null, busy: false, disaster: null, cause: null,
-      ending: null, newAch: [], recapIdx: 0, langs: new Set([lang]),
+      ending: null, newAch: [], recapIdx: 0, langs: new Set([lang]), sawWhale: false,
+      // Super rare: about 1 game in 50 has a solar eclipse during one of the daytime choices
+      eclipseAt: Math.random() < 0.02 ? [1, 2, 3, 6, 8][Math.floor(Math.random() * 5)] : -1,
     };
     renderIntro();
   }
@@ -364,6 +374,11 @@
     floatDelta('mi', G.i - oldI);
     updateHud();
     if (dh > 0) scene.jump(); else if (dh < 0) scene.droop();
+    // a really healthy island gets a visit from a whale
+    if (G.i >= 85 && !G.sawWhale) {
+      G.sawWhale = true;
+      setTimeout(() => { if (G && !G.disaster) { sayLine((sy) => sy.whale); unlockWithToast('whale'); } }, 3200);
+    }
   }
 
   const deltaChips = (dh, di) => {
@@ -400,6 +415,15 @@
       sayLine((sy) => sy.hello);
       setTimeout(() => { if (G && G.turn === 0) sayLine((sy) => sy.choices[0][0]); }, 2200);
     } else sayLine((sy) => sy.choices[idx][0]);
+    if (idx === G.eclipseAt) {
+      setTimeout(() => {
+        if (!G || G.turn !== idx) return;
+        scene.eclipse();
+        scene.react('scared', 4000);  // wide-eyed amazement
+        sayLine((sy) => sy.eclipse);
+        unlockWithToast('eclipse');
+      }, 1800);
+    }
     updateHud();
     G.cardView = () => {
       const opts = [
@@ -498,6 +522,11 @@
     check(G.picks[9] === true, 'turtle');
     check(!!G.disaster, 'survivor');
     check(store.games.length >= 3, 'three');
+    if (G.disaster) {
+      store.stats.disasters[G.disaster] = true;
+      Store.save(store);
+    }
+    check(['flood', 'heat', 'storm'].every((d) => store.stats.disasters[d]), 'stormchaser');
     G.newAch = earned;
 
     Sound.play(G.disaster ? 'lose' : ending === 'hero' ? 'win' : 'payoff');

@@ -83,10 +83,67 @@ const Scene = (() => {
 
   const bananas = `<path d="M0 0 Q10 10 24 -2 Q10 5 0 0Z" fill="#ffd93b" stroke="#c9a227" stroke-width="1.2"/>`;
 
-  const RAIN = Array.from({ length: 46 }, (_, k) => {
-    const x = (k * 97) % 820 - 10, y = (k * 53) % 300;
-    return `<line x1="${x}" y1="${y}" x2="${x - 6}" y2="${y + 18}" style="animation-delay:${-(k % 7) * 0.09}s"/>`;
-  }).join('');
+  // simple repeatable "random" so every screen draws the same scene
+  const rnd = (n) => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };
+
+  // Rain clouds across the whole sky (also past the edges, for wide screens),
+  // with rain falling from underneath each cloud down to the sea.
+  const RAIN_CLOUDS = Array.from({ length: 13 }, (_, k) => [-900 + k * 210, 28 + (k % 3) * 18, 1.35 + (k % 2) * 0.25]);
+  const rainCloudsSVG = RAIN_CLOUDS.map(([x, y, sc]) =>
+    `<g transform="translate(${x} ${y}) scale(${sc})"><g class="cloud rain-cloud"><circle cx="0" cy="0" r="22"/><circle cx="24" cy="-8" r="26"/><circle cx="50" cy="2" r="20"/><circle cx="76" cy="-2" r="18"/><rect x="0" y="0" width="76" height="20"/></g></g>`).join('');
+  const rainSVG = RAIN_CLOUDS.map(([x, y, sc], c) => Array.from({ length: 7 }, (_, k) => {
+    const x1 = x + (6 + k * 11) * sc, y1 = y + 22 * sc;
+    return `<line x1="${x1.toFixed(0)}" y1="${y1.toFixed(0)}" x2="${(x1 - 26).toFixed(0)}" y2="505" style="animation-delay:${(-rnd(c * 7 + k) * 0.5).toFixed(2)}s"/>`;
+  }).join('')).join('');
+
+  // Night stars across the whole sky
+  const STARS = Array.from({ length: 46 }, (_, k) =>
+    `<circle class="star" cx="${(-600 + rnd(k + 1) * 2000).toFixed(0)}" cy="${(-220 + rnd(k + 99) * 440).toFixed(0)}" r="${k % 3 ? 1.8 : 2.6}" style="animation-delay:${(-k * 0.37).toFixed(2)}s"/>`).join('');
+
+  // Seagull with flapping wings (faces right)
+  const gull = `<g class="gull">
+      <path class="wing far" d="M0 -1 Q-3 -11 -12 -15 Q-7 -7 0 -1Z" fill="#b9c2ca"/>
+      <ellipse cx="0" cy="0" rx="8" ry="3.4" fill="#fff"/><path d="M-7 -0.5 L-13 -2.5 L-12 2Z" fill="#dfe4e8"/>
+      <circle cx="7" cy="-1.6" r="2.8" fill="#fff"/><path d="M9.4 -1.8 L13.5 -0.8 L9.4 0Z" fill="#ffb627"/><circle cx="7.6" cy="-2.3" r=".8" fill="#23313f"/>
+      <path class="wing near" d="M1 -1 Q-1 -12 -9 -17 L-12 -15.5 Q-6 -8 -2 -1Z" fill="#eef1f4" stroke="#9aa3ad" stroke-width=".8"/></g>`;
+  const gullFlight = (k, y, sc, dur, delay) =>
+    `<g data-k="birds${k}" class="fade"><g class="fly" style="animation-duration:${dur}s;animation-delay:${delay}s"><g transform="translate(0 ${y}) scale(${sc})"><g class="soar">${gull}</g></g></g></g>`;
+
+  // Bushes and grass tufts make the island dense; they wilt or burn when the island is sick
+  const bush = (x, y, sc) => `<g transform="translate(${x} ${y}) scale(${sc})"><g class="veg">
+      <circle cx="-12" cy="-8" r="11" class="bush-d"/><circle cx="11" cy="-9" r="12" class="bush-d"/><circle cx="0" cy="-16" r="13" class="bush-l"/>
+      <circle cx="-6" cy="-20" r="3.5" fill="#fff" opacity=".22"/><circle cx="-10" cy="-12" r="2" class="berry"/><circle cx="8" cy="-17" r="2" class="berry"/><circle cx="12" cy="-8" r="2" class="berry"/></g></g>`;
+  const tuft = (x, y, sc = 1) => `<g transform="translate(${x} ${y}) scale(${sc})"><g class="veg"><path class="tuft" d="M-8 0 q2 -10 -3 -16 M0 0 q0 -12 2 -19 M8 0 q-2 -10 5 -15"/></g></g>`;
+
+  // Coral reef in the shallow water; it bleaches when the island gets sick
+  const coral = (x, y, type, col, sc = 1) => {
+    const shape = {
+      branch: '<path d="M0 0 V-22 M0 -12 L-10 -22 M0 -16 L9 -28 M-10 -22 V-31 M9 -28 l5 -5" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/>',
+      fan: '<path d="M0 0 L0 -6 Q-19 -10 -17 -27 Q0 -36 17 -27 Q19 -10 0 -6Z" fill="currentColor"/><path d="M0 -6 L-10 -26 M0 -6 L0 -31 M0 -6 L10 -26" stroke="#ffffff55" stroke-width="1.5"/>',
+      brain: '<ellipse cx="0" cy="-7" rx="15" ry="10" fill="currentColor"/><path d="M-11 -7 q5 -5 11 0 t11 0 M-8 -12 q4 -3 8 0 t8 0" stroke="#00000022" stroke-width="2" fill="none"/>',
+    }[type];
+    return `<g transform="translate(${x} ${y}) scale(${sc})"><g class="coral c-${col}">${shape}</g></g>`;
+  };
+
+  // Little island critters
+  const butterfly = (x, y, col, d) => `<g transform="translate(${x} ${y})"><g class="flutter" style="animation-delay:${d}s"><g class="bfly">
+      <ellipse class="bwing" cx="-5" cy="-3" rx="6" ry="4.5" fill="${col}"/><ellipse class="bwing" cx="5" cy="-3" rx="6" ry="4.5" fill="${col}"/>
+      <ellipse class="bwing" cx="-4" cy="3" rx="4" ry="3" fill="${col}"/><ellipse class="bwing" cx="4" cy="3" rx="4" ry="3" fill="${col}"/>
+      <rect x="-1" y="-6" width="2" height="11" rx="1" fill="#23313f"/></g></g></g>`;
+  const bee = (x, y, d) => `<g transform="translate(${x} ${y})"><g class="beefly" style="animation-delay:${d}s">
+      <ellipse class="bwing" cx="-1" cy="-5" rx="3.5" ry="2.4" fill="#e8f7ff" opacity=".9"/>
+      <ellipse cx="0" cy="0" rx="5.5" ry="3.8" fill="#ffd23f"/><path d="M-1.6 -3.6 v7.2 M1.8 -3.6 v7.2" stroke="#23313f" stroke-width="1.5"/><circle cx="5" cy="-0.5" r="1.4" fill="#23313f"/></g></g>`;
+  const crab = (x, y, d) => `<g transform="translate(${x} ${y})"><g class="scuttle" style="animation-delay:${d}s">
+      <path d="M-7 2 l-5 4 M-4 3 l-3 5 M7 2 l5 4 M4 3 l3 5" stroke="#e8573f" stroke-width="2" stroke-linecap="round"/>
+      <ellipse cx="0" cy="0" rx="9" ry="5.5" fill="#ff6b4a"/><path d="M-4 -4 v-5 M4 -4 v-5" stroke="#e8573f" stroke-width="1.6"/><circle cx="-4" cy="-9" r="1.8" fill="#23313f"/><circle cx="4" cy="-9" r="1.8" fill="#23313f"/>
+      <circle cx="-12" cy="-3" r="3.5" fill="#ff6b4a"/><circle cx="12" cy="-3" r="3.5" fill="#ff6b4a"/></g></g>`;
+  const frog = `<g class="hop"><ellipse cx="0" cy="-5" rx="9" ry="6" fill="#4caf50"/><circle cx="-4" cy="-11" r="3.4" fill="#4caf50"/><circle cx="4" cy="-11" r="3.4" fill="#4caf50"/>
+      <circle cx="-4" cy="-11.5" r="1.6" fill="#23313f"/><circle cx="4" cy="-11.5" r="1.6" fill="#23313f"/><path d="M-4 -4 q4 3 8 0" stroke="#2e7d32" stroke-width="1.4" fill="none"/>
+      <ellipse cx="-8" cy="0" rx="4" ry="2" fill="#43a047"/><ellipse cx="8" cy="0" rx="4" ry="2" fill="#43a047"/></g>`;
+
+  // Where sick (dead) fish appear, one more for every harmful choice
+  const DEAD_SLOTS = [[100, 470, 170, 1.6], [640, 488, 176, 1.5], [215, 486, 192, 1.5], [40, 446, 185, 1.3], [700, 470, 165, 1.4],
+    [330, 494, 180, 1.3], [760, 452, 190, 1.2], [150, 496, 175, 1.2], [440, 497, 188, 1.25], [-80, 470, 178, 1.4], [880, 480, 185, 1.4]];
 
   function buildSVG(u) {
     return `
@@ -102,32 +159,42 @@ const Scene = (() => {
 
   <rect x="-3000" y="-3000" width="6800" height="3285" fill="url(#${u}sky)"/>
   <rect data-k="haze" class="fade" x="-3000" y="-3000" width="6800" height="6800" fill="url(#${u}haze)" opacity="0"/>
+  <rect data-k="gloom" class="fade hide" x="-3000" y="-3000" width="6800" height="6800" fill="#4b5563" opacity=".3"/>
   <g data-k="sun" class="sun"><circle data-k="heatGlow" class="fade hide" cx="680" cy="80" r="95" fill="#ffb03a" opacity=".45"/>
-    <circle cx="680" cy="80" r="62" fill="#ffe680" opacity=".35"/><circle cx="680" cy="80" r="42" fill="url(#${u}sun)"/></g>
+    <circle cx="680" cy="80" r="62" fill="#ffe680" opacity=".35"/><circle cx="680" cy="80" r="42" fill="url(#${u}sun)"/>
+    <circle class="corona" cx="680" cy="80" r="50" fill="none" stroke="#fff6c8" stroke-width="7"/>
+    <circle class="eclipse-moon" cx="680" cy="80" r="44" fill="#151a2b"/></g>
   <g class="nightsky">
-    ${[[60,40],[140,90],[230,30],[320,70],[410,25],[500,60],[580,30],[760,50],[30,150],[260,140],[470,120],[720,170],[620,110],[180,190]].map(([x, y], k) =>
-      `<circle class="star" cx="${x}" cy="${y}" r="${k % 3 ? 1.8 : 2.6}" style="animation-delay:${-k * 0.37}s"/>`).join('')}
-    <g transform="translate(110 80)"><circle r="30" fill="#fff7d6" opacity=".25"/><circle r="22" fill="#fff4c2"/><circle cx="9" cy="-6" r="19" class="moon-cut"/></g>
+    ${STARS}
+    <g class="night-moon" transform="translate(110 80)"><circle r="30" fill="#fff7d6" opacity=".25"/><circle r="22" fill="#fff4c2"/><circle cx="9" cy="-6" r="19" class="moon-cut"/></g>
   </g>
 
-  <g class="drift" style="animation-delay:-12s"><g transform="translate(60 70)"><g class="cloud"><circle cx="0" cy="0" r="22"/><circle cx="24" cy="-8" r="26"/><circle cx="50" cy="2" r="20"/><rect x="0" y="0" width="50" height="20"/></g></g></g>
-  <g data-k="rainClouds" class="fade hide">${[[-20, 40, 1.4], [170, 20, 1.6], [400, 35, 1.5], [620, 15, 1.7]].map(([x, y, sc]) =>
-    `<g transform="translate(${x} ${y}) scale(${sc})"><g class="cloud rain-cloud"><circle cx="0" cy="0" r="22"/><circle cx="24" cy="-8" r="26"/><circle cx="50" cy="2" r="20"/><circle cx="76" cy="-2" r="18"/><rect x="0" y="0" width="76" height="20"/></g></g>`).join('')}</g>
+  <g class="drift" style="animation-delay:-40s"><g transform="translate(60 70)"><g class="cloud"><circle cx="0" cy="0" r="22"/><circle cx="24" cy="-8" r="26"/><circle cx="50" cy="2" r="20"/><rect x="0" y="0" width="50" height="20"/></g></g></g>
+  <g data-k="rainClouds" class="fade hide">${rainCloudsSVG}</g>
   <g class="drift" style="animation-delay:-38s;animation-duration:80s"><g transform="translate(0 140) scale(.7)"><g class="cloud"><circle cx="0" cy="0" r="22"/><circle cx="24" cy="-8" r="26"/><circle cx="50" cy="2" r="20"/><rect x="0" y="0" width="50" height="20"/></g></g></g>
 
   ${item('darkSmoke', 0, 0, `<g class="billow">
       <circle cx="690" cy="330" r="14"/><circle cx="682" cy="290" r="20"/><circle cx="672" cy="245" r="26"/>
       <circle cx="660" cy="195" r="32"/><circle cx="640" cy="140" r="40"/><circle cx="600" cy="110" r="44"/><circle cx="690" cy="120" r="38"/><circle cx="545" cy="105" r="34"/></g>`, 'fade')}
 
-  <g data-k="birds1" class="fade"><g class="glide"><g transform="translate(150 120)"><path class="bird" d="M0 0 q8 -8 16 0 q8 -8 16 0"/></g></g></g>
-  <g data-k="birds2" class="fade"><g class="glide" style="animation-delay:-6s"><g transform="translate(250 90) scale(.8)"><path class="bird" d="M0 0 q8 -8 16 0 q8 -8 16 0"/></g></g></g>
-  <g data-k="birds3" class="fade"><g class="glide" style="animation-delay:-11s"><g transform="translate(420 140) scale(.7)"><path class="bird" d="M0 0 q8 -8 16 0 q8 -8 16 0"/></g></g></g>
+  ${gullFlight(1, 110, 1.4, 19, -4)}${gullFlight(2, 78, 1.1, 25, -15)}${gullFlight(3, 150, 1.2, 22, -9)}
 
   <rect x="-3000" y="285" width="6800" height="3000" fill="url(#${u}sea)"/>
   <rect data-k="murk" class="fade" x="-3000" y="285" width="6800" height="3000" fill="#6f7d3c" opacity="0"/>
-  <g class="waves"><path d="M20 310 q15 -8 30 0 q15 8 30 0 M640 300 q15 -8 30 0 q15 8 30 0 M300 296 q15 -6 30 0 q15 6 30 0"/></g>
+  <g class="waves"><path d="M20 310 q15 -8 30 0 q15 8 30 0 M640 300 q15 -8 30 0 q15 8 30 0 M300 296 q15 -6 30 0 q15 6 30 0 M-260 320 q15 -8 30 0 q15 8 30 0 M-520 300 q15 -6 30 0 q15 6 30 0 M900 318 q15 -8 30 0 q15 8 30 0 M1160 300 q15 -6 30 0 q15 6 30 0 M-120 460 q15 -8 30 0 q15 8 30 0 M960 470 q15 -8 30 0 q15 8 30 0"/></g>
 
   <g data-k="land">
+  <g transform="translate(716 306) scale(.85)"><g data-k="whale" class="fade hide"><g class="whale-bob">
+    <path d="M-34 0 L-50 -16 L-45 0 L-52 10Z" fill="#4a6fa5"/>
+    <path d="M-36 6 Q-32 -18 0 -20 Q30 -20 36 2 Q20 10 -36 6Z" fill="#4a6fa5"/>
+    <path d="M-26 4 Q0 10 32 2" stroke="#9cc0ea" stroke-width="3" fill="none"/>
+    <circle cx="20" cy="-7" r="2.3" fill="#23313f"/><circle cx="20.8" cy="-7.7" r=".8" fill="#fff"/><path d="M24 -1 q6 3 10 -1" stroke="#23313f" stroke-width="1.6" fill="none"/>
+    <circle cx="14" cy="-2" r="3" fill="#ff9aa2" opacity=".6"/>
+    <g class="spout"><path d="M6 -20 q-6 -14 -14 -16 M6 -20 v-20 M6 -20 q6 -14 14 -16" stroke="#dff4ff" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+      <circle cx="-9" cy="-37" r="3.2" fill="#dff4ff"/><circle cx="21" cy="-37" r="3.2" fill="#dff4ff"/><circle cx="6" cy="-44" r="3.2" fill="#dff4ff"/></g>
+    <ellipse cx="0" cy="8" rx="46" ry="4.5" fill="#e6f9ff" opacity=".75"/></g></g></g>
+  <ellipse class="lagoon" cx="400" cy="408" rx="560" ry="132"/>
+  <ellipse class="lagoon" cx="400" cy="396" rx="450" ry="108"/>
   <ellipse cx="400" cy="372" rx="366" ry="100" fill="none" stroke="#e6f9ff" stroke-width="5" opacity=".7" class="foam"/>
   <ellipse cx="400" cy="368" rx="352" ry="94" fill="#ecc673"/>
   <ellipse cx="400" cy="362" rx="338" ry="84" fill="#fbe3a2"/>
@@ -135,6 +202,7 @@ const Scene = (() => {
   <ellipse class="grass" cx="400" cy="318" rx="245" ry="52"/>
   <ellipse class="grass light" cx="400" cy="312" rx="228" ry="42"/>
 
+  ${tuft(80, 378)}${tuft(735, 372)}${tuft(272, 440, 0.9)}${tuft(568, 444, 0.9)}${tuft(470, 450, 0.8)}${tuft(42, 392, 0.8)}
   <g data-k="flowers" class="fade">${flower(232, 334, '#ff6fa8')}${flower(318, 346, '#ffffff')}${flower(452, 350, '#b388ff')}${flower(640, 322, '#ff6fa8')}${flower(172, 320, '#ffd23f')}${flower(500, 352, '#ff8c42')}</g>
 
   <g transform="translate(566 342)"><g data-k="pond">
@@ -151,6 +219,8 @@ const Scene = (() => {
   ${item('caveBed', 154, 341, `<ellipse cx="0" cy="-5" rx="24" ry="7" fill="#4fae3a"/><path d="M-20 -8 q6 -8 12 0 M-4 -9 q6 -8 12 0 M10 -8 q5 -7 10 0" stroke="#7fd65b" stroke-width="3" fill="none"/>`)}
   ${item('caveLamp', 176, 330, `<path d="M0 -26 v-6" stroke="#6b4423" stroke-width="2"/><rect x="-7" y="-26" width="14" height="18" rx="4" fill="#ffe680" stroke="#a0673a" stroke-width="2.5"/><circle cx="0" cy="-17" r="4" fill="#fff6b0"/><rect x="-5" y="-8" width="10" height="3" fill="#a0673a"/>`)}
 
+  ${palm(6, 318, 262, 0.55)}${palm(7, 486, 256, 0.5)}
+  ${bush(240, 322, 1)}${bush(302, 298, 0.9)}${bush(356, 282, 0.75)}${bush(452, 284, 0.75)}${bush(512, 300, 0.85)}${bush(664, 340, 0.8)}
   ${palm(0, 205, 298, 0.9)}${palm(1, 268, 292, 1)}${palm(2, 332, 300, 0.85)}${palm(3, 470, 300, 0.85)}${palm(4, 532, 292, 1)}${palm(5, 598, 298, 0.9)}
 
   ${item('parrot', 528, 180, `<ellipse cx="0" cy="0" rx="8" ry="12" fill="#ff4d4d"/><circle cx="2" cy="-12" r="7" fill="#ff4d4d"/>
@@ -213,11 +283,20 @@ const Scene = (() => {
   ${item('bonfire', 690, 384, `<path d="M-30 0 L30 -14 M-30 -14 L30 0" stroke="#6b4423" stroke-width="7" stroke-linecap="round"/>${flame(0, -14, 2.2)}${flame(-18, -6, 1.3)}${flame(18, -6, 1.3)}`)}
   ${item('campfire', 646, 394, `<ellipse cx="0" cy="0" rx="16" ry="4" fill="#888"/><path d="M-12 0 L12 -5 M-12 -5 L12 0" stroke="#6b4423" stroke-width="4" stroke-linecap="round"/>${flame(0, -5, 0.7)}`)}
 
+  <g data-k="reef" class="reef">${coral(36, 506, 'branch', 'a')}${coral(108, 505, 'brain', 'b', 1.1)}${coral(176, 507, 'fan', 'c')}${coral(268, 506, 'branch', 'd', 1.1)}
+    ${coral(340, 507, 'brain', 'a')}${coral(424, 507, 'fan', 'b', 0.9)}${coral(618, 506, 'branch', 'c')}${coral(690, 507, 'fan', 'd')}${coral(768, 505, 'brain', 'b', 1.1)}
+    ${coral(-60, 505, 'fan', 'a', 1.2)}${coral(-170, 506, 'branch', 'b', 1.2)}${coral(-290, 506, 'brain', 'c', 1.2)}${coral(860, 506, 'branch', 'a', 1.2)}${coral(970, 505, 'fan', 'c', 1.2)}${coral(1090, 506, 'brain', 'd', 1.2)}</g>
+  <g data-k="critters">
+    <g data-k="butterflies" class="fade">${butterfly(246, 296, '#ff8ad8', 0)}${butterfly(470, 300, '#ffd23f', -2)}${butterfly(360, 318, '#8fd3ff', -4)}</g>
+    <g data-k="bees" class="fade">${bee(300, 328, 0)}${bee(626, 304, -1.2)}${bee(176, 300, -2.1)}</g>
+    <g data-k="crabs" class="fade">${crab(160, 432, 0)}${crab(592, 438, -1.5)}</g>
+    <g transform="translate(520 344)"><g data-k="frog" class="fade">${frog}</g></g>
+  </g>
   <g data-k="fish"><g class="swim"><g transform="translate(0 482)">${fish()}</g></g><g class="swim" style="animation-delay:-6s;animation-duration:19s"><g transform="translate(0 470) scale(.8)">${fish('#ffd23f')}</g></g><g class="swim" style="animation-delay:-11s;animation-duration:14s"><g transform="translate(0 492) scale(.9)">${fish('#ff6fa8')}</g></g></g>
   ${item('babyFish', 0, 0, `<g class="swim" style="animation-delay:-3s;animation-duration:12s"><g transform="translate(0 488) scale(.5)">${fish()}</g></g><g class="swim" style="animation-delay:-8s;animation-duration:13s"><g transform="translate(0 476) scale(.5)">${fish('#ffd23f')}</g></g><g class="swim" style="animation-delay:-1s;animation-duration:15s"><g transform="translate(0 494) scale(.45)">${fish('#ff6fa8')}</g></g>`, 'fade')}
   ${item('jumper', 150, 474, `<g class="fishjump">${fish('#ffb627')}</g>`, 'fade')}
   ${item('seaBottles', 0, 0, `<g class="float">${bottle(52, 452, 80, 1.5)}</g><g class="float" style="animation-delay:-1s">${bottle(735, 462, -60, 1.5)}</g><g class="float" style="animation-delay:-2s">${bottle(300, 486, 100, 1.4)}</g>`, 'fade')}
-  ${item('deadFish', 0, 0, `${deadFish(100, 470, 170, 1.8)}${deadFish(215, 484, 192, 1.6)}${deadFish(575, 486, 176, 1.5)}`, 'fade')}
+  ${DEAD_SLOTS.map(([x, y, r, sc], k) => `<g data-k="dead${k}" class="fade hide">${deadFish(x, y, r, sc)}</g>`).join('')}
 
   <g data-k="fx"></g>
 
@@ -254,8 +333,20 @@ const Scene = (() => {
       <g class="r r-think"><circle cx="4" cy="13" r="2.8" fill="#5a2d0c"/><text x="28" y="-22" font-size="24" font-weight="900" fill="#2f80ed">?</text></g>
     </g>
   </g></g>
-    <ellipse class="wade" cx="0" cy="22" rx="38" ry="10" fill="#2bb3e0" stroke="#e6f9ff" stroke-width="3"/>
   </g></g>
+  <!-- the sea in front of the monkey's legs when it hides in the water (same colours as the sea) -->
+  <g class="wade-water">
+    <clipPath id="${u}wade"><path d="M470 474 q10 -4 20 0 t20 0 t20 0 t20 0 t20 0 V560 H470Z"/></clipPath>
+    <g clip-path="url(#${u}wade)">
+      <!-- exactly the same layers as the sea around it, so it blends in perfectly -->
+      <rect x="400" y="285" width="300" height="300" fill="url(#${u}sea)"/>
+      <rect data-k="wadeMurk" x="400" y="285" width="300" height="300" fill="#6f7d3c" opacity="0"/>
+      <ellipse class="lagoon" cx="400" cy="408" rx="560" ry="132"/><ellipse class="lagoon" cx="400" cy="396" rx="450" ry="108"/>
+      <ellipse cx="400" cy="372" rx="366" ry="100" fill="none" stroke="#e6f9ff" stroke-width="5" opacity=".7" class="foam"/>
+    </g>
+    <path class="wade-foam" d="M476 474 q10 -4 20 0 t20 0 t20 0 t20 0 t20 0" stroke="#e6f9ff" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".8"/>
+  </g>
+  <g data-k="fxTop"></g>
   </g>
 
   <!-- lights that glow at night (drawn on top so they stay bright) -->
@@ -267,7 +358,7 @@ const Scene = (() => {
     <circle data-glow="house" cx="448" cy="248" r="26" fill="url(#${u}glow)"/>
   </g>
 
-  <g data-k="rain" class="rain hide">${RAIN}</g>
+  <g data-k="rain" class="rain hide">${rainSVG}</g>
 
   <g data-k="bubble" class="bubble hide" transform="translate(400 300)"><g class="bubble-in">
     <rect data-k="bubbleBox" x="-60" y="-54" width="120" height="48" rx="18" fill="#fff" stroke="#23313f" stroke-width="3"/>
@@ -289,7 +380,7 @@ const Scene = (() => {
     plastic: {
       ev(s) { s.show('bottles'); },
       good(s) { s.hide('bottles'); s.show('bin'); },
-      bad(s) { s.hide('bottles'); s.show('seaBottles'); s.show('deadFish'); s.murk += 0.22; },
+      bad(s) { s.hide('bottles'); s.show('seaBottles'); s.addDead(1); s.murk += 0.22; }, // +1 more below = 2 for plastic
       pay(s) { s.show('pots'); s.sparkle(225, 400); },
     },
     food: {
@@ -348,6 +439,7 @@ const Scene = (() => {
     morning: [1.03, 0, 0, 0, 0.03, 0, 0.98, 0, 0, 0.01, 0, 0, 0.9, 0, 0,     0, 0, 0, 1, 0],
     evening: [1, 0, 0, 0, 0.05,  0, 0.8, 0, 0, 0,       0, 0, 0.75, 0, 0.04, 0, 0, 0, 1, 0],
     night:   [0.4, 0, 0, 0, 0,   0, 0.46, 0, 0, 0.02,   0, 0, 0.7, 0, 0.09,  0, 0, 0, 1, 0],
+    eclipse: [0.5, 0, 0, 0, 0,   0, 0.52, 0, 0, 0.02,   0, 0, 0.72, 0, 0.08,  0, 0, 0, 1, 0],
   };
 
   function create(container) {
@@ -364,10 +456,12 @@ const Scene = (() => {
     let reactTimer = 0;
     let bubbleTimer = 0;
     let destroyed = false;
+    let deadCount = 0;
+    let badCount = 0;
 
     const visible = (el) => el && !el.classList.contains('hide') && !el.classList.contains('swept');
     function updateGlows() {
-      const dark = time === 'night' || time === 'evening';
+      const dark = time === 'night' || time === 'evening' || time === 'eclipse';
       svg.querySelectorAll('[data-glow]').forEach((g) => {
         g.classList.toggle('on', dark && !destroyed && visible(q(g.dataset.glow)));
       });
@@ -391,6 +485,10 @@ const Scene = (() => {
           const p = q('palm' + n);
           if (p.dataset.state === 'alive') p.querySelector('.cocos').classList.remove('hide');
         }
+      },
+      addDead(n) {
+        deadCount = Math.min(DEAD_SLOTS.length, deadCount + n);
+        for (let k = 0; k < deadCount; k++) s.show('dead' + k);
       },
       rain(ms) { setWeather('rain'); clearTimeout(s.rainTimer); s.rainTimer = setTimeout(() => setWeather('clear'), ms); },
       sparkle(x, y) {
@@ -434,6 +532,7 @@ const Scene = (() => {
       svg.classList.toggle('rainy', rainy);
       q('rain').classList.toggle('hide', !rainy);
       q('rainClouds').classList.toggle('hide', !rainy);
+      q('gloom').classList.toggle('hide', !rainy);
     }
 
     /* ── monkey reactions + speech bubble ── */
@@ -480,17 +579,29 @@ const Scene = (() => {
       q('pondWater').classList.remove('dirty');
       q('fish').classList.remove('hide');
       q('fx').innerHTML = '';
-      svg.classList.remove('dry', 'stormy', 'flooded', 'burned');
-      s.murk = 0; s.smoke = 0; mood = ''; destroyed = false;
+      svg.classList.remove('dry', 'stormy', 'flooded', 'burned', 'eclipse', 'coral-pale', 'coral-bleached');
+      q('fxTop').innerHTML = '';
+      s.murk = 0; s.smoke = 0; mood = ''; destroyed = false; deadCount = 0; badCount = 0;
       setWeather('clear');
     }
 
     function setStats(h, i) {
       q('haze').setAttribute('opacity', Math.min(0.85, Math.max(0, (65 - i) / 65) * 0.75 + s.smoke).toFixed(2));
       q('murk').setAttribute('opacity', Math.min(0.75, ((100 - i) / 100) * 0.3 + s.murk).toFixed(2));
+      q('wadeMurk').setAttribute('opacity', q('murk').getAttribute('opacity'));
       ['birds1', 'birds2', 'birds3'].forEach((k, n) => q(k).classList.toggle('hide', i <= [25, 50, 75][n]));
       q('flowers').classList.toggle('hide', i < 60);
+      // critters come and go with the island's health; a whale visits a really healthy island
+      q('crabs').classList.toggle('hide', i < 40 || destroyed);
+      q('frog').classList.toggle('hide', i < 50 || destroyed);
+      q('butterflies').classList.toggle('hide', i < 55 || destroyed);
+      q('bees').classList.toggle('hide', i < 65 || destroyed);
+      q('whale').classList.toggle('hide', i < 85 || destroyed);
       svg.classList.toggle('unhealthy', i < 35);
+      // coral bleaches as the island gets sicker and more harmful choices pile up
+      const stress = (90 - i) + badCount * 8;  // starts colourful at the beginning of a game
+      svg.classList.toggle('coral-pale', stress >= 45 && stress < 80);
+      svg.classList.toggle('coral-bleached', stress >= 80);
       const m = h >= 60 ? 'mHappy' : h >= 30 ? 'mMeh' : 'mSad';
       if (m !== mood) {
         ['mHappy', 'mMeh', 'mSad'].forEach((k) => q(k).classList.toggle('hide', k !== m));
@@ -505,7 +616,7 @@ const Scene = (() => {
       destroyed = true;
       updateGlows();
       const box = svg.getBoundingClientRect(), ctm = svg.getScreenCTM();
-      const things = svg.querySelectorAll('[data-k^="palm"], .pop[data-k], [data-k="flowers"], [data-k="darkSmoke"], [data-k="smoke"]');
+      const things = svg.querySelectorAll('[data-k^="palm"], .pop[data-k], .veg, [data-k="flowers"], [data-k="darkSmoke"], [data-k="smoke"]');
       const fires = [];
       things.forEach((el) => {
         if (el.classList.contains('hide')) return;
@@ -539,7 +650,15 @@ const Scene = (() => {
         el.style.setProperty('--delay', delay.toFixed(2) + 's');
       });
       if (fires.length) q('fx').insertAdjacentHTML('beforeend', fires.join(''));
-      ['birds1', 'birds2', 'birds3', 'parrot'].forEach(s.hide);
+      ['birds1', 'birds2', 'birds3', 'parrot', 'butterflies', 'bees', 'crabs', 'frog', 'whale'].forEach(s.hide);
+    }
+
+    /* Super rare: a solar eclipse. The moon slides in front of the sun and it gets dark for a moment. */
+    function eclipse() {
+      const before = time;
+      svg.classList.add('eclipse');
+      setTime('eclipse');
+      setTimeout(() => { svg.classList.remove('eclipse'); setTime(before); }, 7000);
     }
 
     function disaster(type) {
@@ -558,7 +677,7 @@ const Scene = (() => {
       } else if (type === 'heat') {
         svg.classList.add('dry', 'burned');
         q('heatGlow').classList.remove('hide');
-        fx.insertAdjacentHTML('beforeend', `
+        q('fxTop').insertAdjacentHTML('beforeend', `
           <rect class="heat-tint" x="-3000" y="-3000" width="6800" height="6800" fill="#ff7a2e"/>
           <g class="heat-lines"><path d="M120 300 q10 -15 0 -30 q-10 -15 0 -30 M300 290 q10 -15 0 -30 q-10 -15 0 -30 M520 300 q10 -15 0 -30 q-10 -15 0 -30 M700 290 q10 -15 0 -30 q-10 -15 0 -30"/></g>`);
         q('pondWater').classList.add('dirty');
@@ -566,7 +685,7 @@ const Scene = (() => {
       } else {
         svg.classList.add('stormy');
         setWeather('rain');
-        fx.insertAdjacentHTML('beforeend', `
+        q('fxTop').insertAdjacentHTML('beforeend', `
           <rect class="storm-dark" x="-3000" y="-3000" width="6800" height="6800" fill="#1d2533"/>
           <path class="bolt" d="M430 0 L400 110 L436 110 L390 240 L470 90 L432 90 L462 0Z" fill="#fff36b"/>
           <rect class="storm-flash" x="-3000" y="-3000" width="6800" height="6800" fill="#fff"/>
@@ -586,7 +705,11 @@ const Scene = (() => {
       react,
       say,
       event: (id) => ACTIONS[id].ev(s),
-      outcome: (id, good) => ACTIONS[id][good ? 'good' : 'bad'](s),
+      outcome: (id, good) => {
+        ACTIONS[id][good ? 'good' : 'bad'](s);
+        if (!good) { badCount++; s.addDead(1); }  // every harmful choice makes the sea a bit sicker
+      },
+      eclipse,
       payoff: (id) => ACTIONS[id].pay(s),
       disaster,
       jump: s.jump,
