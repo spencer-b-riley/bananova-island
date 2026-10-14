@@ -250,7 +250,7 @@ const Scene = (() => {
   ${item('caveLamp', 176, 330, `<path d="M0 -26 v-6" stroke="#6b4423" stroke-width="2"/><rect x="-7" y="-26" width="14" height="18" rx="4" fill="#ffe680" stroke="#a0673a" stroke-width="2.5"/><circle cx="0" cy="-17" r="4" fill="#fff6b0"/><rect x="-5" y="-8" width="10" height="3" fill="#a0673a"/>`)}
 
   ${palm(0, 264, 300, 0.85)}${palm(1, 320, 290, 1)}${palm(2, 372, 300, 0.8)}${palm(3, 462, 300, 0.82)}${palm(4, 526, 290, 1)}${palm(5, 592, 300, 0.9)}
-  ${bush(240, 360, 0.6)}${bush(340, 356, 0.62)}${bush(558, 312, 0.66)}${bush(670, 344, 0.7)}
+  ${bush(340, 356, 0.62)}${bush(558, 312, 0.66)}${bush(670, 344, 0.7)}
 
   ${item('parrot', 528, 180, `<ellipse cx="0" cy="0" rx="8" ry="12" fill="#ff4d4d"/><circle cx="2" cy="-12" r="7" fill="#ff4d4d"/>
       <path d="M7 -13 q6 2 2 7Z" fill="#ffd23f"/><circle cx="4" cy="-14" r="1.6" fill="#23313f"/>
@@ -307,10 +307,10 @@ const Scene = (() => {
   ${item('turtlesSwim', 720, 478, `<g class="float">${turtle(0, 0, 0.9)}</g>`)}
   ${item('turtlesLeave', 660, 470, `<g class="swimaway">${turtle(0, 0, 1)}${turtle(34, 10, 0.9)}</g>`, 'fade')}
 
-  ${item('woodpile', 690, 384, `<rect x="-26" y="-12" width="52" height="12" rx="6" fill="#a0673a"/><rect x="-20" y="-24" width="40" height="12" rx="6" fill="#b5773f"/><rect x="-12" y="-36" width="24" height="12" rx="6" fill="#a0673a"/>
+  ${item('woodpile', 196, 388, `<rect x="-26" y="-12" width="52" height="12" rx="6" fill="#a0673a"/><rect x="-20" y="-24" width="40" height="12" rx="6" fill="#b5773f"/><rect x="-12" y="-36" width="24" height="12" rx="6" fill="#a0673a"/>
       <circle cx="-22" cy="-6" r="5" fill="#e5b77f"/><circle cx="-16" cy="-18" r="5" fill="#e5b77f"/><circle cx="-8" cy="-30" r="5" fill="#e5b77f"/>`)}
   ${item('bonfire', 690, 384, `<path d="M-30 0 L30 -14 M-30 -14 L30 0" stroke="#6b4423" stroke-width="7" stroke-linecap="round"/>${flame(0, -14, 2.2)}${flame(-18, -6, 1.3)}${flame(18, -6, 1.3)}`)}
-  ${item('campfire', 646, 394, `<ellipse cx="0" cy="0" rx="16" ry="4" fill="#888"/><path d="M-12 0 L12 -5 M-12 -5 L12 0" stroke="#6b4423" stroke-width="4" stroke-linecap="round"/>${flame(0, -5, 0.7)}`)}
+  ${item('campfire', 240, 386, `<ellipse cx="0" cy="0" rx="16" ry="4" fill="#888"/><path d="M-12 0 L12 -5 M-12 -5 L12 0" stroke="#6b4423" stroke-width="4" stroke-linecap="round"/>${flame(0, -5, 0.7)}`)}
 
   <g data-k="reef" class="reef">
     ${reef(60, 512, 0.9, 'staghorn', 'brain', 'anemone', 'a', 'd', 'b')}${reef(200, 516, 0.85, 'fan', 'tube', 'brain', 'c', 'b', 'e')}
@@ -399,7 +399,7 @@ const Scene = (() => {
   <!-- lights that glow at night (drawn on top so they stay bright) -->
   <g class="glows">
     <circle data-glow="caveLamp" cx="176" cy="313" r="34" fill="url(#${u}glow)"/>
-    <circle data-glow="campfire" cx="646" cy="384" r="46" fill="url(#${u}glow)"/>
+    <circle data-glow="campfire" cx="240" cy="376" r="46" fill="url(#${u}glow)"/>
     <circle data-glow="bonfire" cx="690" cy="350" r="90" fill="url(#${u}glow)"/>
     <circle data-glow="house" cx="352" cy="248" r="26" fill="url(#${u}glow)"/>
     <circle data-glow="house" cx="448" cy="248" r="26" fill="url(#${u}glow)"/>
@@ -500,14 +500,14 @@ const Scene = (() => {
     },
     firewood: { // the cold night
       ev() {},
-      good(s) { s.task(612, 398, () => { s.show('campfire'); s.sparkle(646, 370); }); },
+      good(s) { s.task(272, 392, () => { s.show('campfire'); s.sparkle(240, 362); }, 0); },   // a small fire right by the cave; the monkey stays warm there
       bad(s) {
         s.task(560, 352, () => {
           s.chop();
           setTimeout(() => { s.show('bonfire'); s.show('darkSmoke'); s.palm(4, 'stump'); s.palm(5, 'stump'); s.smoke += 0.15; }, 700);
         });
       },
-      pay(s) { s.show('woodpile'); s.show('campfire'); s.sparkle(690, 350); },
+      pay(s) { s.show('woodpile'); s.show('campfire'); s.sparkle(196, 356); },
     },
     water: {
       ev(s) { s.show('heatGlow'); },
@@ -606,7 +606,7 @@ const Scene = (() => {
         s.walkTo(x, y).then(() => {
           if (id !== taskId) return;
           fn();
-          setTimeout(() => { if (id === taskId && !destroyed) s.home(); }, stay);
+          if (stay) setTimeout(() => { if (id === taskId && !destroyed) s.home(); }, stay);  // stay = 0: stay there
         });
       },
       chop() { restartAnim(svg.querySelector('.mjump'), 'chop'); },
@@ -909,13 +909,28 @@ const Scene = (() => {
       ladder.style.transformOrigin = `${DECK[0]}px ${DECK[1]}px`;
       ladder.classList.add('ladder-wrap', 'ladder-up');
       q('fx').appendChild(ladder);
-      // the two pirate monkeys: the captain (hook hand) and the peg-legged first mate
-      const crew = [true, false].map((captain) => {
+      // the two pirate monkeys: the captain (hook hand) and the peg-legged first mate.
+      // They stand on deck (moving with the ship) until it's parked, then walk off onto the island.
+      const ON_DECK = [[-150, -64], [-108, -64]];   // spots on the deck, relative to the ship
+      const place = (p, x, y) => { p.inner.style.transition = 'none'; p.inner.style.transform = `translate(${x}px, ${y}px)`; void p.inner.getBoundingClientRect(); };
+      const crew = [true, false].map((captain, n) => {
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        g.innerHTML = `<g class="pirate-walker" style="opacity:0;transform:translate(${DECK[0] + 14}px, ${DECK[1] - 22}px)">${pirateMonkey(captain)}</g>`;
-        q('fx').appendChild(g);
-        return { g, inner: g.firstChild, pos: [DECK[0] + 14, DECK[1] - 22] };
+        g.innerHTML = `<g class="pirate-walker">${pirateMonkey(captain)}</g>`;
+        const p = { g, inner: g.firstChild, pos: [0, 0], deck: ON_DECK[n] };
+        ship.appendChild(g);
+        place(p, ...ON_DECK[n]);
+        return p;
       });
+      const leaveShip = (p) => {        // same spot on screen, now walking on its own
+        const x = SHIP_X + p.deck[0], y = SHIP_Y + p.deck[1];
+        q('fx').appendChild(p.g);
+        place(p, x, y);
+        p.pos = [x, y];
+      };
+      const boardShip = (p) => {        // back on deck: ride away with the ship
+        ship.appendChild(p.g);
+        place(p, ...p.deck);
+      };
       const walk = (p, x, y) => {
         const ms = Math.max(250, Math.hypot(x - p.pos[0], y - p.pos[1]) * 4.5);
         p.inner.style.transition = `transform ${ms}ms linear, opacity .4s`;
@@ -925,7 +940,7 @@ const Scene = (() => {
         return wait(ms).then(() => p.inner.classList.remove('pm-walking'));
       };
       const down = async (p) => { await walk(p, DECK[0], DECK[1] - 20); await walk(p, LANDING[0], LANDING[1] - 20); await walk(p, SHORE[0], SHORE[1]); };
-      const up = async (p) => { await walk(p, LANDING[0], LANDING[1] - 20); await walk(p, DECK[0], DECK[1] - 20); await walk(p, DECK[0] + 14, DECK[1] - 22); };
+      const up = async (p) => { await walk(p, LANDING[0], LANDING[1] - 20); await walk(p, DECK[0], DECK[1] - 20); await walk(p, SHIP_X + p.deck[0], SHIP_Y + p.deck[1]); };
       const where = (k) => {
         const el = q(k), r = el.getBoundingClientRect(), m = q('land').getScreenCTM();
         if (!m || !r.width) return [400, 400];
@@ -952,17 +967,15 @@ const Scene = (() => {
       return sail(1900, SHIP_X, 3200).then(async () => {
         ladder.classList.remove('ladder-up'); // the ladder comes down
         await wait(900);
-        crew.forEach((p, n) => setTimeout(() => { p.inner.style.opacity = 1; }, n * 300));
-        await wait(600);
+        crew.forEach(leaveShip);
         // up to 4 things the monkey owns (or the coconuts if there's nothing else)
         const stolen = LOOT.filter((k) => visible(q(k))).slice(0, 4);
         if (!stolen.length) svg.querySelectorAll('.cocos:not(.hide)').forEach((c) => c.classList.add('hide'));
         const jobs = [stolen.filter((_, n) => n % 2 === 0), stolen.filter((_, n) => n % 2 === 1)];
         await Promise.all(crew.map(async (p, n) => { await wait(n * 700); for (const k of jobs[n]) await grab(p, k); }));
-        crew.forEach((p) => { p.inner.style.opacity = 0; });
+        crew.forEach(boardShip);
         ladder.classList.add('ladder-up');    // the ladder goes back up
         await wait(900);
-        crew.forEach((p) => p.g.remove());
         ladder.remove();
         await sail(SHIP_X, 2000, 4000);       // sail back off to the right
         ship.remove();
