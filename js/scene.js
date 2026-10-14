@@ -180,6 +180,7 @@ const Scene = (() => {
     <radialGradient id="${u}glow"><stop offset="0" stop-color="#fff2a8" stop-opacity=".95"/><stop offset=".35" stop-color="#ffcf5a" stop-opacity=".55"/><stop offset="1" stop-color="#ffb03a" stop-opacity="0"/></radialGradient>
     <radialGradient id="${u}sun"><stop offset="0" stop-color="#fff6b0"/><stop offset="1" stop-color="#ffd23f"/></radialGradient>
   </defs>
+  <g class="camera">
 
   <rect x="-3000" y="-3000" width="6800" height="3285" fill="url(#${u}sky)"/>
   <rect data-k="haze" class="fade" x="-3000" y="-3000" width="6800" height="6800" fill="url(#${u}haze)" opacity="0"/>
@@ -411,6 +412,7 @@ const Scene = (() => {
     <path d="M-11 -7.5 L0 10 L11 -7.5" fill="#fff" stroke="#23313f" stroke-width="3" stroke-linejoin="round"/>
     <text data-k="bubbleText" x="0" y="-21" text-anchor="middle" font-size="25" font-weight="800" fill="#23313f"></text>
   </g></g>
+  </g>
 </svg>`;
   }
 
@@ -698,7 +700,7 @@ const Scene = (() => {
       box.setAttribute('x', -w / 2);
       box.setAttribute('width', w);
       // place the bubble just above the monkey's head, wherever the monkey is
-      const r = monkey.getBoundingClientRect(), ctm = svg.getScreenCTM();
+      const r = monkey.getBoundingClientRect(), ctm = land.getScreenCTM();
       let x = 400, y = 300;
       if (ctm && r.width) {
         const pt = svg.createSVGPoint();
@@ -713,7 +715,7 @@ const Scene = (() => {
       cancelAnimationFrame(followRaf);
       const follow = () => {   // keep the bubble above the monkey while it walks around
         if (b.classList.contains('hide')) return;
-        const r2 = monkey.getBoundingClientRect(), m = svg.getScreenCTM();
+        const r2 = monkey.getBoundingClientRect(), m = land.getScreenCTM();
         if (m && r2.width) {
           const pt = svg.createSVGPoint();
           pt.x = r2.left + r2.width / 2; pt.y = r2.top;
@@ -783,7 +785,7 @@ const Scene = (() => {
     function destroyAll(type) {
       destroyed = true;
       updateGlows();
-      const box = svg.getBoundingClientRect(), ctm = svg.getScreenCTM();
+      const box = svg.getBoundingClientRect(), ctm = land.getScreenCTM();
       const things = svg.querySelectorAll('[data-k^="palm"], .pop[data-k], .veg, [data-k="flowers"], [data-k="darkSmoke"], [data-k="smoke"]');
       const fires = [];
       things.forEach((el) => {
@@ -831,16 +833,26 @@ const Scene = (() => {
 
     /* Super rare: a MASSIVE pirate ship parks next to the island. A monkey captain and his
        peg-legged first mate come ashore, carry off some loot, and the ship sails away to the right. */
-    const SHIP = `<g class="ship-rock"><g transform="scale(3.2)">
+    const cannon = (x, y) => `<g transform="translate(${x} ${y})"><rect x="-2" y="-3.6" width="13" height="7.2" rx="3" fill="#2b2f36"/><circle cx="11" cy="0" r="3.2" fill="#1a1d22"/>
+        <circle cx="-1" cy="4" r="3.2" fill="#6b4423" stroke="#3d2614" stroke-width="1"/></g>`;
+    const SHIP = `<g class="ship-rock"><g transform="scale(2.6)">
         <path d="M-74 -8 L74 -8 L60 22 L-62 22Z" fill="#6e3f1d"/><path d="M-74 -8 L74 -8 L71 -1 L-72 -1Z" fill="#4e2a12"/>
-        <path d="M-70 4 H66" stroke="#f2c94c" stroke-width="2.2"/><path d="M-66 12 H62" stroke="#5a3518" stroke-width="1.2"/>
-        ${[-44, -22, 0, 22, 44].map((x) => `<circle cx="${x}" cy="8" r="3" fill="#2a1a0e" stroke="#f2c94c" stroke-width=".8"/>`).join('')}
+        <path d="M-74 -14 H74 V-8 H-74Z" fill="#5a3518"/><path d="M-70 -14 V-8 M-50 -14 V-8 M-30 -14 V-8 M-10 -14 V-8 M10 -14 V-8 M30 -14 V-8 M50 -14 V-8 M70 -14 V-8" stroke="#3d2614" stroke-width="1.2"/>
+        <path d="M-70 4 H66" stroke="#f2c94c" stroke-width="2.2"/><path d="M-66 13 H62" stroke="#5a3518" stroke-width="1.2"/>
+        ${[-48, -26, -4, 18, 40].map((x) => `<rect x="${x - 4.5}" y="1" width="9" height="8" rx="1.5" fill="#2a1a0e"/><circle cx="${x}" cy="5" r="3.2" fill="#1a1d22" stroke="#555b63" stroke-width="1.2"/>`).join('')}
+        ${cannon(-46, -18)}${cannon(40, -18)}
         <path d="M60 -8 L84 -16 L82 -10 L62 -2Z" fill="#6e3f1d"/>
-        <path d="M-16 -8 V-120 M28 -8 V-96" stroke="#4e2a12" stroke-width="3.5"/>
-        <path d="M-14 -116 Q20 -90 -14 -30Z" fill="#f4ecd8"/><path d="M-18 -112 Q-54 -84 -18 -34Z" fill="#efe4c8"/>
-        <path d="M30 -92 Q58 -70 30 -28Z" fill="#f4ecd8"/><path d="M-14 -100 Q2 -90 -14 -70 M30 -80 Q42 -70 30 -56" stroke="#d9cdb0" stroke-width="1.2" fill="none"/>
-        <path d="M-16 -120 h26 l-6 8 l6 8 h-26Z" fill="#23313f"/><circle cx="-4" cy="-113" r="3.6" fill="#fff"/><path d="M-9 -107 l10 4 M1 -107 l-10 4" stroke="#fff" stroke-width="1.5"/>
-        <path d="M-74 -8 L-90 -26" stroke="#4e2a12" stroke-width="2.5"/>
+        <path d="M-16 -14 V-128 M28 -14 V-100" stroke="#4e2a12" stroke-width="3.5"/>
+        <path d="M-14 -120 Q20 -94 -14 -34Z" fill="#f4ecd8"/><path d="M-18 -116 Q-52 -88 -18 -38Z" fill="#efe4c8"/>
+        <path d="M30 -96 Q58 -74 30 -32Z" fill="#f4ecd8"/><path d="M-14 -104 Q2 -94 -14 -74 M30 -84 Q42 -74 30 -60" stroke="#d9cdb0" stroke-width="1.2" fill="none"/>
+        <g class="jolly-roger" transform="translate(-16 -128)">
+          <path d="M0 0 C10 -3 22 3 36 -1 L36 22 C22 26 10 19 0 22Z" fill="#14171c"/>
+          <path d="M8 16 L28 6 M8 6 L28 16" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="8" cy="6" r="1.8" fill="#fff"/><circle cx="28" cy="16" r="1.8" fill="#fff"/><circle cx="8" cy="16" r="1.8" fill="#fff"/><circle cx="28" cy="6" r="1.8" fill="#fff"/>
+          <circle cx="18" cy="9" r="6.2" fill="#fff"/><rect x="14" y="13" width="8" height="4.5" rx="1.2" fill="#fff"/>
+          <circle cx="15.6" cy="8.6" r="1.7" fill="#14171c"/><circle cx="20.4" cy="8.6" r="1.7" fill="#14171c"/><path d="M18 11 l-1 2 h2Z" fill="#14171c"/>
+          <path d="M15.5 14 v3 M18 14 v3 M20.5 14 v3" stroke="#14171c" stroke-width=".7"/>
+        </g>
       </g></g>`;
     const pirateMonkey = (captain) => `<g class="pm-bob">
         <path d="M14 8 C32 10 36 -12 24 -18" stroke="#6b3f1e" stroke-width="5" fill="none" stroke-linecap="round"/>
@@ -849,7 +861,9 @@ const Scene = (() => {
         <ellipse cx="0" cy="0" rx="18" ry="21" fill="${captain ? '#c0392b' : '#2f6fb5'}"/>
         ${captain ? '<circle cx="-4" cy="-6" r="1.8" fill="#f2c94c"/><circle cx="-4" cy="2" r="1.8" fill="#f2c94c"/><circle cx="-4" cy="10" r="1.8" fill="#f2c94c"/><path d="M-18 -8 Q0 -2 18 -8" stroke="#f2c94c" stroke-width="2" fill="none"/>'
                   : '<path d="M-16 -8 H16 M-18 1 H18 M-16 10 H16" stroke="#fff" stroke-width="3"/>'}
-        <path d="M-15 -8 Q-28 4 -20 16 M15 -8 Q28 4 20 16" stroke="#7a4a24" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path d="M-15 -8 Q-28 4 -20 16 M15 -8 Q28 4 20 16" stroke="${captain ? '#c0392b' : '#7a4a24'}" stroke-width="7" fill="none" stroke-linecap="round"/>
+        ${captain ? '<circle cx="-20" cy="17" r="4" fill="#7a4a24"/><rect x="16" y="14" width="8" height="5" rx="1.5" fill="#f2c94c"/><path d="M20 19 v5 q0 8 7 6 q4 -2 2 -7" stroke="#c9d1d9" stroke-width="2.8" fill="none" stroke-linecap="round"/>'
+                  : '<circle cx="-20" cy="17" r="4" fill="#7a4a24"/><circle cx="20" cy="17" r="4" fill="#7a4a24"/>'}
         <g transform="translate(0 -32)">
           <circle cx="-21" cy="0" r="8" fill="#7a4a24"/><circle cx="21" cy="0" r="8" fill="#7a4a24"/>
           <circle cx="0" cy="0" r="21" fill="#7a4a24"/><ellipse cx="0" cy="7" rx="14" ry="11" fill="#e8c39e"/>
@@ -863,7 +877,17 @@ const Scene = (() => {
         <g class="pm-carry hide"><rect x="-13" y="-80" width="26" height="18" rx="3" fill="#c98f4f" stroke="#7a4a24" stroke-width="2"/><path d="M-13 -73 H13" stroke="#f2c94c" stroke-width="2"/></g>
       </g>`;
     const LOOT = ['basket', 'barrel', 'woodpile', 'caveLamp', 'pots', 'rod', 'bucket', 'fruitpile', 'compost', 'bin', 'caveBed', 'campfire'];
-    const SHIP_X = 820, SHIP_Y = 452, SHORE = [650, 414];
+    // The ship parks just right of the island (never overlapping it); its deck is at DECK.
+    const SHIP_X = 966, SHIP_Y = 372;
+    const DECK = [778, 354], LANDING = [714, 394], SHORE = [690, 394];
+    const ladderSVG = (() => {
+      const [x1, y1] = DECK, [x2, y2] = LANDING, len = Math.hypot(x2 - x1, y2 - y1);
+      const ux = (x2 - x1) / len, uy = (y2 - y1) / len, nx = -uy * 5, ny = ux * 5;
+      let rungs = '';
+      for (let d = 8; d < len - 2; d += 9) rungs += `M${(x1 + ux * d + nx).toFixed(1)} ${(y1 + uy * d + ny).toFixed(1)} L${(x1 + ux * d - nx).toFixed(1)} ${(y1 + uy * d - ny).toFixed(1)} `;
+      return `<g class="ladder"><path d="M${x1 + nx} ${y1 + ny} L${x2 + nx} ${y2 + ny} M${x1 - nx} ${y1 - ny} L${x2 - nx} ${y2 - ny}" stroke="#8b5a2b" stroke-width="3" stroke-linecap="round"/>
+        <path d="${rungs}" stroke="#c98f4f" stroke-width="2.4" stroke-linecap="round"/></g>`;
+    })();
 
     function pirates() {
       const wait = (ms) => new Promise((done) => setTimeout(done, ms));
@@ -879,55 +903,70 @@ const Scene = (() => {
         };
         requestAnimationFrame(frame);
       });
-      // the two pirate monkeys (drawn on the island, in front of the ship)
+      // the ladder that swings down from the deck onto the beach
+      const ladder = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      ladder.innerHTML = ladderSVG;
+      ladder.style.transformOrigin = `${DECK[0]}px ${DECK[1]}px`;
+      ladder.classList.add('ladder-wrap', 'ladder-up');
+      q('fx').appendChild(ladder);
+      // the two pirate monkeys: the captain (hook hand) and the peg-legged first mate
       const crew = [true, false].map((captain) => {
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        g.setAttribute('transform', `translate(${SHORE[0]} ${SHORE[1]})`);
-        g.innerHTML = `<g class="pirate-walker" style="opacity:0">${pirateMonkey(captain)}</g>`;
+        g.innerHTML = `<g class="pirate-walker" style="opacity:0;transform:translate(${DECK[0] + 14}px, ${DECK[1] - 22}px)">${pirateMonkey(captain)}</g>`;
         q('fx').appendChild(g);
-        return { g, inner: g.firstChild, pos: SHORE.slice() };
+        return { g, inner: g.firstChild, pos: [DECK[0] + 14, DECK[1] - 22] };
       });
       const walk = (p, x, y) => {
-        const ms = Math.max(300, Math.hypot(x - p.pos[0], y - p.pos[1]) * 4.5);
+        const ms = Math.max(250, Math.hypot(x - p.pos[0], y - p.pos[1]) * 4.5);
         p.inner.style.transition = `transform ${ms}ms linear, opacity .4s`;
-        p.inner.style.transform = `translate(${x - SHORE[0]}px, ${y - SHORE[1]}px)`;
+        p.inner.style.transform = `translate(${x}px, ${y}px)`;
         p.pos = [x, y];
         p.inner.classList.add('pm-walking');
         return wait(ms).then(() => p.inner.classList.remove('pm-walking'));
       };
+      const down = async (p) => { await walk(p, DECK[0], DECK[1] - 20); await walk(p, LANDING[0], LANDING[1] - 20); await walk(p, SHORE[0], SHORE[1]); };
+      const up = async (p) => { await walk(p, LANDING[0], LANDING[1] - 20); await walk(p, DECK[0], DECK[1] - 20); await walk(p, DECK[0] + 14, DECK[1] - 22); };
       const where = (k) => {
-        const el = q(k), r = el.getBoundingClientRect(), m = svg.getScreenCTM();
+        const el = q(k), r = el.getBoundingClientRect(), m = q('land').getScreenCTM();
         if (!m || !r.width) return [400, 400];
         const pt = svg.createSVGPoint(); pt.x = r.left + r.width / 2; pt.y = r.bottom;
         const p = pt.matrixTransform(m.inverse());
         return [p.x + 18, Math.min(440, Math.max(345, p.y - 14))];
       };
+      const carry = (p, on) => p.inner.querySelector('.pm-carry').classList.toggle('hide', !on);
       const grab = async (p, k) => {
+        await down(p);
         const [x, y] = where(k);
         await walk(p, x, y);
         s.hide(k);
-        p.inner.querySelector('.pm-carry').classList.remove('hide');
+        carry(p, true);
         await wait(250);
         await walk(p, SHORE[0], SHORE[1]);
-        p.inner.querySelector('.pm-carry').classList.add('hide');
-        s.toss(SHORE[0], SHORE[1] - 70, SHIP_X - 40, SHIP_Y - 60, '<rect x="-12" y="-8" width="24" height="16" rx="3" fill="#c98f4f" stroke="#7a4a24" stroke-width="2"/>', 600);
-        await wait(500);
+        await up(p);
+        carry(p, false);        // loot stowed on the ship
+        await wait(300);
       };
 
       react('scared', 0);
-      return sail(1800, SHIP_X, 3200).then(async () => {
+      svg.classList.add('pan-pirates');      // look a bit to the right so the whole ship is in view
+      return sail(1900, SHIP_X, 3200).then(async () => {
+        ladder.classList.remove('ladder-up'); // the ladder comes down
+        await wait(900);
         crew.forEach((p, n) => setTimeout(() => { p.inner.style.opacity = 1; }, n * 300));
         await wait(600);
         // up to 4 things the monkey owns (or the coconuts if there's nothing else)
         const stolen = LOOT.filter((k) => visible(q(k))).slice(0, 4);
         if (!stolen.length) svg.querySelectorAll('.cocos:not(.hide)').forEach((c) => c.classList.add('hide'));
         const jobs = [stolen.filter((_, n) => n % 2 === 0), stolen.filter((_, n) => n % 2 === 1)];
-        await Promise.all(crew.map(async (p, n) => { for (const k of jobs[n]) await grab(p, k); }));
+        await Promise.all(crew.map(async (p, n) => { await wait(n * 700); for (const k of jobs[n]) await grab(p, k); }));
         crew.forEach((p) => { p.inner.style.opacity = 0; });
-        await wait(500);
+        ladder.classList.add('ladder-up');    // the ladder goes back up
+        await wait(900);
         crew.forEach((p) => p.g.remove());
-        await sail(SHIP_X, 1900, 4000);   // sail back off to the right
+        ladder.remove();
+        await sail(SHIP_X, 2000, 4000);       // sail back off to the right
         ship.remove();
+        svg.classList.remove('pan-pirates');
         react('sad', 2600);
       });
     }

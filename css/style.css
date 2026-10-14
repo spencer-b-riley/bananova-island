@@ -450,6 +450,13 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 .pirate-walker { transform-box: view-box; }
 .pm-walking .pm-bob { animation: walkbob 0.26s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
 .pm-carry.hide { opacity: 0; }
+.ladder-wrap { transform-box: view-box; transition: transform 0.9s cubic-bezier(.4, 1.4, .6, 1), opacity 0.3s; }
+.ladder-up { transform: rotate(-118deg); opacity: 0; }
+.jolly-roger { transform-box: fill-box; transform-origin: 0 50%; animation: flagWave 1.6s ease-in-out infinite alternate; }
+@keyframes flagWave { from { transform: translate(-16px, -128px) skewY(-4deg) scaleX(0.96); } to { transform: translate(-16px, -128px) skewY(4deg) scaleX(1); } }
+/* the view pans to the right while the pirate ship visits, so the ship fits on screen */
+.camera { transition: transform 1.6s ease-in-out; }
+.pan-pirates .camera { transform: translateX(-250px); }
 .rainy .cloud { fill: #8d97a5; }
 .rain-cloud { fill: #77818f; }
 /* storm cloud cover slowly rolling */
