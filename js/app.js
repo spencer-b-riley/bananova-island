@@ -578,6 +578,9 @@
     check(G.picks[4] === true, 'fisher');
     check(G.picks[6] === true, 'firefighter');
     check(G.picks[9] === true, 'turtle');
+    check(G.picks[5] === true, 'compost');
+    check(G.picks[8] === true, 'water');
+    check(G.picks[7] === true, 'cozy');
     check(!!G.disaster, 'survivor');
     check(store.games.length >= 3, 'three');
     if (G.disaster) {

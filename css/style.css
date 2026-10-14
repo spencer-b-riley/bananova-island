@@ -272,7 +272,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .pager { display: flex; gap: 10px; align-items: center; justify-content: center; font-weight: 800; }
 
 /* ── achievements ── */
-.ach-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.ach-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
 .badge { background: #fff; border-radius: 16px; padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .badge .emo { font-size: clamp(26px, 4.4vh, 38px); line-height: 1.1; }
 .badge b { font-size: 13px; line-height: 1.15; max-width: 100%; overflow-wrap: anywhere; hyphens: auto; }
@@ -440,9 +440,16 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 .billow circle { fill: #59606b; opacity: 0.75; }
 .puff circle { fill: #c9ced4; opacity: 0.85; }
 .flies circle { fill: #222; animation: buzz 0.9s linear infinite; }
-.rain line { stroke: #c9ddef; stroke-width: 2; stroke-dasharray: 16 26; opacity: 0.75; }
-.rain:not(.hide) line { animation: rainfall 0.45s linear infinite; }
-@keyframes rainfall { to { stroke-dashoffset: -42; } }
+.rain line { stroke: #d6e6f4; stroke-width: 1.7; stroke-linecap: round; opacity: 0; }
+.rain:not(.hide) line { animation: drop 0.55s linear infinite; }
+@keyframes drop { 0% { transform: translate(0, -70px); opacity: 0; } 15%, 85% { opacity: 0.8; } 100% { transform: translate(-16px, 70px); opacity: 0; } }
+
+/* pirates */
+.ship-rock { animation: shipRock 3.6s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes shipRock { 0%, 100% { transform: rotate(-1.2deg) translateY(0); } 50% { transform: rotate(1.2deg) translateY(4px); } }
+.pirate-walker { transform-box: view-box; }
+.pm-walking .pm-bob { animation: walkbob 0.26s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+.pm-carry.hide { opacity: 0; }
 .rainy .cloud { fill: #8d97a5; }
 .rain-cloud { fill: #77818f; }
 /* storm cloud cover slowly rolling */

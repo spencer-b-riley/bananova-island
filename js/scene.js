@@ -86,13 +86,11 @@ const Scene = (() => {
   // simple repeatable "random" so every screen draws the same scene
   const rnd = (n) => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };
 
-  // Rain falls from under the cloud cover (also past the edges, for wide screens) down to the sea.
-  const RAIN_CLOUDS = Array.from({ length: 13 }, (_, k) => [-900 + k * 210, 28 + (k % 3) * 18, 1.35 + (k % 2) * 0.25]);
-  const rainSVG = RAIN_CLOUDS.map(([x, y, sc], c) => Array.from({ length: 7 }, (_, k) => {
-    const x1 = x + (6 + k * 11) * sc, y1 = y + 22 * sc;
-    const y2 = 505 + rnd(c * 7 + k + 50) * 380;   // some rain falls closer to us, further down the screen
-    return `<line x1="${x1.toFixed(0)}" y1="${y1.toFixed(0)}" x2="${(x1 - 26 * (y2 - y1) / (505 - y1)).toFixed(0)}" y2="${y2.toFixed(0)}" style="animation-delay:${(-rnd(c * 7 + k) * 0.5).toFixed(2)}s"/>`;
-  }).join('')).join('');
+  // Rain: short drops spread evenly over the whole screen (also past the edges, for wide screens)
+  const rainSVG = Array.from({ length: 340 }, (_, k) => {
+    const x = -700 + rnd(k + 11) * 2200, y = -120 + rnd(k + 517) * 1040, len = 14 + rnd(k + 77) * 10;
+    return `<line x1="${x.toFixed(0)}" y1="${y.toFixed(0)}" x2="${(x - len * 0.25).toFixed(0)}" y2="${(y + len).toFixed(0)}" style="animation-delay:${(-rnd(k + 3) * 0.6).toFixed(2)}s;animation-duration:${(0.45 + rnd(k + 41) * 0.25).toFixed(2)}s"/>`;
+  }).join('');
 
   // Storm cloud cover: solid layers with a soft, bumpy bottom edge (no gaps anywhere)
   const stormLayer = (yBase, amp, step, shift, fill) => {
@@ -225,6 +223,7 @@ const Scene = (() => {
   <g data-k="farFish" class="fade"><g class="swim" style="animation-duration:60s;animation-delay:-10s"><g transform="translate(0 312) scale(.3)">${fish('#ffd23f')}</g></g>
     <g class="swim" style="animation-duration:70s;animation-delay:-42s"><g transform="translate(0 300) scale(.26)">${fish('#ff8c42')}</g></g>
     <g class="swim" style="animation-duration:66s;animation-delay:-25s"><g transform="translate(0 326) scale(.34)">${fish('#7ad3ff')}</g></g></g>
+  <g data-k="shipLayer"></g>
   <ellipse cx="400" cy="372" rx="366" ry="100" fill="none" stroke="#e6f9ff" stroke-width="5" opacity=".7" class="foam"/>
   <ellipse cx="400" cy="368" rx="352" ry="94" fill="#ecc673"/>
   <ellipse cx="400" cy="362" rx="338" ry="84" fill="#fbe3a2"/>
@@ -830,47 +829,107 @@ const Scene = (() => {
       setTimeout(() => { svg.classList.remove('eclipse'); setTime(before); }, 7000);
     }
 
-    /* Super rare: a pirate ship sails in, the pirates grab some loot from the island and sail away. */
-    const SHIP = `<g class="float"><g transform="scale(1.5)">
-        <path d="M-70 -6 L70 -6 L56 22 L-58 22Z" fill="#7a4a24"/><path d="M-70 -6 L70 -6 L67 0 L-68 0Z" fill="#5a3518"/>
-        <path d="M-64 6 H62" stroke="#f2c94c" stroke-width="3"/>
-        <circle cx="-30" cy="12" r="4" fill="#3b2a1a"/><circle cx="0" cy="12" r="4" fill="#3b2a1a"/><circle cx="30" cy="12" r="4" fill="#3b2a1a"/>
-        <path d="M-12 -6 V-104 M30 -6 V-80" stroke="#5a3518" stroke-width="5"/>
-        <path d="M-10 -100 Q24 -76 -10 -24Z" fill="#f4ecd8"/><path d="M-14 -96 Q-48 -70 -14 -28Z" fill="#efe4c8"/><path d="M32 -76 Q58 -56 32 -24Z" fill="#f4ecd8"/>
-        <path d="M-12 -104 h26 l-6 8 l6 8 h-26Z" fill="#23313f"/><circle cx="-1" cy="-97" r="3.6" fill="#fff"/><path d="M-6 -91 l10 4 M4 -91 l-10 4" stroke="#fff" stroke-width="1.6"/>
-        <g class="pirate-crew">
-          <circle cx="-44" cy="-14" r="7" fill="#e8c39e"/><path d="M-51 -16 Q-44 -26 -37 -16Z" fill="#e63946"/><circle cx="-42" cy="-14" r="1.3" fill="#23313f"/>
-          <circle cx="48" cy="-14" r="7" fill="#c98f5f"/><path d="M41 -16 Q48 -26 55 -16Z" fill="#2f80ed"/><circle cx="50" cy="-14" r="1.3" fill="#23313f"/><path d="M44 -15 h4" stroke="#23313f" stroke-width="2.5"/>
-          <circle cx="8" cy="-14" r="7" fill="#e8c39e"/><path d="M1 -16 Q8 -26 15 -16Z" fill="#23313f"/><circle cx="10" cy="-14" r="1.3" fill="#23313f"/>
-        </g></g></g>`;
+    /* Super rare: a MASSIVE pirate ship parks next to the island. A monkey captain and his
+       peg-legged first mate come ashore, carry off some loot, and the ship sails away to the right. */
+    const SHIP = `<g class="ship-rock"><g transform="scale(3.2)">
+        <path d="M-74 -8 L74 -8 L60 22 L-62 22Z" fill="#6e3f1d"/><path d="M-74 -8 L74 -8 L71 -1 L-72 -1Z" fill="#4e2a12"/>
+        <path d="M-70 4 H66" stroke="#f2c94c" stroke-width="2.2"/><path d="M-66 12 H62" stroke="#5a3518" stroke-width="1.2"/>
+        ${[-44, -22, 0, 22, 44].map((x) => `<circle cx="${x}" cy="8" r="3" fill="#2a1a0e" stroke="#f2c94c" stroke-width=".8"/>`).join('')}
+        <path d="M60 -8 L84 -16 L82 -10 L62 -2Z" fill="#6e3f1d"/>
+        <path d="M-16 -8 V-120 M28 -8 V-96" stroke="#4e2a12" stroke-width="3.5"/>
+        <path d="M-14 -116 Q20 -90 -14 -30Z" fill="#f4ecd8"/><path d="M-18 -112 Q-54 -84 -18 -34Z" fill="#efe4c8"/>
+        <path d="M30 -92 Q58 -70 30 -28Z" fill="#f4ecd8"/><path d="M-14 -100 Q2 -90 -14 -70 M30 -80 Q42 -70 30 -56" stroke="#d9cdb0" stroke-width="1.2" fill="none"/>
+        <path d="M-16 -120 h26 l-6 8 l6 8 h-26Z" fill="#23313f"/><circle cx="-4" cy="-113" r="3.6" fill="#fff"/><path d="M-9 -107 l10 4 M1 -107 l-10 4" stroke="#fff" stroke-width="1.5"/>
+        <path d="M-74 -8 L-90 -26" stroke="#4e2a12" stroke-width="2.5"/>
+      </g></g>`;
+    const pirateMonkey = (captain) => `<g class="pm-bob">
+        <path d="M14 8 C32 10 36 -12 24 -18" stroke="#6b3f1e" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="-8" cy="22" rx="7" ry="5" fill="#6b3f1e"/>
+        ${captain ? '<ellipse cx="8" cy="22" rx="7" ry="5" fill="#6b3f1e"/>' : '<rect x="6" y="10" width="4.5" height="18" rx="2" fill="#a0673a" stroke="#6b4423" stroke-width="1"/>'}
+        <ellipse cx="0" cy="0" rx="18" ry="21" fill="${captain ? '#c0392b' : '#2f6fb5'}"/>
+        ${captain ? '<circle cx="-4" cy="-6" r="1.8" fill="#f2c94c"/><circle cx="-4" cy="2" r="1.8" fill="#f2c94c"/><circle cx="-4" cy="10" r="1.8" fill="#f2c94c"/><path d="M-18 -8 Q0 -2 18 -8" stroke="#f2c94c" stroke-width="2" fill="none"/>'
+                  : '<path d="M-16 -8 H16 M-18 1 H18 M-16 10 H16" stroke="#fff" stroke-width="3"/>'}
+        <path d="M-15 -8 Q-28 4 -20 16 M15 -8 Q28 4 20 16" stroke="#7a4a24" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <g transform="translate(0 -32)">
+          <circle cx="-21" cy="0" r="8" fill="#7a4a24"/><circle cx="21" cy="0" r="8" fill="#7a4a24"/>
+          <circle cx="0" cy="0" r="21" fill="#7a4a24"/><ellipse cx="0" cy="7" rx="14" ry="11" fill="#e8c39e"/>
+          <circle cx="-6" cy="-3" r="7" fill="#e8c39e"/><circle cx="6" cy="-3" r="7" fill="#e8c39e"/>
+          <circle cx="-6" cy="-3" r="2.8" fill="#23313f"/>
+          ${captain ? '<circle cx="6" cy="-3" r="2.8" fill="#23313f"/>' : '<circle cx="6" cy="-3" r="5" fill="#23313f"/><path d="M-18 -10 L22 -2" stroke="#23313f" stroke-width="1.6"/>'}
+          <path d="M-6 10 Q0 15 6 10" stroke="#5a2d0c" stroke-width="2" fill="none" stroke-linecap="round"/>
+          ${captain ? '<path d="M-30 -10 Q0 -40 30 -10 Q0 -20 -30 -10Z" fill="#23313f"/><path d="M-30 -10 Q0 -20 30 -10" stroke="#f2c94c" stroke-width="2" fill="none"/><circle cx="0" cy="-22" r="3.4" fill="#fff"/>'
+                    : '<path d="M-20 -8 Q0 -30 20 -8 Q0 -14 -20 -8Z" fill="#e63946"/><path d="M18 -10 l10 6 l-4 -10Z" fill="#e63946"/>'}
+        </g>
+        <g class="pm-carry hide"><rect x="-13" y="-80" width="26" height="18" rx="3" fill="#c98f4f" stroke="#7a4a24" stroke-width="2"/><path d="M-13 -73 H13" stroke="#f2c94c" stroke-width="2"/></g>
+      </g>`;
     const LOOT = ['basket', 'barrel', 'woodpile', 'caveLamp', 'pots', 'rod', 'bucket', 'fruitpile', 'compost', 'bin', 'caveBed', 'campfire'];
+    const SHIP_X = 820, SHIP_Y = 452, SHORE = [650, 414];
+
     function pirates() {
+      const wait = (ms) => new Promise((done) => setTimeout(done, ms));
       const ship = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       ship.innerHTML = SHIP;
-      q('fx').appendChild(ship);
+      q('shipLayer').appendChild(ship);
       const sail = (from, to, ms) => new Promise((done) => {
         const t0 = performance.now();
         const frame = (now) => {
           const k = Math.min(1, (now - t0) / ms), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
-          ship.setAttribute('transform', `translate(${(from + (to - from) * e).toFixed(1)} 470)`);
+          ship.setAttribute('transform', `translate(${(from + (to - from) * e).toFixed(1)} ${SHIP_Y})`);
           if (k < 1) requestAnimationFrame(frame); else done();
         };
         requestAnimationFrame(frame);
       });
+      // the two pirate monkeys (drawn on the island, in front of the ship)
+      const crew = [true, false].map((captain) => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('transform', `translate(${SHORE[0]} ${SHORE[1]})`);
+        g.innerHTML = `<g class="pirate-walker" style="opacity:0">${pirateMonkey(captain)}</g>`;
+        q('fx').appendChild(g);
+        return { g, inner: g.firstChild, pos: SHORE.slice() };
+      });
+      const walk = (p, x, y) => {
+        const ms = Math.max(300, Math.hypot(x - p.pos[0], y - p.pos[1]) * 4.5);
+        p.inner.style.transition = `transform ${ms}ms linear, opacity .4s`;
+        p.inner.style.transform = `translate(${x - SHORE[0]}px, ${y - SHORE[1]}px)`;
+        p.pos = [x, y];
+        p.inner.classList.add('pm-walking');
+        return wait(ms).then(() => p.inner.classList.remove('pm-walking'));
+      };
+      const where = (k) => {
+        const el = q(k), r = el.getBoundingClientRect(), m = svg.getScreenCTM();
+        if (!m || !r.width) return [400, 400];
+        const pt = svg.createSVGPoint(); pt.x = r.left + r.width / 2; pt.y = r.bottom;
+        const p = pt.matrixTransform(m.inverse());
+        return [p.x + 18, Math.min(440, Math.max(345, p.y - 14))];
+      };
+      const grab = async (p, k) => {
+        const [x, y] = where(k);
+        await walk(p, x, y);
+        s.hide(k);
+        p.inner.querySelector('.pm-carry').classList.remove('hide');
+        await wait(250);
+        await walk(p, SHORE[0], SHORE[1]);
+        p.inner.querySelector('.pm-carry').classList.add('hide');
+        s.toss(SHORE[0], SHORE[1] - 70, SHIP_X - 40, SHIP_Y - 60, '<rect x="-12" y="-8" width="24" height="16" rx="3" fill="#c98f4f" stroke="#7a4a24" stroke-width="2"/>', 600);
+        await wait(500);
+      };
+
       react('scared', 0);
-      return sail(1300, 660, 2800).then(() => new Promise((done) => {
-        // grab up to 4 things the monkey owns (or the coconuts if there's nothing else)
+      return sail(1800, SHIP_X, 3200).then(async () => {
+        crew.forEach((p, n) => setTimeout(() => { p.inner.style.opacity = 1; }, n * 300));
+        await wait(600);
+        // up to 4 things the monkey owns (or the coconuts if there's nothing else)
         const stolen = LOOT.filter((k) => visible(q(k))).slice(0, 4);
         if (!stolen.length) svg.querySelectorAll('.cocos:not(.hide)').forEach((c) => c.classList.add('hide'));
-        stolen.forEach((k, n) => setTimeout(() => {
-          const el = q(k), r = el.getBoundingClientRect(), m = svg.getScreenCTM();
-          let x = 400, y = 380;
-          if (m && r.width) { const pt = svg.createSVGPoint(); pt.x = r.left + r.width / 2; pt.y = r.top + r.height / 2; const p = pt.matrixTransform(m.inverse()); x = p.x; y = p.y; }
-          s.hide(k);
-          s.toss(x, y, 660, 430, '<g transform="scale(.8)"><rect x="-10" y="-8" width="20" height="16" rx="3" fill="#c98f4f" stroke="#7a4a24" stroke-width="2"/><path d="M-10 -2 H10" stroke="#f2c94c" stroke-width="2"/></g>', 750);
-        }, n * 450));
-        setTimeout(done, stolen.length * 450 + 1100);
-      })).then(() => sail(660, -900, 3600)).then(() => { ship.remove(); react('sad', 2600); });
+        const jobs = [stolen.filter((_, n) => n % 2 === 0), stolen.filter((_, n) => n % 2 === 1)];
+        await Promise.all(crew.map(async (p, n) => { for (const k of jobs[n]) await grab(p, k); }));
+        crew.forEach((p) => { p.inner.style.opacity = 0; });
+        await wait(500);
+        crew.forEach((p) => p.g.remove());
+        await sail(SHIP_X, 1900, 4000);   // sail back off to the right
+        ship.remove();
+        react('sad', 2600);
+      });
     }
 
     function disaster(type) {

@@ -23,7 +23,9 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
 - Every game is different: questions come in a random order (Home is always first), the time of
   day is random after the first three (the sun rises on the left and sets on the right), and the
   weather is random (when it rains, rain clouds cover the whole sky)
-- Super rare pirate raid (about 1 game in 100): a pirate ship sails in and steals some loot
+- Super rare pirate raid (about 1 game in 100): a massive pirate ship parks next to the island and
+  two monkey pirates (a captain and a peg-legged first mate) carry off some loot
+- 20 achievements, 6 of them hidden mystery achievements
 - Mystery achievements: Whale Hello! (the whale only visits about 1 game in 4), Storm Chaser
   (all 3 disasters), Eclipse Watcher (about 1 game in 100), Ahoy, Pirates! (about 1 game in 100)
   and Climate Legend (unlock everything)
