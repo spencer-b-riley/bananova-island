@@ -129,6 +129,11 @@ const Scene = (() => {
     <g data-k="bubbles" class="fade hide"><circle cx="-12" cy="-6" r="4" fill="#fff" opacity=".9"/><circle cx="-2" cy="-9" r="3" fill="#fff" opacity=".9"/><circle cx="12" cy="-6" r="5" fill="#fff" opacity=".9"/></g>
   </g></g>
 
+  <g transform="translate(160 336)"><g data-k="cave">
+    <path d="M-48 0 Q-52 -40 -22 -58 Q6 -68 32 -52 Q54 -36 50 0Z" fill="#8f99a3"/>
+    <path d="M-32 -22 Q-22 -46 4 -52" stroke="#b4bcc4" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M-18 0 Q-18 -36 2 -36 Q20 -36 20 0Z" fill="#323840"/></g></g>
+
   ${palm(0, 205, 298, 0.9)}${palm(1, 268, 292, 1)}${palm(2, 332, 300, 0.85)}${palm(3, 470, 300, 0.85)}${palm(4, 532, 292, 1)}${palm(5, 598, 298, 0.9)}
 
   ${item('parrot', 528, 180, `<ellipse cx="0" cy="0" rx="8" ry="12" fill="#ff4d4d"/><circle cx="2" cy="-12" r="7" fill="#ff4d4d"/>
@@ -203,6 +208,8 @@ const Scene = (() => {
   ${item('seaBottles', 0, 0, `<g class="float">${bottle(52, 452, 80, 1.5)}</g><g class="float" style="animation-delay:-1s">${bottle(735, 462, -60, 1.5)}</g><g class="float" style="animation-delay:-2s">${bottle(300, 486, 100, 1.4)}</g>`, 'fade')}
   ${item('deadFish', 0, 0, `${deadFish(100, 470, 170, 1.8)}${deadFish(215, 484, 192, 1.6)}${deadFish(575, 486, 176, 1.5)}`, 'fade')}
 
+  <g data-k="fx"></g>
+
   <g transform="translate(400 400)"><g data-k="monkey"><g class="mjump"><g class="bob">
     <path d="M16 12 C46 14 52 -18 34 -26 C26 -28 24 -18 32 -16" stroke="#7a4a24" stroke-width="6" fill="none" stroke-linecap="round"/>
     <ellipse cx="-11" cy="24" rx="9" ry="6" fill="#7a4a24"/><ellipse cx="11" cy="24" rx="9" ry="6" fill="#7a4a24"/>
@@ -226,7 +233,6 @@ const Scene = (() => {
   </g></g></g></g>
 
   <g data-k="rain" class="rain hide">${RAIN}</g>
-  <g data-k="fx"></g>
 </svg>`;
   }
 
@@ -368,6 +374,33 @@ const Scene = (() => {
       }
     }
 
+    /* Storms and floods carry everything on the island off screen.
+       Each thing starts moving when the wind/wave reaches it. */
+    function sweepAway(type) {
+      const box = svg.getBoundingClientRect();
+      const things = svg.querySelectorAll('[data-k^="palm"], .pop[data-k], [data-k="flowers"], [data-k="darkSmoke"], [data-k="smoke"]');
+      things.forEach((el) => {
+        if (el.classList.contains('hide')) return;
+        const r = el.getBoundingClientRect();
+        if (!r.width) return;
+        const x = (r.left + r.width / 2 - box.left) / box.width; // 0 = left edge, 1 = right edge
+        const rnd = Math.random();
+        if (type === 'storm') {           // wind blows left → right, up into the sky
+          el.style.setProperty('--delay', (0.9 + x * 1.0 + rnd * 0.3).toFixed(2) + 's');
+          el.style.setProperty('--dx', 1300 + rnd * 300 + 'px');
+          el.style.setProperty('--dy', -(180 + rnd * 260) + 'px');
+          el.style.setProperty('--rot', 360 + rnd * 540 + 'deg');
+        } else {                          // the wave rolls right → left and drags things along
+          el.style.setProperty('--delay', (0.1 + (820 - x * 800) / 780 + rnd * 0.1).toFixed(2) + 's'); // when the wave front arrives
+          el.style.setProperty('--dx', -(1400 + rnd * 300) + 'px');
+          el.style.setProperty('--dy', 40 + rnd * 80 + 'px');
+          el.style.setProperty('--rot', -(120 + rnd * 300) + 'deg');
+        }
+        el.classList.add('swept');
+      });
+      ['birds1', 'birds2', 'birds3', 'parrot'].forEach(s.hide);
+    }
+
     function disaster(type) {
       const fx = q('fx');
       container.classList.add('shake');
@@ -375,8 +408,11 @@ const Scene = (() => {
         svg.classList.add('flooded');
         fx.insertAdjacentHTML('beforeend', `
           <rect class="flood-water" x="-3000" y="500" width="6800" height="3000" fill="#2b8fd0" opacity=".82"/>
-          <g class="flood-wave"><path d="M820 500 C820 330 900 250 1010 260 C1090 268 1110 330 1070 360 C1060 320 1020 300 990 320 C960 340 990 420 1060 500Z" fill="#2aa0e6"/>
-          <path d="M1000 262 C1070 262 1100 320 1074 352" stroke="#fff" stroke-width="10" fill="none" stroke-linecap="round"/></g>`);
+          <g class="flood-wave">
+            <path d="M820 520 C830 330 900 160 1040 140 C1160 125 1225 210 1185 262 C1165 212 1112 196 1082 226 C1052 256 1082 330 1160 400 L4000 400 L4000 520Z" fill="#2aa0e6"/>
+            <path d="M1040 142 C1150 128 1218 198 1187 258" stroke="#fff" stroke-width="12" fill="none" stroke-linecap="round"/>
+            <circle cx="1000" cy="170" r="9" fill="#fff"/><circle cx="975" cy="200" r="6" fill="#fff"/><circle cx="1210" cy="190" r="7" fill="#fff"/></g>`);
+        sweepAway('flood');
       } else if (type === 'heat') {
         svg.classList.add('dry');
         q('heatGlow').classList.remove('hide');
@@ -390,9 +426,13 @@ const Scene = (() => {
         fx.insertAdjacentHTML('beforeend', `
           <rect class="storm-dark" x="-3000" y="-3000" width="6800" height="6800" fill="#1d2533"/>
           <path class="bolt" d="M430 0 L400 110 L436 110 L390 240 L470 90 L432 90 L462 0Z" fill="#fff36b"/>
-          <rect class="storm-flash" x="-3000" y="-3000" width="6800" height="6800" fill="#fff"/>`);
+          <rect class="storm-flash" x="-3000" y="-3000" width="6800" height="6800" fill="#fff"/>
+          <g class="wind">${[90, 170, 250, 330, 410].map((y, k) =>
+            `<path style="animation-delay:${0.6 + k * 0.17}s" d="M-200 ${y} q60 -18 120 0 t120 0 t120 0"/>`).join('')}</g>`);
+        sweepAway('storm');
       }
-      return new Promise((resolve) => setTimeout(() => { container.classList.remove('shake'); resolve(); }, 3600));
+      const ms = type === 'heat' ? 3600 : 4300;
+      return new Promise((resolve) => setTimeout(() => { container.classList.remove('shake'); resolve(); }, ms));
     }
 
     reset();

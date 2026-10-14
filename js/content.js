@@ -6,16 +6,16 @@
    two turns later (see PAYOFF in app.js). */
 
 const CHOICES = [
-  { id: 'shelter',  good: { h: -8,  i: 8,  emoji: '🍃' }, bad: { h: 10, i: -12, emoji: '🪓' }, disaster: 'storm' },
-  { id: 'plastic',  good: { h: -8,  i: 8,  emoji: '🗑️' }, bad: { h: 8,  i: -15, emoji: '🌊' }, disaster: 'flood' },
-  { id: 'food',     good: { h: -8,  i: 6,  emoji: '🧺' }, bad: { h: 12, i: -10, emoji: '😋' }, disaster: 'heat' },
-  { id: 'banana',   good: { h: -8,  i: 8,  emoji: '🌱' }, bad: { h: 8,  i: -10, emoji: '🍌' }, disaster: 'heat' },
-  { id: 'fishing',  good: { h: -6,  i: 8,  emoji: '🎣' }, bad: { h: 10, i: -14, emoji: '🕸️' }, disaster: 'flood' },
-  { id: 'compost',  good: { h: -8,  i: 8,  emoji: '♻️' }, bad: { h: 8,  i: -12, emoji: '🪰' }, disaster: 'storm' },
-  { id: 'fire',     good: { h: -14, i: 10, emoji: '💧' }, bad: { h: 8,  i: -18, emoji: '🔥' }, disaster: 'heat' },
-  { id: 'firewood', good: { h: -6,  i: 6,  emoji: '🪵' }, bad: { h: 12, i: -12, emoji: '🎆' }, disaster: 'heat' },
-  { id: 'water',    good: { h: -8,  i: 6,  emoji: '🌧️' }, bad: { h: 10, i: -12, emoji: '💦' }, disaster: 'heat' },
-  { id: 'turtles',  good: { h: -8,  i: 8,  emoji: '🐢' }, bad: { h: 8,  i: -12, emoji: '👋' }, disaster: 'flood' },
+  { id: 'shelter',  good: { h: -8,  i: 5,  emoji: '🍃' }, bad: { h: 10, i: -12, emoji: '🪓' }, disaster: 'storm' },
+  { id: 'plastic',  good: { h: -8,  i: 5,  emoji: '🗑️' }, bad: { h: 8,  i: -15, emoji: '🌊' }, disaster: 'flood' },
+  { id: 'food',     good: { h: -8,  i: 4,  emoji: '🧺' }, bad: { h: 12, i: -10, emoji: '😋' }, disaster: 'heat' },
+  { id: 'banana',   good: { h: -8,  i: 5,  emoji: '🌱' }, bad: { h: 8,  i: -10, emoji: '🍌' }, disaster: 'heat' },
+  { id: 'fishing',  good: { h: -6,  i: 5,  emoji: '🎣' }, bad: { h: 10, i: -14, emoji: '🕸️' }, disaster: 'flood' },
+  { id: 'compost',  good: { h: -8,  i: 5,  emoji: '♻️' }, bad: { h: 8,  i: -12, emoji: '🪰' }, disaster: 'storm' },
+  { id: 'fire',     good: { h: -14, i: 6, emoji: '💧' }, bad: { h: 8,  i: -18, emoji: '🔥' }, disaster: 'heat' },
+  { id: 'firewood', good: { h: -6,  i: 4,  emoji: '🪵' }, bad: { h: 12, i: -12, emoji: '🎆' }, disaster: 'heat' },
+  { id: 'water',    good: { h: -8,  i: 4,  emoji: '🌧️' }, bad: { h: 10, i: -12, emoji: '💦' }, disaster: 'heat' },
+  { id: 'turtles',  good: { h: -8,  i: 5,  emoji: '🐢' }, bad: { h: 8,  i: -12, emoji: '👋' }, disaster: 'flood' },
 ];
 
 const ENDINGS = {

@@ -1,12 +1,12 @@
-/* Monkey Island – main game flow.
+/* Bananova Island – main game flow.
    Screens: title → name → intro → 10 choices (with payoffs) → ending → recap → takeaways.
    Menu tabs: Play, My Games, Achievements, Privacy. */
 
 (() => {
   'use strict';
 
-  const START = { h: 55, i: 60 };      // starting meters
-  const PAYOFF = { h: 14, i: 6 };      // reward when a green choice "comes back" 2 turns later
+  const START = { h: 50, i: 50 };      // starting meters
+  const PAYOFF = { h: 12, i: 3 };      // reward when a green choice "comes back" 2 turns later
   const PAYOFF_DELAY = 2;
   const GAMES_PER_PAGE = 4;
   const RANDOM_NAMES = ['Coco', 'Mango', 'Kiki', 'Bobo', 'Zuzu', 'Lulu', 'Pippa', 'Tiki', 'Banjo', 'Momo', 'Suki', 'Bongo', 'Kiwi', 'Papaya', 'Juju', 'Pico'];
@@ -45,6 +45,28 @@
     if (tab) renderTabs(tab);
     $('#homeBtn').hidden = !home;
     $('#brand').hidden = !brand;
+    requestAnimationFrame(syncHorizon);
+  }
+
+  /* Line the page's sky/sea background up with the island drawing's horizon,
+     so the sea "outside" the game sits at exactly the same level as inside. */
+  function syncHorizon() {
+    const svg = $('#screen svg');
+    const ctm = svg && svg.getScreenCTM();
+    if (!ctm) return; // screens without an island keep the last horizon
+    const y = (v) => Math.round(ctm.f + ctm.d * v) + 'px';
+    const root = document.documentElement.style;
+    root.setProperty('--sky-top', y(0));
+    root.setProperty('--horizon', y(285));
+    root.setProperty('--deep', y(500));
+  }
+  const horizonWatcher = new ResizeObserver(() => syncHorizon());
+  horizonWatcher.observe(document.getElementById('screen'));
+  function watchScene(el) {
+    horizonWatcher.disconnect();
+    horizonWatcher.observe(document.getElementById('screen'));
+    horizonWatcher.observe(el);
+    syncHorizon();
   }
 
   function renderTabs(active) {
@@ -125,7 +147,7 @@
     G = null;
     setScreen(`
       <section class="screen title-screen">
-        <h1 class="logo"><span class="w1">Monkey</span> <span class="w2">Island</span></h1>
+        <h1 class="logo"><span class="w1">Bananova</span> <span class="w2">Island</span></h1>
         <p class="subtitle">${t('subtitle')}</p>
         <div class="title-scene" id="titleScene" aria-hidden="true"></div>
         <div class="title-actions">
@@ -138,6 +160,7 @@
       </section>`, { tab: 'title', brand: false });
     const s = Scene.create($('#titleScene'));
     s.setStats(100, 100);
+    watchScene($('#titleScene'));
   }
 
   function renderGames() {
@@ -287,6 +310,7 @@
         <div class="card" id="card" aria-live="polite"></div>
       </section>`, { home: true });
     scene = Scene.create($('#sceneWrap'));
+    watchScene($('#sceneWrap'));
     labelHud();
     updateHud();
     rerender = () => { labelHud(); if (G.cardView) G.cardView(); };
@@ -437,7 +461,7 @@
   /* ═════════════════════ ENDING ═════════════════════ */
 
   function finish() {
-    const ending = G.disaster || (G.i >= 85 && G.h >= 75 ? 'hero' : G.i >= 70 ? 'friend' : G.i >= 40 ? 'okay' : 'struggle');
+    const ending = G.disaster || (G.i >= 90 && G.h >= 70 ? 'hero' : G.i >= 70 ? 'friend' : G.i >= 40 ? 'okay' : 'struggle');
     G.ending = ending;
     const greens = G.picks.filter(Boolean).length;
     store.games.push({ d: Date.now(), n: G.name, e: ending, h: G.h, i: G.i, g: greens, c: G.picks.length });
@@ -567,9 +591,11 @@
       case 'deleteData':
         if (await confirmBox(t('delConfirm'))) {
           store.games = [];
-          store.ach = {};
+          // Achievements are only deleted if the player says yes to a second question.
+          const alsoAch = Object.keys(store.ach).length > 0 && await confirmBox(t('delAchAsk'));
+          if (alsoAch) store.ach = {};
           Store.save(store);
-          toast('🗑️', t('deleted'));
+          toast('🗑️', alsoAch || !Object.keys(store.ach).length ? t('deleted') : t('deletedGames'));
           renderPrivacy();
         }
         break;

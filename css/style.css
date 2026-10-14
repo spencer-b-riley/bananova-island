@@ -1,4 +1,4 @@
-/* ───────── Monkey Island – styles ───────── */
+/* ───────── Bananova Island – styles ───────── */
 :root {
   --sky: #7fd3f7;
   --sea: #1e9bd7;
@@ -26,7 +26,9 @@ html, body { height: 100%; margin: 0; }
 body {
   font-family: var(--font);
   color: var(--ink);
-  background: linear-gradient(#6fcff6, #c9f0ff 58%, #2bb3e0 58.2%, #1279b8);
+  /* --sky-top / --horizon / --deep are measured from the island drawing (app.js: syncHorizon)
+     so the sea outside the game lines up exactly with the sea inside it. */
+  background: linear-gradient(#5ec8f5 var(--sky-top, 0%), #c4f0ff var(--horizon, 58%), #2bb3e0 var(--horizon, 58%), #1279b8 var(--deep, 100%));
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
@@ -106,7 +108,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 /* ── title screen ── */
 .title-screen { text-align: center; gap: 6px; }
 .logo {
-  margin: 0; font-size: clamp(40px, 9vh, 84px); line-height: 1; font-weight: 900; letter-spacing: 1px;
+  margin: 0; font-size: clamp(34px, min(9vh, 15vw), 84px); line-height: 1; font-weight: 900; letter-spacing: 1px;
   -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 0 6px 0 var(--ink);
 }
 .logo .w1 { color: var(--sun); }
@@ -408,12 +410,24 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 @keyframes sway { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
 
 /* disasters */
-[data-k="monkey"] { transition: transform 1.6s ease-in-out; }
-.flooded [data-k="monkey"] { transform: translate(-150px, -88px) scale(0.85); }
+[data-k="monkey"] { transition: transform 1.4s ease-in-out; }
+/* flood: the monkey climbs to the top of the hill; storm/heatwave: it hides in the cave */
+.flooded [data-k="monkey"] { transform: translate(0, -192px) scale(0.85); }
+.stormy [data-k="monkey"], .dry [data-k="monkey"] { transform: translate(-240px, -82px) scale(0.42); }
+.swept {
+  transform-box: fill-box; transform-origin: center;
+  animation: sweep 1.5s cubic-bezier(0.55, 0, 0.85, 0.55) var(--delay, 0s) forwards;
+}
+@keyframes sweep {
+  12% { transform: translate(calc(var(--dx) * 0.01), -4px) rotate(calc(var(--rot) * 0.02)); }
+  100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); }
+}
+.wind path { stroke: #fff; stroke-width: 4; fill: none; opacity: 0; stroke-linecap: round; animation: wind 0.9s linear 3 both; }
+@keyframes wind { 0% { transform: translateX(0); opacity: 0; } 20% { opacity: 0.7; } 100% { transform: translateX(1300px); opacity: 0; } }
 .flood-water { animation: floodRise 3.4s ease-in-out forwards; }
-.flood-wave { animation: wave 2.4s ease-in forwards; }
+.flood-wave { animation: wave 3.2s linear forwards; }
 @keyframes floodRise { 0% { transform: translateY(0); } 50% { transform: translateY(-235px); } 100% { transform: translateY(-112px); } }
-@keyframes wave { from { transform: translateX(0); } to { transform: translateX(-1250px); } }
+@keyframes wave { from { transform: translateX(0); } to { transform: translateX(-2500px); } }
 .heat-tint { opacity: 0; animation: heat 3.4s ease-in-out forwards; }
 @keyframes heat { 40% { opacity: 0.5; } 100% { opacity: 0.32; } }
 .heat-lines path { stroke: #fff2c4; stroke-width: 3; fill: none; opacity: 0.8; animation: rise 1.2s linear infinite; }
