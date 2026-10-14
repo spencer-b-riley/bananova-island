@@ -129,6 +129,7 @@ const I18N = {
       whale: ['Whale Hello!', 'Make the island so healthy that a whale visits'],
       stormchaser: ['Storm Chaser', 'See all 3 natural disasters'],
       eclipse: ['Eclipse Watcher', 'See a super rare solar eclipse'],
+      legend: ['Climate Legend', 'Unlock every other achievement'],
     },
     choices: [
       {
@@ -379,6 +380,7 @@ const I18N = {
       whale: ['Wal-Besuch', 'Mach die Insel so gesund, dass ein Wal vorbeikommt'],
       stormchaser: ['Sturmjäger', 'Erlebe alle 3 Naturkatastrophen'],
       eclipse: ['Finsternis-Fan', 'Sieh eine super seltene Sonnenfinsternis'],
+      legend: ['Klima-Legende', 'Schalte alle anderen Erfolge frei'],
     },
     choices: [
       {
@@ -629,6 +631,7 @@ const I18N = {
       whale: ['Ciao balena!', 'Rendi l’isola così sana che arriva una balena'],
       stormchaser: ['Cacciatore di tempeste', 'Vedi tutti e 3 i disastri naturali'],
       eclipse: ['Osservatore dell’eclissi', 'Vedi una rarissima eclissi di sole'],
+      legend: ['Leggenda del clima', 'Sblocca tutti gli altri traguardi'],
     },
     choices: [
       {
@@ -879,6 +882,7 @@ const I18N = {
       whale: ['Coucou la baleine !', 'Rends l’île si saine qu’une baleine vient la voir'],
       stormchaser: ['Chasseur de tempêtes', 'Vois les 3 catastrophes naturelles'],
       eclipse: ['Témoin de l’éclipse', 'Vois une éclipse de soleil super rare'],
+      legend: ['Légende du climat', 'Débloque tous les autres succès'],
     },
     choices: [
       {

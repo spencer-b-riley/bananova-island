@@ -143,10 +143,13 @@
   }
   const achName = (id) => esc(L().ach[id][0]);
   const achEmoji = (id) => ACHIEVEMENTS.find((a) => a.id === id).emoji;
+  // The final mystery achievement: every other achievement (hidden ones too) is unlocked
+  const legendReady = () => ACHIEVEMENTS.every((a) => a.id === 'legend' || store.ach[a.id]);
   function unlockWithToast(id) {
     if (!unlock(id)) return;
     toast(achEmoji(id), t('newAch'), achName(id));
     Sound.play('achieve');
+    if (legendReady()) setTimeout(() => unlockWithToast('legend'), 1500);
   }
 
   /* ═════════════════════ MENU SCREENS ═════════════════════ */
@@ -285,8 +288,10 @@
       name, h: START.h, i: START.i, turn: 0, picks: [], order: [], payQueue: [],
       next: null, cardView: null, busy: false, disaster: null, cause: null,
       ending: null, newAch: [], recapIdx: 0, langs: new Set([lang]), sawWhale: false,
-      // Super rare: about 1 game in 50 has a solar eclipse during one of the daytime choices
-      eclipseAt: Math.random() < 0.02 ? [1, 2, 3, 6, 8][Math.floor(Math.random() * 5)] : -1,
+      // Super rare: about 1 game in 100 has a solar eclipse during one of the daytime choices
+      eclipseAt: Math.random() < 0.01 ? [1, 2, 3, 6, 8][Math.floor(Math.random() * 5)] : -1,
+      // The whale is rare too: it only visits in about 1 game in 4, and only if the island is very healthy
+      whaleLuck: Math.random() < 0.25,
     };
     renderIntro();
   }
@@ -324,6 +329,7 @@
         <div class="card" id="card" aria-live="polite"></div>
       </section>`, { home: true });
     scene = Scene.create($('#sceneWrap'));
+    scene.allowWhale(G.whaleLuck);
     watchScene($('#sceneWrap'));
     labelHud();
     updateHud();
@@ -375,7 +381,7 @@
     updateHud();
     if (dh > 0) scene.jump(); else if (dh < 0) scene.droop();
     // a really healthy island gets a visit from a whale
-    if (G.i >= 85 && !G.sawWhale) {
+    if (G.i >= 88 && G.whaleLuck && !G.sawWhale) {
       G.sawWhale = true;
       setTimeout(() => { if (G && !G.disaster) { sayLine((sy) => sy.whale); unlockWithToast('whale'); } }, 3200);
     }
@@ -527,6 +533,7 @@
       Store.save(store);
     }
     check(['flood', 'heat', 'storm'].every((d) => store.stats.disasters[d]), 'stormchaser');
+    check(legendReady(), 'legend');
     G.newAch = earned;
 
     Sound.play(G.disaster ? 'lose' : ending === 'hero' ? 'win' : 'payoff');
@@ -627,7 +634,7 @@
       case 'recapNext':
         if (G.recapIdx < G.picks.length - 1) { G.recapIdx++; recapView(); }
         else {
-          if (unlock('learner')) { toast('📚', t('newAch'), achName('learner')); Sound.play('achieve'); }
+          unlockWithToast('learner');
           G.cardView = takeawaysView; takeawaysView();
         }
         break;
