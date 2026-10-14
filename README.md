@@ -1,4 +1,4 @@
-# 🐒 Bananova Island 🏝️
+# 🐒 Palmwise Island 🏝️
 
 A climate game for kids aged 8–14. A monkey is alone on an island and the player makes
 **10 two-option choices**. Each choice balances the monkey's happiness now 🐒 against the
@@ -11,12 +11,17 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
 
 ## Features
 
-- 10 choices: shelter, plastic on the beach, food, banana tree, fishing, compost/recycling,
-  forest fire, firewood, fresh water and turtle nests
+- 10 choices: home (cave or big house), plastic on the beach, food, banana tree, fishing,
+  compost/recycling, forest fire, a cold night, fresh water and turtle nests
+- Day and night: each situation happens at a fitting time (morning, day, sunset, night) with
+  rain on some days; at night the cave lantern, campfire and house windows glow
+- The monkey reacts (happy, scared, cold, hot, sad, thinking) and talks in a speech bubble
 - Two meters always on screen: 🐒 Monkey happiness and 🏝️ Island health
 - The island changes with each choice (stumps, a big house, dead fish with cartoon X eyes, smoke, garden, baby turtles…)
 - Green choices come back 2 turns later as a reward ("Remember your choice?")
-- Disasters sweep everything off the island (wind blows it away, or a wave washes it away) while the monkey hides in a cave or climbs the hill
+- Disasters destroy everything on the island, including the house or the cave home: wind blows it
+  away, a wave washes it away, or a wildfire burns it. The monkey always escapes (behind the big
+  rock, up the hill, or into the cool sea)
 - Endings: **Island Hero**, Island Friend, Getting There, Island in Trouble, or a natural
   disaster (giant flood waves, heatwave or huge thunderstorm) if a meter hits 0
 - A recap of every decision with "Did you know?" facts (skippable), then simple takeaways
@@ -67,16 +72,16 @@ Then go to http://localhost:8000.
 ## Deploy on Vercel
 
 1. Go to https://vercel.com and sign in with GitHub.
-2. Click **Add New… → Project** and import the `bananova-island` repository.
+2. Click **Add New… → Project** and import the `palmwise-island` repository.
 3. Framework preset: **Other**. Leave the build command and output directory empty.
 4. Click **Deploy**. Every push to `main` updates the live site automatically.
 
 ## Originality, credits and licenses
 
-- **Name:** "Bananova Island" is a made-up name ("banana" + "nova", meaning new). We picked it
-  to avoid "Monkey Island", which is the name of a video game series owned by Disney/LucasArts.
-  Web searches found no game, app or trademark called "Bananova" (this was not a formal
-  trademark clearance).
+- **Name:** "Palmwise Island" is a made-up name (palm + wise, as in wise choices on a palm
+  island). We chose it to avoid "Monkey Island", the name of a video game series owned by
+  Disney/LucasArts. Web searches found no game, app, brand or trademark called "Palmwise"
+  (this was not a formal trademark clearance).
 - **Art:** every drawing (island, monkey, animals and disasters) is original SVG made in code
   for this project. No images, sprites or fonts are downloaded.
 - **Music and sounds:** an original melody and effects, generated live with the Web Audio API.

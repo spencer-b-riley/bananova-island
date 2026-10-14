@@ -3,7 +3,7 @@
    the game still works – it just won't remember anything. */
 
 const Store = (() => {
-  const KEY = 'bananovaIsland.v1';
+  const KEY = 'palmwiseIsland.v1';
   const MAX_GAMES = 50;
 
   const blank = () => ({ games: [], ach: {}, settings: { lang: null, music: true, sfx: true } });

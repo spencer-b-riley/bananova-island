@@ -5,6 +5,10 @@
      outcome(id, good)     – show what the choice did
      payoff(id)            – show the reward 2 turns later
      disaster(type)        – 'flood' | 'heat' | 'storm' animation (returns a Promise)
+     setTime(t)            – 'morning' | 'day' | 'evening' | 'night'
+     setWeather(w)         – 'rain' | 'clear'
+     react(kind, ms)       – monkey face: 'yay' | 'scared' | 'cold' | 'hot' | 'sad' | 'think'
+     say(text, ms)         – speech bubble above the monkey
    Every part of the drawing has a data-k="name" so it can be shown/hidden. */
 
 const Scene = (() => {
@@ -88,9 +92,11 @@ const Scene = (() => {
     return `
 <svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Island" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="${u}sky" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="285"><stop offset="0" stop-color="#5ec8f5"/><stop offset="1" stop-color="#c4f0ff"/></linearGradient>
-    <linearGradient id="${u}haze" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="285"><stop offset="0" stop-color="#9c8f86"/><stop offset="1" stop-color="#e9b98a"/></linearGradient>
-    <linearGradient id="${u}sea" gradientUnits="userSpaceOnUse" x1="0" y1="285" x2="0" y2="500"><stop offset="0" stop-color="#2bb3e0"/><stop offset="1" stop-color="#1279b8"/></linearGradient>
+    <linearGradient id="${u}sky" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="285"><stop offset="0" class="st-sky-top"/><stop offset="1" class="st-sky-bot"/></linearGradient>
+    <linearGradient id="${u}haze" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="285"><stop offset="0" class="st-haze-top"/><stop offset="1" class="st-haze-bot"/></linearGradient>
+    <linearGradient id="${u}sea" gradientUnits="userSpaceOnUse" x1="0" y1="285" x2="0" y2="500"><stop offset="0" class="st-sea-top"/><stop offset="1" class="st-sea-bot"/></linearGradient>
+    <filter id="${u}tod" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB"><feColorMatrix data-k="todMatrix" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter>
+    <radialGradient id="${u}glow"><stop offset="0" stop-color="#fff2a8" stop-opacity=".95"/><stop offset=".35" stop-color="#ffcf5a" stop-opacity=".55"/><stop offset="1" stop-color="#ffb03a" stop-opacity="0"/></radialGradient>
     <radialGradient id="${u}sun"><stop offset="0" stop-color="#fff6b0"/><stop offset="1" stop-color="#ffd23f"/></radialGradient>
   </defs>
 
@@ -98,8 +104,15 @@ const Scene = (() => {
   <rect data-k="haze" class="fade" x="-3000" y="-3000" width="6800" height="6800" fill="url(#${u}haze)" opacity="0"/>
   <g data-k="sun" class="sun"><circle data-k="heatGlow" class="fade hide" cx="680" cy="80" r="95" fill="#ffb03a" opacity=".45"/>
     <circle cx="680" cy="80" r="62" fill="#ffe680" opacity=".35"/><circle cx="680" cy="80" r="42" fill="url(#${u}sun)"/></g>
+  <g class="nightsky">
+    ${[[60,40],[140,90],[230,30],[320,70],[410,25],[500,60],[580,30],[760,50],[30,150],[260,140],[470,120],[720,170],[620,110],[180,190]].map(([x, y], k) =>
+      `<circle class="star" cx="${x}" cy="${y}" r="${k % 3 ? 1.8 : 2.6}" style="animation-delay:${-k * 0.37}s"/>`).join('')}
+    <g transform="translate(110 80)"><circle r="30" fill="#fff7d6" opacity=".25"/><circle r="22" fill="#fff4c2"/><circle cx="9" cy="-6" r="19" class="moon-cut"/></g>
+  </g>
 
   <g class="drift" style="animation-delay:-12s"><g transform="translate(60 70)"><g class="cloud"><circle cx="0" cy="0" r="22"/><circle cx="24" cy="-8" r="26"/><circle cx="50" cy="2" r="20"/><rect x="0" y="0" width="50" height="20"/></g></g></g>
+  <g data-k="rainClouds" class="fade hide">${[[-20, 40, 1.4], [170, 20, 1.6], [400, 35, 1.5], [620, 15, 1.7]].map(([x, y, sc]) =>
+    `<g transform="translate(${x} ${y}) scale(${sc})"><g class="cloud rain-cloud"><circle cx="0" cy="0" r="22"/><circle cx="24" cy="-8" r="26"/><circle cx="50" cy="2" r="20"/><circle cx="76" cy="-2" r="18"/><rect x="0" y="0" width="76" height="20"/></g></g>`).join('')}</g>
   <g class="drift" style="animation-delay:-38s;animation-duration:80s"><g transform="translate(0 140) scale(.7)"><g class="cloud"><circle cx="0" cy="0" r="22"/><circle cx="24" cy="-8" r="26"/><circle cx="50" cy="2" r="20"/><rect x="0" y="0" width="50" height="20"/></g></g></g>
 
   ${item('darkSmoke', 0, 0, `<g class="billow">
@@ -114,6 +127,7 @@ const Scene = (() => {
   <rect data-k="murk" class="fade" x="-3000" y="285" width="6800" height="3000" fill="#6f7d3c" opacity="0"/>
   <g class="waves"><path d="M20 310 q15 -8 30 0 q15 8 30 0 M640 300 q15 -8 30 0 q15 8 30 0 M300 296 q15 -6 30 0 q15 6 30 0"/></g>
 
+  <g data-k="land">
   <ellipse cx="400" cy="372" rx="366" ry="100" fill="none" stroke="#e6f9ff" stroke-width="5" opacity=".7" class="foam"/>
   <ellipse cx="400" cy="368" rx="352" ry="94" fill="#ecc673"/>
   <ellipse cx="400" cy="362" rx="338" ry="84" fill="#fbe3a2"/>
@@ -129,10 +143,13 @@ const Scene = (() => {
     <g data-k="bubbles" class="fade hide"><circle cx="-12" cy="-6" r="4" fill="#fff" opacity=".9"/><circle cx="-2" cy="-9" r="3" fill="#fff" opacity=".9"/><circle cx="12" cy="-6" r="5" fill="#fff" opacity=".9"/></g>
   </g></g>
 
-  <g transform="translate(160 336)"><g data-k="cave">
-    <path d="M-48 0 Q-52 -40 -22 -58 Q6 -68 32 -52 Q54 -36 50 0Z" fill="#8f99a3"/>
-    <path d="M-32 -22 Q-22 -46 4 -52" stroke="#b4bcc4" stroke-width="5" fill="none" stroke-linecap="round"/>
-    <path d="M-18 0 Q-18 -36 2 -36 Q20 -36 20 0Z" fill="#323840"/></g></g>
+  <g transform="translate(158 342)"><g data-k="cave">
+    <path d="M-66 0 Q-72 -54 -32 -78 Q8 -94 46 -72 Q76 -52 68 0Z" fill="#8f99a3"/>
+    <path d="M-48 -30 Q-36 -62 2 -72" stroke="#b4bcc4" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M40 -60 Q58 -44 58 -20" stroke="#76808a" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M-34 0 Q-36 -56 2 -56 Q38 -56 36 0Z" fill="#2c3139"/></g></g>
+  ${item('caveBed', 154, 341, `<ellipse cx="0" cy="-5" rx="24" ry="7" fill="#4fae3a"/><path d="M-20 -8 q6 -8 12 0 M-4 -9 q6 -8 12 0 M10 -8 q5 -7 10 0" stroke="#7fd65b" stroke-width="3" fill="none"/>`)}
+  ${item('caveLamp', 176, 330, `<path d="M0 -26 v-6" stroke="#6b4423" stroke-width="2"/><rect x="-7" y="-26" width="14" height="18" rx="4" fill="#ffe680" stroke="#a0673a" stroke-width="2.5"/><circle cx="0" cy="-17" r="4" fill="#fff6b0"/><rect x="-5" y="-8" width="10" height="3" fill="#a0673a"/>`)}
 
   ${palm(0, 205, 298, 0.9)}${palm(1, 268, 292, 1)}${palm(2, 332, 300, 0.85)}${palm(3, 470, 300, 0.85)}${palm(4, 532, 292, 1)}${palm(5, 598, 298, 0.9)}
 
@@ -144,12 +161,6 @@ const Scene = (() => {
   ${item('bucket', 505, 330, `<path d="M-9 0 L-12 -16 H12 L9 0Z" fill="#4f8fd6"/><path d="M-12 -16 q12 -14 24 0" stroke="#555" stroke-width="2" fill="none"/>`)}
 
   ${item('sticks', 400, 302, `<path d="M-32 0 L20 -9 M-22 -4 L28 2 M-26 -11 L16 -3" stroke="#8b5a2b" stroke-width="5" stroke-linecap="round"/><path d="M-6 -8 q8 -14 20 -8 q-8 4 -20 8Z" fill="#62b544"/>`, 'pop', false)}
-  ${item('hut', 400, 302, `
-      <path d="M-36 0 V-32 H36 V0Z" fill="#c9924f"/>
-      <path d="M-26 0 V-32 M-14 0 V-32 M14 0 V-32 M26 0 V-32" stroke="#a8743a" stroke-width="3"/>
-      <path d="M-10 0 V-20 Q0 -28 10 -20 V0Z" fill="#6b4423"/>
-      <path d="M-52 -26 L0 -72 L52 -26Z" fill="#62b544"/>
-      <path d="M-38 -32 L0 -64 L38 -32 M-22 -30 L0 -54 L22 -30" stroke="#4a9a33" stroke-width="3" fill="none"/>`)}
   ${item('house', 400, 302, `
       <rect x="-82" y="-86" width="164" height="86" fill="#c17f45"/>
       <path d="M-82 -70 H82 M-82 -54 H82 M-82 -38 H82 M-82 -22 H82 M-82 -6 H82" stroke="#9c5f2c" stroke-width="3"/>
@@ -223,16 +234,46 @@ const Scene = (() => {
       <circle cx="0" cy="0" r="26" fill="#8b5a2b"/>
       <ellipse cx="0" cy="8" rx="18" ry="14" fill="#e8c39e"/>
       <circle cx="-8" cy="-4" r="9" fill="#e8c39e"/><circle cx="8" cy="-4" r="9" fill="#e8c39e"/>
-      <circle cx="-7" cy="-4" r="3.6" fill="#23313f"/><circle cx="7" cy="-4" r="3.6" fill="#23313f"/>
-      <circle cx="-6" cy="-5.5" r="1.2" fill="#fff"/><circle cx="8" cy="-5.5" r="1.2" fill="#fff"/>
+      <g class="eyes"><circle cx="-7" cy="-4" r="3.6" fill="#23313f"/><circle cx="7" cy="-4" r="3.6" fill="#23313f"/>
+      <circle cx="-6" cy="-5.5" r="1.2" fill="#fff"/><circle cx="8" cy="-5.5" r="1.2" fill="#fff"/></g>
       <circle cx="-2.5" cy="5" r="1.4" fill="#5a2d0c"/><circle cx="2.5" cy="5" r="1.4" fill="#5a2d0c"/>
-      <g data-k="mHappy" class="fade"><path d="M-9 10 Q0 21 9 10 Z" fill="#5a2d0c"/><path d="M-5 14 Q0 18 5 14" fill="#ff8fa3"/><circle cx="-15" cy="6" r="4" fill="#ff9aa2" opacity=".6"/><circle cx="15" cy="6" r="4" fill="#ff9aa2" opacity=".6"/></g>
-      <g data-k="mMeh" class="fade hide"><path d="M-7 13 Q0 15 7 13" stroke="#5a2d0c" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
-      <g data-k="mSad" class="fade hide"><path d="M-8 16 Q0 8 8 16" stroke="#5a2d0c" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M-12 2 q-3 6 0 8 q3 -2 0 -8Z" fill="#7cc9ef"/></g>
+      <g data-k="mHappy" class="fade mood"><path d="M-9 10 Q0 21 9 10 Z" fill="#5a2d0c"/><path d="M-5 14 Q0 18 5 14" fill="#ff8fa3"/><circle cx="-15" cy="6" r="4" fill="#ff9aa2" opacity=".6"/><circle cx="15" cy="6" r="4" fill="#ff9aa2" opacity=".6"/></g>
+      <g data-k="mMeh" class="fade hide mood"><path d="M-7 13 Q0 15 7 13" stroke="#5a2d0c" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
+      <g data-k="mSad" class="fade hide mood"><path d="M-8 16 Q0 8 8 16" stroke="#5a2d0c" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M-12 2 q-3 6 0 8 q3 -2 0 -8Z" fill="#7cc9ef"/></g>
+      <!-- reactions (shown by Scene.react) -->
+      <g class="r r-yay"><path d="M-11 -3 q4 -6 8 0 M3 -3 q4 -6 8 0" stroke="#23313f" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M-10 9 Q0 25 10 9Z" fill="#5a2d0c"/><path d="M-5 15 Q0 20 5 15" fill="#ff8fa3"/>
+        <path class="heart" d="M32 -30 c-3 -6 -11 -2 -6 4 l6 6 l6 -6 c5 -6 -3 -10 -6 -4Z" fill="#ff5a7a"/><path class="heart" style="animation-delay:-.4s" d="M-34 -24 c-2 -4 -8 -1 -4 3 l4 4 l4 -4 c4 -4 -2 -7 -4 -3Z" fill="#ff5a7a"/></g>
+      <g class="r r-scared"><circle cx="-8" cy="-4" r="7" fill="#fff" stroke="#23313f" stroke-width="1.5"/><circle cx="8" cy="-4" r="7" fill="#fff" stroke="#23313f" stroke-width="1.5"/>
+        <circle cx="-8" cy="-4" r="2.6" fill="#23313f"/><circle cx="8" cy="-4" r="2.6" fill="#23313f"/><ellipse cx="0" cy="14" rx="5" ry="6" fill="#5a2d0c"/>
+        <text x="30" y="-22" font-size="24" font-weight="900" fill="#ff5b4a">!</text></g>
+      <g class="r r-cold"><rect x="-8" y="10" width="16" height="7" rx="2" fill="#fff" stroke="#5a2d0c" stroke-width="1.5"/><path d="M-4 10 v7 M0 10 v7 M4 10 v7" stroke="#5a2d0c" stroke-width="1"/>
+        <circle cx="-15" cy="6" r="4.5" fill="#8fc8ff" opacity=".85"/><circle cx="15" cy="6" r="4.5" fill="#8fc8ff" opacity=".85"/>
+        <text x="28" y="-20" font-size="16" fill="#8fc8ff">❄</text><text x="-42" y="-14" font-size="13" fill="#8fc8ff">❄</text></g>
+      <g class="r r-hot"><path d="M-7 13 q3.5 -3 7 0 t7 0" stroke="#5a2d0c" stroke-width="2.4" fill="none"/><path class="drip" d="M20 -18 q-4 7 0 9 q4 -2 0 -9Z M-22 -12 q-3 5 0 7 q3 -2 0 -7Z" fill="#6fc3f5"/></g>
+      <g class="r r-sad"><path d="M-8 16 Q0 8 8 16" stroke="#5a2d0c" stroke-width="2.5" fill="none" stroke-linecap="round"/><path class="drip" d="M-12 2 q-3 6 0 8 q3 -2 0 -8Z M12 2 q-3 6 0 8 q3 -2 0 -8Z" fill="#7cc9ef"/></g>
+      <g class="r r-think"><circle cx="4" cy="13" r="2.8" fill="#5a2d0c"/><text x="28" y="-22" font-size="24" font-weight="900" fill="#2f80ed">?</text></g>
     </g>
-  </g></g></g></g>
+  </g></g>
+    <ellipse class="wade" cx="0" cy="22" rx="38" ry="10" fill="#2bb3e0" stroke="#e6f9ff" stroke-width="3"/>
+  </g></g>
+  </g>
+
+  <!-- lights that glow at night (drawn on top so they stay bright) -->
+  <g class="glows">
+    <circle data-glow="caveLamp" cx="176" cy="313" r="34" fill="url(#${u}glow)"/>
+    <circle data-glow="campfire" cx="646" cy="384" r="46" fill="url(#${u}glow)"/>
+    <circle data-glow="bonfire" cx="690" cy="350" r="90" fill="url(#${u}glow)"/>
+    <circle data-glow="house" cx="352" cy="248" r="26" fill="url(#${u}glow)"/>
+    <circle data-glow="house" cx="448" cy="248" r="26" fill="url(#${u}glow)"/>
+  </g>
 
   <g data-k="rain" class="rain hide">${RAIN}</g>
+
+  <g data-k="bubble" class="bubble hide" transform="translate(400 300)"><g class="bubble-in">
+    <rect data-k="bubbleBox" x="-60" y="-54" width="120" height="48" rx="18" fill="#fff" stroke="#23313f" stroke-width="3"/>
+    <path d="M-11 -7.5 L0 10 L11 -7.5" fill="#fff" stroke="#23313f" stroke-width="3" stroke-linejoin="round"/>
+    <text data-k="bubbleText" x="0" y="-21" text-anchor="middle" font-size="25" font-weight="800" fill="#23313f"></text>
+  </g></g>
 </svg>`;
   }
 
@@ -241,7 +282,7 @@ const Scene = (() => {
   const ACTIONS = {
     shelter: {
       ev() {},
-      good(s) { s.hide('sticks'); s.show('hut'); s.sparkle(400, 250); },
+      good(s) { s.hide('sticks'); s.show('caveBed'); s.show('caveLamp'); s.sparkle(158, 300); },
       bad(s) { s.hide('sticks'); [0, 1, 2].forEach((n) => s.palm(n, 'stump')); s.show('house'); },
       pay(s) { s.showCocos(); s.sparkle(532, 180); },
     },
@@ -255,7 +296,7 @@ const Scene = (() => {
       ev(s) { s.show('fruitpile'); },
       good(s) { s.hide('fruitpile'); s.show('basket'); },
       bad(s) { s.hide('fruitpile'); s.show('cores'); },
-      pay(s) { s.sparkle(505, 405); s.jump(); },
+      pay(s) { s.rain(3200); s.sparkle(505, 405); },
     },
     banana: {
       ev(s) { s.show('bpSmall'); },
@@ -279,19 +320,19 @@ const Scene = (() => {
       ev(s) { s.flames(3, true); s.flames(4, true); },
       good(s) { s.flames(3, false); s.flames(4, false); s.flash('smoke', 2200); s.show('bucket'); },
       bad(s) { s.flames(3, false); s.flames(4, false); s.palm(3, 'burnt'); s.palm(4, 'burnt'); s.show('ash'); },
-      pay(s) { s.rain(2600); s.show('parrot'); },
+      pay(s) { s.rain(3200); s.show('parrot'); },
     },
-    firewood: {
-      ev(s) { s.show('woodpile'); },
-      good() {},
-      bad(s) { s.hide('woodpile'); s.show('bonfire'); s.show('darkSmoke'); s.palm(5, 'stump'); s.smoke += 0.15; },
-      pay(s) { s.show('campfire'); s.sparkle(646, 370); },
+    firewood: { // the cold night
+      ev() {},
+      good(s) { s.show('campfire'); s.sparkle(646, 370); },
+      bad(s) { s.show('bonfire'); s.show('darkSmoke'); s.palm(4, 'stump'); s.palm(5, 'stump'); s.smoke += 0.15; },
+      pay(s) { s.show('woodpile'); s.show('campfire'); s.sparkle(690, 350); },
     },
     water: {
       ev(s) { s.show('heatGlow'); },
       good(s) { s.hide('heatGlow'); s.show('barrel'); },
       bad(s) { s.hide('heatGlow'); s.q('pondWater').classList.add('dirty'); s.show('bubbles'); },
-      pay(s) { s.rain(2600); s.sparkle(624, 320); },
+      pay(s) { s.rain(3200); s.sparkle(624, 320); },
     },
     turtles: {
       ev(s) { s.show('turtles'); },
@@ -301,19 +342,43 @@ const Scene = (() => {
     },
   };
 
+  /* Day/night: the island is tinted with a colour matrix (works on every browser). */
+  const TIME_MATRIX = {
+    day:     [1, 0, 0, 0, 0,     0, 1, 0, 0, 0,        0, 0, 1, 0, 0,       0, 0, 0, 1, 0],
+    morning: [1.03, 0, 0, 0, 0.03, 0, 0.98, 0, 0, 0.01, 0, 0, 0.9, 0, 0,     0, 0, 0, 1, 0],
+    evening: [1, 0, 0, 0, 0.05,  0, 0.8, 0, 0, 0,       0, 0, 0.75, 0, 0.04, 0, 0, 0, 1, 0],
+    night:   [0.4, 0, 0, 0, 0,   0, 0.46, 0, 0, 0.02,   0, 0, 0.7, 0, 0.09,  0, 0, 0, 1, 0],
+  };
+
   function create(container) {
     const u = 's' + ++uid + '-';
     container.innerHTML = buildSVG(u);
     const svg = container.querySelector('svg');
     const q = (k) => svg.querySelector(`[data-k="${k}"]`);
+    const land = q('land');
+    const monkey = q('monkey');
     let mood = '';
+    let matrix = TIME_MATRIX.day.slice();
+    let time = 'day';
+    let tween = 0;
+    let reactTimer = 0;
+    let bubbleTimer = 0;
+    let destroyed = false;
+
+    const visible = (el) => el && !el.classList.contains('hide') && !el.classList.contains('swept');
+    function updateGlows() {
+      const dark = time === 'night' || time === 'evening';
+      svg.querySelectorAll('[data-glow]').forEach((g) => {
+        g.classList.toggle('on', dark && !destroyed && visible(q(g.dataset.glow)));
+      });
+    }
 
     const s = {
       q,
       murk: 0,
       smoke: 0,
-      show(k) { const el = q(k); if (el) el.classList.remove('hide'); },
-      hide(k) { const el = q(k); if (el) el.classList.add('hide'); },
+      show(k) { const el = q(k); if (el) el.classList.remove('hide'); updateGlows(); },
+      hide(k) { const el = q(k); if (el) el.classList.add('hide'); updateGlows(); },
       flash(k, ms) { s.show(k); setTimeout(() => s.hide(k), ms); },
       palm(n, state) {
         const p = q('palm' + n);
@@ -327,7 +392,7 @@ const Scene = (() => {
           if (p.dataset.state === 'alive') p.querySelector('.cocos').classList.remove('hide');
         }
       },
-      rain(ms) { s.flash('rain', ms); },
+      rain(ms) { setWeather('rain'); clearTimeout(s.rainTimer); s.rainTimer = setTimeout(() => setWeather('clear'), ms); },
       sparkle(x, y) {
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         g.setAttribute('transform', `translate(${x} ${y})`);
@@ -346,6 +411,64 @@ const Scene = (() => {
       el.classList.add(cls);
     }
 
+    /* ── time of day + weather ── */
+    function setTime(t) {
+      if (!TIME_MATRIX[t]) t = 'day';
+      time = t;
+      document.documentElement.dataset.time = t;  // sky + sea colours (also the page background)
+      const from = matrix.slice(), to = TIME_MATRIX[t], start = performance.now(), node = q('todMatrix');
+      cancelAnimationFrame(tween);
+      land.setAttribute('filter', `url(#${u}tod)`);
+      const stepFn = (now) => {
+        const k = Math.min(1, (now - start) / 1400), e = k * k * (3 - 2 * k);
+        matrix = from.map((v, n) => v + (to[n] - v) * e);
+        node.setAttribute('values', matrix.map((v) => v.toFixed(3)).join(' '));
+        if (k < 1) tween = requestAnimationFrame(stepFn);
+        else if (t === 'day') land.removeAttribute('filter'); // no filter needed in daylight
+      };
+      tween = requestAnimationFrame(stepFn);
+      updateGlows();
+    }
+    function setWeather(w) {
+      const rainy = w === 'rain';
+      svg.classList.toggle('rainy', rainy);
+      q('rain').classList.toggle('hide', !rainy);
+      q('rainClouds').classList.toggle('hide', !rainy);
+    }
+
+    /* ── monkey reactions + speech bubble ── */
+    function react(kind, ms = 2600) {
+      clearTimeout(reactTimer);
+      if (kind) monkey.dataset.react = kind; else delete monkey.dataset.react;
+      if (kind === 'yay') s.jump();
+      if (kind === 'sad') s.droop();
+      if (kind && ms) reactTimer = setTimeout(() => delete monkey.dataset.react, ms);
+    }
+    function say(text, ms = 3000) {
+      const b = q('bubble'), txt = q('bubbleText'), box = q('bubbleBox');
+      clearTimeout(bubbleTimer);
+      if (!text) { b.classList.add('hide'); return; }
+      txt.textContent = text;
+      const w = Math.min(560, txt.getComputedTextLength() + 34);
+      box.setAttribute('x', -w / 2);
+      box.setAttribute('width', w);
+      // place the bubble just above the monkey's head, wherever the monkey is
+      const r = monkey.getBoundingClientRect(), ctm = svg.getScreenCTM();
+      let x = 400, y = 300;
+      if (ctm && r.width) {
+        const pt = svg.createSVGPoint();
+        pt.x = r.left + r.width / 2; pt.y = r.top;
+        const p = pt.matrixTransform(ctm.inverse());
+        x = p.x; y = p.y - 10;
+      }
+      x = Math.max(w / 2 + 6, Math.min(800 - w / 2 - 6, x));
+      y = Math.max(62, y);
+      b.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+      b.classList.remove('hide');
+      restartAnim(b.querySelector('.bubble-in'), 'jump');
+      if (ms) bubbleTimer = setTimeout(() => b.classList.add('hide'), ms);
+    }
+
     function reset() {
       svg.querySelectorAll('.pop, .fade').forEach((el) => {
         const k = el.dataset.k;
@@ -357,8 +480,9 @@ const Scene = (() => {
       q('pondWater').classList.remove('dirty');
       q('fish').classList.remove('hide');
       q('fx').innerHTML = '';
-      svg.classList.remove('dry', 'stormy', 'flooded');
-      s.murk = 0; s.smoke = 0; mood = '';
+      svg.classList.remove('dry', 'stormy', 'flooded', 'burned');
+      s.murk = 0; s.smoke = 0; mood = ''; destroyed = false;
+      setWeather('clear');
     }
 
     function setStats(h, i) {
@@ -374,36 +498,54 @@ const Scene = (() => {
       }
     }
 
-    /* Storms and floods carry everything on the island off screen.
-       Each thing starts moving when the wind/wave reaches it. */
-    function sweepAway(type) {
-      const box = svg.getBoundingClientRect();
+    /* Disasters destroy everything on the island (the house, the cave home, trees, everything).
+       Storm: wind blows it away. Flood: a wave washes it away. Heat: a wildfire burns it.
+       Each thing is hit when the wind / wave / fire reaches it. The monkey always escapes. */
+    function destroyAll(type) {
+      destroyed = true;
+      updateGlows();
+      const box = svg.getBoundingClientRect(), ctm = svg.getScreenCTM();
       const things = svg.querySelectorAll('[data-k^="palm"], .pop[data-k], [data-k="flowers"], [data-k="darkSmoke"], [data-k="smoke"]');
+      const fires = [];
       things.forEach((el) => {
         if (el.classList.contains('hide')) return;
         const r = el.getBoundingClientRect();
         if (!r.width) return;
         const x = (r.left + r.width / 2 - box.left) / box.width; // 0 = left edge, 1 = right edge
         const rnd = Math.random();
+        let delay;
         if (type === 'storm') {           // wind blows left → right, up into the sky
-          el.style.setProperty('--delay', (0.9 + x * 1.0 + rnd * 0.3).toFixed(2) + 's');
+          delay = 0.9 + x * 1.0 + rnd * 0.3;
           el.style.setProperty('--dx', 1300 + rnd * 300 + 'px');
           el.style.setProperty('--dy', -(180 + rnd * 260) + 'px');
           el.style.setProperty('--rot', 360 + rnd * 540 + 'deg');
-        } else {                          // the wave rolls right → left and drags things along
-          el.style.setProperty('--delay', (0.1 + (820 - x * 800) / 780 + rnd * 0.1).toFixed(2) + 's'); // when the wave front arrives
+          el.classList.add('swept');
+        } else if (type === 'flood') {    // the wave rolls right → left and drags things along
+          delay = 0.1 + (820 - x * 800) / 780 + rnd * 0.1;
           el.style.setProperty('--dx', -(1400 + rnd * 300) + 'px');
           el.style.setProperty('--dy', 40 + rnd * 80 + 'px');
           el.style.setProperty('--rot', -(120 + rnd * 300) + 'deg');
+          el.classList.add('swept');
+        } else {                          // wildfire spreads from the hot side (right) to the left
+          delay = 0.4 + (1 - x) * 1.6 + rnd * 0.2;
+          el.classList.add('scorched');
+          if (ctm) {
+            const pt = svg.createSVGPoint();
+            pt.x = r.left + r.width / 2; pt.y = r.bottom;
+            const p = pt.matrixTransform(ctm.inverse());
+            fires.push(`<g transform="translate(${p.x.toFixed(0)} ${p.y.toFixed(0)}) scale(${Math.min(2.2, 0.8 + r.height / box.height * 6).toFixed(2)})"><g class="wildfire" style="--delay:${delay.toFixed(2)}s">${flame(0, 0, 1)}${flame(-12, 4, 0.7)}${flame(12, 4, 0.7)}</g></g>`);
+          }
         }
-        el.classList.add('swept');
+        el.style.setProperty('--delay', delay.toFixed(2) + 's');
       });
+      if (fires.length) q('fx').insertAdjacentHTML('beforeend', fires.join(''));
       ['birds1', 'birds2', 'birds3', 'parrot'].forEach(s.hide);
     }
 
     function disaster(type) {
       const fx = q('fx');
       container.classList.add('shake');
+      react('scared', 0);
       if (type === 'flood') {
         svg.classList.add('flooded');
         fx.insertAdjacentHTML('beforeend', `
@@ -412,33 +554,37 @@ const Scene = (() => {
             <path d="M820 520 C830 330 900 160 1040 140 C1160 125 1225 210 1185 262 C1165 212 1112 196 1082 226 C1052 256 1082 330 1160 400 L4000 400 L4000 520Z" fill="#2aa0e6"/>
             <path d="M1040 142 C1150 128 1218 198 1187 258" stroke="#fff" stroke-width="12" fill="none" stroke-linecap="round"/>
             <circle cx="1000" cy="170" r="9" fill="#fff"/><circle cx="975" cy="200" r="6" fill="#fff"/><circle cx="1210" cy="190" r="7" fill="#fff"/></g>`);
-        sweepAway('flood');
+        destroyAll('flood');
       } else if (type === 'heat') {
-        svg.classList.add('dry');
+        svg.classList.add('dry', 'burned');
         q('heatGlow').classList.remove('hide');
         fx.insertAdjacentHTML('beforeend', `
           <rect class="heat-tint" x="-3000" y="-3000" width="6800" height="6800" fill="#ff7a2e"/>
           <g class="heat-lines"><path d="M120 300 q10 -15 0 -30 q-10 -15 0 -30 M300 290 q10 -15 0 -30 q-10 -15 0 -30 M520 300 q10 -15 0 -30 q-10 -15 0 -30 M700 290 q10 -15 0 -30 q-10 -15 0 -30"/></g>`);
         q('pondWater').classList.add('dirty');
+        destroyAll('heat');
       } else {
         svg.classList.add('stormy');
-        s.show('rain');
+        setWeather('rain');
         fx.insertAdjacentHTML('beforeend', `
           <rect class="storm-dark" x="-3000" y="-3000" width="6800" height="6800" fill="#1d2533"/>
           <path class="bolt" d="M430 0 L400 110 L436 110 L390 240 L470 90 L432 90 L462 0Z" fill="#fff36b"/>
           <rect class="storm-flash" x="-3000" y="-3000" width="6800" height="6800" fill="#fff"/>
           <g class="wind">${[90, 170, 250, 330, 410].map((y, k) =>
             `<path style="animation-delay:${0.6 + k * 0.17}s" d="M-200 ${y} q60 -18 120 0 t120 0 t120 0"/>`).join('')}</g>`);
-        sweepAway('storm');
+        destroyAll('storm');
       }
-      const ms = type === 'heat' ? 3600 : 4300;
-      return new Promise((resolve) => setTimeout(() => { container.classList.remove('shake'); resolve(); }, ms));
+      return new Promise((resolve) => setTimeout(() => { container.classList.remove('shake'); react('sad', 0); resolve(); }, 4300));
     }
 
     reset();
     return {
       reset,
       setStats,
+      setTime,
+      setWeather,
+      react,
+      say,
       event: (id) => ACTIONS[id].ev(s),
       outcome: (id, good) => ACTIONS[id][good ? 'good' : 'bad'](s),
       payoff: (id) => ACTIONS[id].pay(s),

@@ -1,4 +1,4 @@
-/* Bananova Island – main game flow.
+/* Palmwise Island – main game flow.
    Screens: title → name → intro → 10 choices (with payoffs) → ending → recap → takeaways.
    Menu tabs: Play, My Games, Achievements, Privacy. */
 
@@ -9,6 +9,8 @@
   const PAYOFF = { h: 12, i: 3 };      // reward when a green choice "comes back" 2 turns later
   const PAYOFF_DELAY = 2;
   const GAMES_PER_PAGE = 4;
+  // How the monkey looks when each situation appears
+  const REACT = { shelter: 'think', plastic: 'sad', food: 'yay', banana: 'yay', fishing: 'think', compost: 'sad', fire: 'scared', firewood: 'cold', water: 'hot', turtles: 'yay' };
   const RANDOM_NAMES = ['Coco', 'Mango', 'Kiki', 'Bobo', 'Zuzu', 'Lulu', 'Pippa', 'Tiki', 'Banjo', 'Momo', 'Suki', 'Bongo', 'Kiwi', 'Papaya', 'Juju', 'Pico'];
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -36,9 +38,11 @@
   const t = (key, vars) => esc(fmt(I18N[lang].ui[key] ?? I18N.en.ui[key] ?? key, vars));
   const L = () => I18N[lang];
   const ct = (idx, key) => esc(fmt(L().choices[idx][key]));
+  const sayLine = (fn) => scene && scene.say(fmt(fn(L().say)));  // speech bubble (plain text, no HTML)
 
   /* ── screen + chrome ── */
   function setScreen(html, { tab = null, home = false, brand = true } = {}) {
+    document.documentElement.dataset.time = 'day';
     $('#screen').innerHTML = html;
     const tabs = $('#tabs');
     tabs.hidden = !tab;
@@ -147,7 +151,7 @@
     G = null;
     setScreen(`
       <section class="screen title-screen">
-        <h1 class="logo"><span class="w1">Bananova</span> <span class="w2">Island</span></h1>
+        <h1 class="logo"><span class="w1">Palmwise</span> <span class="w2">Island</span></h1>
         <p class="subtitle">${t('subtitle')}</p>
         <div class="title-scene" id="titleScene" aria-hidden="true"></div>
         <div class="title-actions">
@@ -389,6 +393,13 @@
     const idx = G.turn, ch = CHOICES[idx];
     if (G.order[idx] === undefined) G.order[idx] = Math.random() < 0.5; // good option first?
     scene.event(ch.id);
+    scene.setTime(ch.time);
+    scene.setWeather(ch.rain ? 'rain' : 'clear');
+    scene.react(REACT[ch.id], 0);
+    if (idx === 0) {
+      sayLine((sy) => sy.hello);
+      setTimeout(() => { if (G && G.turn === 0) sayLine((sy) => sy.choices[0][0]); }, 2200);
+    } else sayLine((sy) => sy.choices[idx][0]);
     updateHud();
     G.cardView = () => {
       const opts = [
@@ -412,6 +423,8 @@
     G.picks[idx] = good;
     G.last = idx;
     scene.outcome(ch.id, good);
+    scene.react(good ? 'yay' : 'sad');
+    sayLine((sy) => sy.choices[idx][good ? 1 : 2]);
     Sound.play(good ? 'good' : 'bad');
     if (!good && (ch.id === 'plastic' || ch.id === 'fishing')) setTimeout(() => Sound.play('splash'), 250);
     applyDelta(d.h, d.i);
@@ -434,6 +447,8 @@
   function showPayoff({ idx }) {
     const ch = CHOICES[idx];
     scene.payoff(ch.id);
+    scene.react('yay');
+    sayLine((sy) => sy.choices[idx][3]);
     Sound.play('payoff');
     applyDelta(PAYOFF.h, PAYOFF.i);
     G.next = step;
@@ -454,8 +469,11 @@
     G.cardView();
     Sound.duck(4);
     Sound.play(G.disaster);
+    sayLine((sy) => sy[G.disaster]);
     await scene.disaster(G.disaster);
-    if (G) finish();
+    if (!G) return;
+    finish();
+    sayLine((sy) => sy.safe);
   }
 
   /* ═════════════════════ ENDING ═════════════════════ */
@@ -485,6 +503,12 @@
     Sound.play(G.disaster ? 'lose' : ending === 'hero' ? 'win' : 'payoff');
     if (earned.length) setTimeout(() => Sound.play('achieve'), 900);
     $('#game').classList.add('ending');
+    if (!G.disaster) {
+      scene.setTime('day');
+      scene.setWeather('clear');
+      scene.react({ hero: 'yay', friend: 'yay', okay: 'think', struggle: 'sad' }[ending], 0);
+      if (ending === 'hero') setTimeout(() => sayLine((sy) => sy.hero), 400);
+    }
     G.next = null;
     G.cardView = endingView;
     endingView();

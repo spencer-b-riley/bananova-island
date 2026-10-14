@@ -1,4 +1,19 @@
-/* ───────── Bananova Island – styles ───────── */
+/* ───────── Palmwise Island – styles ───────── */
+/* Sky + sea colours for each time of day. Used by the island drawing AND the page
+   background, so inside and outside the game always match. */
+@property --sky-top-c { syntax: '<color>'; inherits: true; initial-value: #5ec8f5; }
+@property --sky-bot-c { syntax: '<color>'; inherits: true; initial-value: #c4f0ff; }
+@property --sea-top-c { syntax: '<color>'; inherits: true; initial-value: #2bb3e0; }
+@property --sea-bot-c { syntax: '<color>'; inherits: true; initial-value: #1279b8; }
+@property --cloud-c { syntax: '<color>'; inherits: true; initial-value: #ffffff; }
+:root {
+  --sky-top-c: #5ec8f5; --sky-bot-c: #c4f0ff; --sea-top-c: #2bb3e0; --sea-bot-c: #1279b8; --cloud-c: #ffffff;
+  transition: --sky-top-c 1.4s, --sky-bot-c 1.4s, --sea-top-c 1.4s, --sea-bot-c 1.4s, --cloud-c 1.4s;
+}
+:root[data-time="morning"] { --sky-top-c: #7cc8ef; --sky-bot-c: #ffe3c4; --sea-top-c: #45b4dc; --sea-bot-c: #1a7fb6; --cloud-c: #fff6ec; }
+:root[data-time="evening"] { --sky-top-c: #5b5fb0; --sky-bot-c: #ffae80; --sea-top-c: #3f86b8; --sea-bot-c: #1b4f86; --cloud-c: #ffd9c7; }
+:root[data-time="night"]   { --sky-top-c: #0c1838; --sky-bot-c: #283c78; --sea-top-c: #1a4470; --sea-bot-c: #0a2242; --cloud-c: #6c7896; }
+
 :root {
   --sky: #7fd3f7;
   --sea: #1e9bd7;
@@ -28,7 +43,7 @@ body {
   color: var(--ink);
   /* --sky-top / --horizon / --deep are measured from the island drawing (app.js: syncHorizon)
      so the sea outside the game lines up exactly with the sea inside it. */
-  background: linear-gradient(#5ec8f5 var(--sky-top, 0%), #c4f0ff var(--horizon, 58%), #2bb3e0 var(--horizon, 58%), #1279b8 var(--deep, 100%));
+  background: linear-gradient(var(--sky-top-c) var(--sky-top, 0%), var(--sky-bot-c) var(--horizon, 58%), var(--sea-top-c) var(--horizon, 58%), var(--sea-bot-c) var(--deep, 100%));
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
@@ -362,7 +377,54 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 .dry .leaf.dark { fill: #b0832f; }
 .dry .grass { fill: #c9b162; }
 .dry .grass.light { fill: #d8c27a; }
-.cloud { fill: #fff; opacity: 0.92; }
+.cloud { fill: var(--cloud-c); opacity: 0.92; }
+.st-sky-top { stop-color: var(--sky-top-c); }
+.st-sky-bot { stop-color: var(--sky-bot-c); }
+.st-sea-top { stop-color: var(--sea-top-c); }
+.st-sea-bot { stop-color: var(--sea-bot-c); }
+/* pollution haze, tinted to match the time of day */
+.st-haze-top { stop-color: #9c8f86; transition: stop-color 1.4s; }
+.st-haze-bot { stop-color: #e9b98a; transition: stop-color 1.4s; }
+:root[data-time="evening"] .st-haze-top { stop-color: #6d5a6e; }
+:root[data-time="evening"] .st-haze-bot { stop-color: #d9917a; }
+:root[data-time="night"] .st-haze-top { stop-color: #161b2a; }
+:root[data-time="night"] .st-haze-bot { stop-color: #3a3d52; }
+.rainy .cloud, .rain-cloud { fill: #8d97a5; }
+.nightsky { opacity: 0; transition: opacity 1.4s; }
+:root[data-time="night"] .nightsky { opacity: 1; }
+.star { fill: #fff8d8; animation: twinkle 2.6s ease-in-out infinite; }
+.moon-cut { fill: var(--sky-top-c); }
+:root[data-time="morning"] .sun { transform: translateY(70px); }
+:root[data-time="evening"] .sun { transform: translateY(170px); }
+:root[data-time="night"] .sun { transform: translateY(240px); opacity: 0; }
+.sun { transition: transform 1.6s ease-in-out, opacity 1.4s; }
+.glows circle { opacity: 0; transition: opacity 1.2s; pointer-events: none; }
+.glows circle.on { opacity: 1; animation: glowFlicker 2.4s ease-in-out infinite alternate; }
+@keyframes glowFlicker { 50% { opacity: 0.8; } }
+@keyframes twinkle { 50% { opacity: 0.35; } }
+
+/* monkey reactions */
+.r { opacity: 0; transition: opacity 0.2s; }
+[data-react] .mood { opacity: 0 !important; }
+[data-react="yay"] .eyes, [data-react="scared"] .eyes { opacity: 0; }
+[data-react="yay"] .r-yay, [data-react="scared"] .r-scared, [data-react="cold"] .r-cold,
+[data-react="hot"] .r-hot, [data-react="sad"] .r-sad, [data-react="think"] .r-think { opacity: 1; }
+[data-react="cold"] .bob { animation: shiver 0.12s linear infinite; }
+[data-react="scared"] .bob { animation: shiver 0.2s linear infinite; }
+.heart { transform-box: fill-box; transform-origin: center; animation: heartUp 1.4s ease-in-out infinite; }
+.drip { animation: drip 1.2s ease-in infinite; }
+@keyframes shiver { 25% { transform: translateX(-1.5px); } 75% { transform: translateX(1.5px); } }
+@keyframes heartUp { 0% { transform: translateY(4px) scale(0.8); opacity: 0.4; } 50% { opacity: 1; } 100% { transform: translateY(-8px) scale(1.1); opacity: 0.2; } }
+@keyframes drip { from { transform: translateY(0); } to { transform: translateY(6px); opacity: 0.3; } }
+.wade { opacity: 0; transition: opacity 0.8s 1s; }
+.dry .wade { opacity: 1; }
+
+/* speech bubble */
+.bubble { transition: opacity 0.25s; pointer-events: none; }
+.bubble text { font-family: var(--font); }
+.bubble-in { transform-box: fill-box; transform-origin: 50% 100%; }
+.bubble-in.jump { animation: bubblePop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes bubblePop { from { transform: scale(0.4); opacity: 0; } }
 .bird { stroke: #23313f; stroke-width: 3; fill: none; stroke-linecap: round; }
 .waves path { stroke: #fff; stroke-width: 3; fill: none; opacity: 0.55; stroke-linecap: round; }
 .pondwater { fill: #4fc3f7; stroke: #2fa3d8; stroke-width: 2; transition: fill 1s, transform 1s; transform-box: fill-box; transform-origin: center; }
@@ -412,8 +474,15 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 /* disasters */
 [data-k="monkey"] { transition: transform 1.4s ease-in-out; }
 /* flood: the monkey climbs to the top of the hill; storm/heatwave: it hides in the cave */
-.flooded [data-k="monkey"] { transform: translate(0, -192px) scale(0.85); }
-.stormy [data-k="monkey"], .dry [data-k="monkey"] { transform: translate(-240px, -82px) scale(0.42); }
+.flooded [data-k="monkey"] { transform: translate(0, -192px) scale(0.85); }          /* runs up the hill */
+.stormy [data-k="monkey"] { transform: translate(-150px, -40px) scale(0.62); }        /* holds on behind the big rock */
+.dry [data-k="monkey"] { transform: translate(130px, 66px); }                         /* waits in the cool sea */
+.scorched { transform-box: fill-box; transform-origin: 50% 100%; animation: scorch 1.6s ease-in var(--delay, 0s) forwards; }
+@keyframes scorch { 40% { opacity: 1; } 100% { opacity: 0; transform: scale(0.85, 0.3); } }
+.wildfire { transform-box: fill-box; transform-origin: 50% 100%; opacity: 0; animation: wildfire 2.2s ease-in-out var(--delay, 0s) forwards; }
+@keyframes wildfire { 0% { opacity: 0; transform: scale(0.3); } 20% { opacity: 1; transform: scale(1.2); } 70% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0.6); } }
+.burned .grass { fill: #6d5a3c; transition: fill 2s 1.2s; }
+.burned .grass.light { fill: #7d6844; }
 .swept {
   transform-box: fill-box; transform-origin: center;
   animation: sweep 1.5s cubic-bezier(0.55, 0, 0.85, 0.55) var(--delay, 0s) forwards;
