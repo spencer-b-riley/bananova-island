@@ -307,13 +307,13 @@
       if (allowed) return allowed[Math.floor(Math.random() * allowed.length)];
       return turn < 3 ? FIRST[turn] : ALL[Math.floor(Math.random() * ALL.length)];
     });
-    // Super rare solar eclipse (about 1 game in 100), on a dry daytime turn
+    // Rare solar eclipse: about 1 game in 10 (so in a class of ~20 players, someone almost always sees it)
     const dayTurns = seq.map((ci, turn) => turn).filter((turn) => turn > 0 && times[turn] === 'day' && !rainTurns.has(turn));
-    const eclipseTurn = Math.random() < 0.01 && dayTurns.length ? dayTurns[Math.floor(Math.random() * dayTurns.length)] : -1;
+    const eclipseTurn = Math.random() < 0.1 && dayTurns.length ? dayTurns[Math.floor(Math.random() * dayTurns.length)] : -1;
     G = {
       seq, made: [], rainTurns, eclipseTurn, times,
-      // Super rare: about 1 game in 100, pirates show up (any time, any weather)
-      pirateTurn: Math.random() < 0.01 ? 2 + Math.floor(Math.random() * 8) : -1, piratesDone: false,
+      // Rare: about 1 game in 10, pirates show up (any time, any weather)
+      pirateTurn: Math.random() < 0.1 ? 2 + Math.floor(Math.random() * 8) : -1, piratesDone: false,
       name, h: START.h, i: START.i, turn: 0, picks: [], order: [], payQueue: [],
       next: null, cardView: null, busy: false, disaster: null, cause: null,
       ending: null, newAch: [], recapIdx: 0, langs: new Set([lang]), sawWhale: false,
@@ -522,7 +522,7 @@
     G.cardView();
   }
 
-  /* Super rare pirate raid: not caused by the player's choices, so it doesn't end the game,
+  /* Rare pirate raid: not caused by the player's choices, so it doesn't end the game,
      but the pirates take some loot and the monkey is sad about it. */
   async function showPirates() {
     G.piratesDone = true;

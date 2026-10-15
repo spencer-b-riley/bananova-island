@@ -86,12 +86,6 @@ const Scene = (() => {
   // simple repeatable "random" so every screen draws the same scene
   const rnd = (n) => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };
 
-  // Rain: short drops spread evenly over the whole screen (also past the edges, for wide screens)
-  const rainSVG = Array.from({ length: 340 }, (_, k) => {
-    const x = -700 + rnd(k + 11) * 2200, y = -120 + rnd(k + 517) * 1040, len = 14 + rnd(k + 77) * 10;
-    return `<line x1="${x.toFixed(0)}" y1="${y.toFixed(0)}" x2="${(x - len * 0.25).toFixed(0)}" y2="${(y + len).toFixed(0)}" style="animation-delay:${(-rnd(k + 3) * 0.6).toFixed(2)}s;animation-duration:${(0.45 + rnd(k + 41) * 0.25).toFixed(2)}s"/>`;
-  }).join('');
-
   // Storm cloud cover: solid layers with a soft, bumpy bottom edge (no gaps anywhere)
   const stormLayer = (yBase, amp, step, shift, fill) => {
     let d = `M-3000 -3000 H3800 V${yBase}`;
@@ -176,7 +170,6 @@ const Scene = (() => {
     <linearGradient id="${u}sky" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="285"><stop offset="0" class="st-sky-top"/><stop offset="1" class="st-sky-bot"/></linearGradient>
     <linearGradient id="${u}haze" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="285"><stop offset="0" class="st-haze-top"/><stop offset="1" class="st-haze-bot"/></linearGradient>
     <linearGradient id="${u}sea" gradientUnits="userSpaceOnUse" x1="0" y1="285" x2="0" y2="900"><stop offset="0" class="st-sea-top"/><stop offset=".35" class="st-sea-bot"/><stop offset="1" class="st-sea-deep"/></linearGradient>
-    <filter id="${u}tod" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB"><feColorMatrix data-k="todMatrix" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter>
     <radialGradient id="${u}glow"><stop offset="0" stop-color="#fff2a8" stop-opacity=".95"/><stop offset=".35" stop-color="#ffcf5a" stop-opacity=".55"/><stop offset="1" stop-color="#ffb03a" stop-opacity="0"/></radialGradient>
     <radialGradient id="${u}sun"><stop offset="0" stop-color="#fff6b0"/><stop offset="1" stop-color="#ffd23f"/></radialGradient>
   </defs>
@@ -233,7 +226,7 @@ const Scene = (() => {
   <ellipse class="grass light" cx="400" cy="312" rx="228" ry="42"/>
 
   ${tuft(84, 376)}${tuft(742, 366)}${tuft(272, 438, 0.9)}${tuft(712, 384, 0.8)}
-  <g data-k="flowers" class="fade">${flower(306, 322, '#ff6fa8')}${flower(452, 352, '#b388ff')}${flower(614, 326, '#ffd23f')}${flower(258, 342, '#ffffff')}</g>
+  <g data-k="flowers" class="fade">${flower(452, 352, '#b388ff')}${flower(614, 326, '#ffd23f')}${flower(484, 362, '#ff6fa8')}</g>
 
   <g transform="translate(566 342)"><g data-k="pond">
     <ellipse class="pondwater" data-k="pondWater" cx="0" cy="0" rx="40" ry="11"/>
@@ -250,7 +243,7 @@ const Scene = (() => {
   ${item('caveLamp', 176, 330, `<path d="M0 -26 v-6" stroke="#6b4423" stroke-width="2"/><rect x="-7" y="-26" width="14" height="18" rx="4" fill="#ffe680" stroke="#a0673a" stroke-width="2.5"/><circle cx="0" cy="-17" r="4" fill="#fff6b0"/><rect x="-5" y="-8" width="10" height="3" fill="#a0673a"/>`)}
 
   ${palm(0, 264, 300, 0.85)}${palm(1, 320, 290, 1)}${palm(2, 372, 300, 0.8)}${palm(3, 462, 300, 0.82)}${palm(4, 526, 290, 1)}${palm(5, 592, 300, 0.9)}
-  ${bush(340, 356, 0.62)}${bush(558, 312, 0.66)}${bush(670, 344, 0.7)}
+  ${bush(558, 312, 0.66)}
 
   ${item('parrot', 528, 180, `<ellipse cx="0" cy="0" rx="8" ry="12" fill="#ff4d4d"/><circle cx="2" cy="-12" r="7" fill="#ff4d4d"/>
       <path d="M7 -13 q6 2 2 7Z" fill="#ffd23f"/><circle cx="4" cy="-14" r="1.6" fill="#23313f"/>
@@ -269,27 +262,27 @@ const Scene = (() => {
       <rect x="34" y="-66" width="28" height="24" fill="#bfe9ff" stroke="#6b3a1a" stroke-width="4"/>
       <path d="M-14 0 V-38 H14 V0Z" fill="#6b3a1a"/>`)}
 
-  ${item('bpSmall', 285, 354, `<path d="M0 0 V-14" stroke="#4a9a33" stroke-width="3"/><path d="M0 -10 q-12 -6 -14 -16 q10 2 14 12Z M0 -12 q12 -8 14 -18 q-10 4 -14 14Z" fill="#62c544"/><g transform="translate(14 -2)">${bananas}</g>`)}
-  ${item('bpSapling', 285, 354, `<path d="M0 0 V-34" stroke="#4a9a33" stroke-width="4"/><path d="M0 -20 q-22 -6 -28 -24 q18 4 28 20Z M0 -26 q22 -10 26 -30 q-18 8 -26 26Z M0 -34 q-6 -16 2 -26 q4 12 -2 26Z" fill="#62c544"/>`)}
-  ${item('bpTree', 285, 354, `<path d="M-6 0 L-3 -72 L3 -72 L6 0Z" fill="#7da04a"/>
+  ${item('bpSmall', 300, 362, `<path d="M0 0 V-14" stroke="#4a9a33" stroke-width="3"/><path d="M0 -10 q-12 -6 -14 -16 q10 2 14 12Z M0 -12 q12 -8 14 -18 q-10 4 -14 14Z" fill="#62c544"/><g transform="translate(14 -2)">${bananas}</g>`)}
+  ${item('bpSapling', 300, 362, `<path d="M0 0 V-34" stroke="#4a9a33" stroke-width="4"/><path d="M0 -20 q-22 -6 -28 -24 q18 4 28 20Z M0 -26 q22 -10 26 -30 q-18 8 -26 26Z M0 -34 q-6 -16 2 -26 q4 12 -2 26Z" fill="#62c544"/>`)}
+  ${item('bpTree', 300, 362, `<g transform="scale(.8)"><path d="M-6 0 L-3 -72 L3 -72 L6 0Z" fill="#7da04a"/>
       <path d="M0 -72 q-46 -16 -66 12 q34 -8 66 -12Z M0 -72 q46 -18 66 10 q-34 -6 -66 -10Z M0 -74 q-20 -34 -6 -50 q14 20 6 50Z M0 -70 q-36 4 -48 34 q22 -20 48 -34Z" fill="#4fbf3a"/>
-      <g transform="translate(4 -62)"><g transform="rotate(30)">${bananas}</g><g transform="translate(-2 6) rotate(40)">${bananas}</g><g transform="translate(-4 12) rotate(50)">${bananas}</g></g>`)}
-  ${item('bpDead', 285, 354, `<path d="M0 0 q2 -8 -2 -14" stroke="#9b7a3c" stroke-width="3" fill="none"/><path d="M-2 -12 q-12 0 -16 8 M-1 -10 q10 -2 12 8" stroke="#b08a4a" stroke-width="3" fill="none"/>`)}
+      <g transform="translate(4 -62)"><g transform="rotate(30)">${bananas}</g><g transform="translate(-2 6) rotate(40)">${bananas}</g><g transform="translate(-4 12) rotate(50)">${bananas}</g></g></g>`)}
+  ${item('bpDead', 300, 362, `<path d="M0 0 q2 -8 -2 -14" stroke="#9b7a3c" stroke-width="3" fill="none"/><path d="M-2 -12 q-12 0 -16 8 M-1 -10 q10 -2 12 8" stroke="#b08a4a" stroke-width="3" fill="none"/>`)}
 
   ${item('barrel', 624, 352, `<rect x="-14" y="-30" width="28" height="30" rx="4" fill="#a0673a"/><path d="M-14 -22 H14 M-14 -8 H14" stroke="#6b4423" stroke-width="3"/><ellipse cx="0" cy="-30" rx="14" ry="4" fill="#7cc9ef"/>`)}
 
-  ${item('scraps', 128, 400, `<ellipse cx="0" cy="-3" rx="26" ry="6" fill="#e2c07a"/><path d="M-16 -5 q6 -12 12 0Z" fill="#ffb347"/><path d="M2 -8 q8 -8 14 2" stroke="#ffd93b" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="-24" y="-17" width="10" height="13" rx="2" fill="#9aa5b1"/><path d="M8 -4 l6 -10 l6 10z" fill="#e05d5d"/>`)}
-  ${item('compost', 128, 400, `<rect x="-24" y="-30" width="48" height="30" rx="3" fill="#a8743a"/><path d="M-24 -20 H24 M-24 -10 H24" stroke="#7d522b" stroke-width="3"/><path d="M-10 -30 q0 -10 6 -13 M6 -30 q2 -12 10 -12" stroke="#4a9a33" stroke-width="3" fill="none"/><circle cx="-4" cy="-44" r="4" fill="#62c544"/><circle cx="16" cy="-43" r="4" fill="#62c544"/>`)}
-  ${item('garden', 128, 400, `${flower(36, 2, '#ff6fa8')}${flower(48, 8, '#ffd23f')}${flower(-28, 2, '#b388ff')}
-      <g transform="translate(60 4)"><path d="M0 0 l-4 -12 M0 0 l0 -14 M0 0 l4 -12" stroke="#3d9a2e" stroke-width="2.5"/><path d="M-4 0 h8 l-4 8z" fill="#ff8c42"/></g>
-      <g transform="translate(-40 2)"><path d="M0 0 l-4 -12 M0 0 l0 -14 M0 0 l4 -12" stroke="#3d9a2e" stroke-width="2.5"/><path d="M-4 0 h8 l-4 8z" fill="#ff8c42"/></g>`)}
-  ${item('trash', 128, 400, `<path d="M-34 0 Q-28 -30 0 -32 Q26 -30 34 0Z" fill="#8a8f98"/><rect x="-18" y="-22" width="12" height="10" fill="#c94f4f" transform="rotate(-15)"/><rect x="6" y="-20" width="9" height="14" rx="2" fill="#5ab4d6"/><path d="M-8 -30 l10 -6 l4 8z" fill="#f2c94c"/>${flies(0, -40)}`)}
+  ${item('scraps', 110, 408, `<ellipse cx="0" cy="-3" rx="26" ry="6" fill="#e2c07a"/><path d="M-16 -5 q6 -12 12 0Z" fill="#ffb347"/><path d="M2 -8 q8 -8 14 2" stroke="#ffd93b" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="-24" y="-17" width="10" height="13" rx="2" fill="#9aa5b1"/><path d="M8 -4 l6 -10 l6 10z" fill="#e05d5d"/>`)}
+  ${item('compost', 110, 408, `<rect x="-24" y="-30" width="48" height="30" rx="3" fill="#a8743a"/><path d="M-24 -20 H24 M-24 -10 H24" stroke="#7d522b" stroke-width="3"/><path d="M-10 -30 q0 -10 6 -13 M6 -30 q2 -12 10 -12" stroke="#4a9a33" stroke-width="3" fill="none"/><circle cx="-4" cy="-44" r="4" fill="#62c544"/><circle cx="16" cy="-43" r="4" fill="#62c544"/>`)}
+  ${item('garden', 110, 408, `${flower(34, 2, '#ff6fa8')}${flower(46, 6, '#ffd23f')}${flower(58, 2, '#b388ff')}
+      <g transform="translate(-8 16)"><path d="M0 0 l-4 -12 M0 0 l0 -14 M0 0 l4 -12" stroke="#3d9a2e" stroke-width="2.5"/><path d="M-4 0 h8 l-4 8z" fill="#ff8c42"/></g>
+      <g transform="translate(12 16)"><path d="M0 0 l-4 -12 M0 0 l0 -14 M0 0 l4 -12" stroke="#3d9a2e" stroke-width="2.5"/><path d="M-4 0 h8 l-4 8z" fill="#ff8c42"/></g>`)}
+  ${item('trash', 110, 408, `<path d="M-34 0 Q-28 -30 0 -32 Q26 -30 34 0Z" fill="#8a8f98"/><rect x="-18" y="-22" width="12" height="10" fill="#c94f4f" transform="rotate(-15)"/><rect x="6" y="-20" width="9" height="14" rx="2" fill="#5ab4d6"/><path d="M-8 -30 l10 -6 l4 8z" fill="#f2c94c"/>${flies(0, -40)}`)}
 
-  ${item('bottles', 225, 422, `${bottle(-28, 0, -70)}${bottle(-6, -4, 20)}${bottle(16, 2, 80)}${bottle(34, -6, -10)}`)}
-  ${item('bin', 225, 422, `<path d="M-17 -36 H17 L13 0 H-13Z" fill="#2fa84f"/><rect x="-19" y="-41" width="38" height="7" rx="2" fill="#23863e"/><text x="0" y="-11" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">♻</text>`)}
-  ${item('pots', 225, 422, `<g transform="translate(34 0)"><rect x="-6" y="-10" width="12" height="10" rx="2" fill="#a8e0f5" stroke="#4fb0d8"/>${flower(0, -8, '#ff6fa8')}</g><g transform="translate(-34 2)"><rect x="-6" y="-10" width="12" height="10" rx="2" fill="#a8e0f5" stroke="#4fb0d8"/>${flower(0, -8, '#ffd23f')}</g>`)}
+  ${item('bottles', 575, 434, `${bottle(-28, 0, -70)}${bottle(-6, -4, 20)}${bottle(16, 2, 80)}${bottle(34, -6, -10)}`)}
+  ${item('bin', 575, 434, `<path d="M-17 -36 H17 L13 0 H-13Z" fill="#2fa84f"/><rect x="-19" y="-41" width="38" height="7" rx="2" fill="#23863e"/><text x="0" y="-11" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">♻</text>`)}
+  ${item('pots', 575, 434, `<g transform="translate(-28 0)"><rect x="-6" y="-10" width="12" height="10" rx="2" fill="#a8e0f5" stroke="#4fb0d8"/>${flower(0, -8, '#ff6fa8')}</g><g transform="translate(-42 2)"><rect x="-6" y="-10" width="12" height="10" rx="2" fill="#a8e0f5" stroke="#4fb0d8"/>${flower(0, -8, '#ffd23f')}</g>`)}
 
-  ${item('rod', 318, 442, `<path d="M-24 0 L22 -64" stroke="#8b5a2b" stroke-width="4" stroke-linecap="round"/><path d="M22 -64 Q44 -40 42 14" stroke="#fff" stroke-width="1.2" fill="none"/>
+  ${item('rod', 318, 442, `<path d="M-24 0 L22 -64" stroke="#8b5a2b" stroke-width="4" stroke-linecap="round"/><path d="M22 -64 Q2 -36 -14 22" stroke="#fff" stroke-width="1.2" fill="none"/>
       <path d="M-8 0 L-11 -16 H11 L8 0Z" fill="#4f8fd6"/><g transform="translate(0 -18) rotate(-70) scale(.6)">${fish()}</g>`)}
   ${item('net', 318, 444, `<path d="M-38 0 Q-34 -34 0 -36 Q34 -34 38 0Z" fill="#ff9a55"/>
       <g transform="translate(-16 -14) scale(.7)">${fish('#ffb067')}</g><g transform="translate(14 -20) scale(.7) rotate(15)">${fish('#ff8c42')}</g><g transform="translate(4 -6) scale(.7) rotate(-10)">${fish('#ffa04d')}</g>
@@ -334,8 +327,8 @@ const Scene = (() => {
   <g data-k="critters">
     <g data-k="butterflies" class="fade">${butterfly(280, 300, '#ff8ad8', 0)}${butterfly(470, 300, '#ffd23f', -2)}${butterfly(360, 318, '#8fd3ff', -4)}</g>
     <g data-k="bees" class="fade">${bee(300, 330, 0)}${bee(626, 306, -1.2)}${bee(450, 330, -2.1)}</g>
-    <g data-k="crabs" class="fade">${crab(150, 426, 0)}${crab(560, 440, -1.5)}</g>
-    <g transform="translate(520 344)"><g data-k="frog" class="fade">${frog}</g></g>
+    <g data-k="crabs" class="fade">${crab(204, 438, 0)}${crab(700, 404, -1.5)}</g>
+    <g transform="translate(532 364)"><g data-k="frog" class="fade">${frog}</g></g>
   </g>
   <g data-k="fish"><g class="swim" style="animation-duration:34s"><g transform="translate(0 482) scale(.6)">${fish()}</g></g><g class="swim" style="animation-delay:-14s;animation-duration:40s"><g transform="translate(0 470) scale(.45)">${fish('#ffd23f')}</g></g><g class="swim" style="animation-delay:-24s;animation-duration:30s"><g transform="translate(0 494) scale(.52)">${fish('#ff6fa8')}</g></g>
     <g class="swim" style="animation-delay:-8s;animation-duration:44s"><g transform="translate(0 504) scale(.38)">${fish('#7ad3ff')}</g></g><g class="swim" style="animation-delay:-31s;animation-duration:38s"><g transform="translate(0 462) scale(.7)">${fish('#ffb067')}</g></g></g>
@@ -396,6 +389,8 @@ const Scene = (() => {
   <g data-k="fxTop"></g>
   </g>
 
+  <!-- evening / night tint over everything (lights and the speech bubble stay on top) -->
+  <rect class="time-tint" x="-3000" y="-3000" width="6800" height="6800"/>
   <!-- lights that glow at night (drawn on top so they stay bright) -->
   <g class="glows">
     <circle data-glow="caveLamp" cx="176" cy="313" r="34" fill="url(#${u}glow)"/>
@@ -405,9 +400,8 @@ const Scene = (() => {
     <circle data-glow="house" cx="448" cy="248" r="26" fill="url(#${u}glow)"/>
   </g>
 
-  <g data-k="rain" class="rain hide">${rainSVG}</g>
 
-  <g data-k="bubble" class="bubble hide" transform="translate(400 300)"><g class="bubble-in">
+  <g data-k="bubble" class="bubble hide"><g class="bubble-in">
     <rect data-k="bubbleBox" x="-60" y="-54" width="120" height="48" rx="18" fill="#fff" stroke="#23313f" stroke-width="3"/>
     <path d="M-11 -7.5 L0 10 L11 -7.5" fill="#fff" stroke="#23313f" stroke-width="3" stroke-linejoin="round"/>
     <text data-k="bubbleText" x="0" y="-21" text-anchor="middle" font-size="25" font-weight="800" fill="#23313f"></text>
@@ -427,9 +421,10 @@ const Scene = (() => {
       ev() {},
       good(s) { s.hide('sticks'); s.task(212, 372, () => { s.show('caveBed'); s.show('caveLamp'); s.sparkle(158, 300); }); },
       bad(s) {
-        s.task(300, 370, () => {
+        s.task(330, 372, () => {
           s.chop();
-          setTimeout(() => { s.hide('sticks'); [0, 1, 2].forEach((n) => s.palm(n, 'stump')); s.show('house'); }, 700);
+          // the palms where the big house goes are cut down, so the house never overlaps a tree
+          setTimeout(() => { s.hide('sticks'); [1, 2, 3].forEach((n) => s.palm(n, 'stump')); s.show('house'); }, 700);
         });
       },
       pay(s) { s.showCocos(); s.sparkle(526, 180); },
@@ -437,44 +432,44 @@ const Scene = (() => {
     plastic: {
       ev(s) { s.show('bottles'); },
       good(s) {
-        s.task(262, 414, () => {
+        s.task(616, 430, () => {
           s.show('bin');
           [[-28, 0], [-6, -4], [16, 2], [34, -6]].forEach(([dx, dy], k) =>
-            setTimeout(() => s.toss(225 + dx, 422 + dy, 225, 386, BOTTLE, 520, k === 3 ? () => s.hide('bottles') : null), k * 160));
+            setTimeout(() => s.toss(575 + dx, 434 + dy, 575, 398, BOTTLE, 520, k === 3 ? () => s.hide('bottles') : null), k * 160));
         }, 2000);
       },
       bad(s) {
-        s.task(250, 418, () => {
+        s.task(616, 430, () => {
           s.hide('bottles');
-          [[52, 452], [300, 486], [735, 462]].forEach(([x, y], k) =>
-            setTimeout(() => s.toss(250, 380, x, y, BOTTLE, 900, () => { s.splash(x, y); if (k === 2) { s.show('seaBottles'); s.murk += 0.22; } }), k * 260));
+          [[735, 462], [660, 488], [540, 496]].forEach(([x, y], k) =>
+            setTimeout(() => s.toss(616, 392, x, y, BOTTLE, 900, () => { s.splash(x, y); if (k === 2) { s.show('seaBottles'); s.murk += 0.22; } }), k * 260));
         }, 2300);
       },
-      pay(s) { s.show('pots'); s.sparkle(225, 400); },
+      pay(s) { s.show('pots'); s.sparkle(545, 410); },
     },
     food: {
       ev(s) { s.show('fruitpile'); },
-      good(s) { s.task(470, 420, () => { s.hide('fruitpile'); s.show('basket'); }); },
-      bad(s) { s.task(470, 420, () => { s.hide('fruitpile'); s.show('cores'); }); },
+      good(s) { s.task(460, 418, () => { s.hide('fruitpile'); s.show('basket'); }); },
+      bad(s) { s.task(460, 418, () => { s.hide('fruitpile'); s.show('cores'); }); },
       pay(s) { s.rain(3200); s.sparkle(505, 405); },
     },
     banana: {
       ev(s) { s.show('bpSmall'); },
-      good(s) { s.task(318, 368, () => { s.hide('bpSmall'); s.show('bpSapling'); s.sparkle(285, 330); }); },
-      bad(s) { s.task(318, 368, () => { s.hide('bpSmall'); s.show('bpDead'); s.show('peel'); }); },
-      pay(s) { s.hide('bpSapling'); s.show('bpTree'); s.sparkle(285, 300); },
+      good(s) { s.task(346, 384, () => { s.hide('bpSmall'); s.show('bpSapling'); s.sparkle(300, 336); }); },
+      bad(s) { s.task(346, 384, () => { s.hide('bpSmall'); s.show('bpDead'); s.show('peel'); }); },
+      pay(s) { s.hide('bpSapling'); s.show('bpTree'); s.sparkle(300, 310); },
     },
     fishing: {
       ev() {},
       good(s) {   // a fishing rod: cast, wait, one fish jumps into the bucket
-        s.task(352, 432, () => {
+        s.task(372, 430, () => {
           s.show('rod');
           setTimeout(() => s.toss(362, 486, 318, 424, FISH_SMALL, 700, () => s.sparkle(318, 420)), 900);
         }, 2400);
       },
       bad(s) {    // a giant net: throw it out, drag back tons of fish
-        s.task(352, 432, () => {
-          s.toss(352, 392, 300, 488, '<path d="M-18 -10 L18 -10 L14 10 L-14 10Z" fill="none" stroke="#4d3b2e" stroke-width="2"/><path d="M-16 -4 H16 M-15 3 H15 M-8 -10 V10 M0 -10 V10 M8 -10 V10" stroke="#4d3b2e" stroke-width="1.2"/>', 800,
+        s.task(372, 430, () => {
+          s.toss(362, 392, 300, 488, '<path d="M-18 -10 L18 -10 L14 10 L-14 10Z" fill="none" stroke="#4d3b2e" stroke-width="2"/><path d="M-16 -4 H16 M-15 3 H15 M-8 -10 V10 M0 -10 V10 M8 -10 V10" stroke="#4d3b2e" stroke-width="1.2"/>', 800,
             () => { s.splash(300, 488); setTimeout(() => { s.show('net'); s.hide('fish'); s.murk += 0.08; }, 500); });
         }, 2400);
       },
@@ -482,9 +477,9 @@ const Scene = (() => {
     },
     compost: {
       ev(s) { s.show('scraps'); },
-      good(s) { s.task(176, 404, () => { s.hide('scraps'); s.show('compost'); }); },
-      bad(s) { s.task(176, 404, () => { s.hide('scraps'); s.show('trash'); }); },
-      pay(s) { s.show('garden'); s.sparkle(128, 380); },
+      good(s) { s.task(160, 416, () => { s.hide('scraps'); s.show('compost'); }); },
+      bad(s) { s.task(160, 416, () => { s.hide('scraps'); s.show('trash'); }); },
+      pay(s) { s.show('garden'); s.sparkle(140, 390); },
     },
     fire: {
       ev(s) { s.flames(3, true); s.flames(4, true); },
@@ -517,20 +512,13 @@ const Scene = (() => {
     },
     turtles: {
       ev(s) { s.show('turtles'); },
-      good(s) { s.task(300, 380, () => { s.hide('turtles'); s.show('nest'); s.show('turtlesSwim'); }); }, // plays somewhere else
+      good(s) { s.task(400, 400, () => { s.hide('turtles'); s.show('nest'); s.show('turtlesSwim'); }); }, // stays away and lets them nest
       bad(s) { s.task(580, 410, () => { s.hide('turtles'); s.show('turtlesLeave'); }); },                  // shoos them away
       pay(s) { s.show('babies'); s.sparkle(630, 400); },
     },
   };
 
-  /* Day/night: the island is tinted with a colour matrix (works on every browser). */
-  const TIME_MATRIX = {
-    day:     [1, 0, 0, 0, 0,     0, 1, 0, 0, 0,        0, 0, 1, 0, 0,       0, 0, 0, 1, 0],
-    morning: [1.03, 0, 0, 0, 0.03, 0, 0.98, 0, 0, 0.01, 0, 0, 0.9, 0, 0,     0, 0, 0, 1, 0],
-    evening: [1, 0, 0, 0, 0.05,  0, 0.8, 0, 0, 0,       0, 0, 0.75, 0, 0.04, 0, 0, 0, 1, 0],
-    night:   [0.4, 0, 0, 0, 0,   0, 0.46, 0, 0, 0.02,   0, 0, 0.7, 0, 0.09,  0, 0, 0, 1, 0],
-    eclipse: [0.5, 0, 0, 0, 0,   0, 0.52, 0, 0, 0.02,   0, 0, 0.72, 0, 0.08,  0, 0, 0, 1, 0],
-  };
+  const TIMES = ['morning', 'day', 'evening', 'night', 'eclipse'];
 
   function create(container) {
     const u = 's' + ++uid + '-';
@@ -538,6 +526,7 @@ const Scene = (() => {
     const svg = container.querySelector('svg');
     const q = (k) => svg.querySelector(`[data-k="${k}"]`);
     const land = q('land');
+    container.insertAdjacentHTML('beforeend', '<div class="rain-fx" aria-hidden="true"></div>');
     // A random sky every game: sometimes clear, sometimes a few clouds drifting by
     q('skyClouds').innerHTML = Array.from({ length: [0, 1, 1, 2, 2, 3, 4][Math.floor(Math.random() * 7)] }, () => {
       const y = 40 + Math.random() * 130, sc = 0.6 + Math.random() * 0.7, dur = 90 + Math.random() * 70;
@@ -545,18 +534,16 @@ const Scene = (() => {
     }).join('');
     const monkey = q('monkey');
     let mood = '';
-    let matrix = TIME_MATRIX.day.slice();
     let time = 'day';
-    let tween = 0;
     let reactTimer = 0;
     let bubbleTimer = 0;
-    let followRaf = 0;
     let destroyed = false;
     let deadCount = 0;
     let badCount = 0;
     let walkPos = [400, 400];
     let walkTimer = 0;
     let taskId = 0;
+    let pendingJob = null;
     let whaleAllowed = false;
     const harmed = { sea: false, fish: false };
 
@@ -596,19 +583,25 @@ const Scene = (() => {
         walkPos = [x, y];
         w.style.transitionDuration = ms + 'ms';
         w.style.transform = `translate(${x - 400}px, ${y - 400}px)`;
+        placeBubble(ms);
         monkey.classList.toggle('walking', dist > 4);
         clearTimeout(walkTimer);
         return new Promise((done) => { walkTimer = setTimeout(() => { monkey.classList.remove('walking'); done(); }, ms); });
       },
       home() { return s.walkTo(400, 400); },
       task(x, y, fn, stay = 1700) {
+        // If the player moves on before the monkey got there, finish the last job right away
+        // (so e.g. the fire always gets put out), then start walking to the new one.
+        if (pendingJob) { const job = pendingJob; pendingJob = null; job(); }
         const id = ++taskId;
+        pendingJob = fn;
         s.walkTo(x, y).then(() => {
           if (id !== taskId) return;
-          fn();
+          if (pendingJob === fn) { pendingJob = null; fn(); }   // (it may already have been done early)
           if (stay) setTimeout(() => { if (id === taskId && !destroyed) s.home(); }, stay);  // stay = 0: stay there
         });
       },
+      finishJobs() { if (pendingJob) { const job = pendingJob; pendingJob = null; job(); } },
       chop() { restartAnim(svg.querySelector('.mjump'), 'chop'); },
       /* throw something in an arc from (x1,y1) to (x2,y2) */
       toss(x1, y1, x2, y2, inner, ms = 800, after = null) {
@@ -658,26 +651,17 @@ const Scene = (() => {
 
     /* ── time of day + weather ── */
     function setTime(t) {
-      if (!TIME_MATRIX[t]) t = 'day';
+      if (!TIMES.includes(t)) t = 'day';
       time = t;
-      document.documentElement.dataset.time = t;  // sky + sea colours (also the page background)
-      const from = matrix.slice(), to = TIME_MATRIX[t], start = performance.now(), node = q('todMatrix');
-      cancelAnimationFrame(tween);
-      land.setAttribute('filter', `url(#${u}tod)`);
-      const stepFn = (now) => {
-        const k = Math.min(1, (now - start) / 1400), e = k * k * (3 - 2 * k);
-        matrix = from.map((v, n) => v + (to[n] - v) * e);
-        node.setAttribute('values', matrix.map((v) => v.toFixed(3)).join(' '));
-        if (k < 1) tween = requestAnimationFrame(stepFn);
-        else if (t === 'day') land.removeAttribute('filter'); // no filter needed in daylight
-      };
-      tween = requestAnimationFrame(stepFn);
+      // Sky + sea colours (shared with the page background) and the tint over the island
+      // all come from CSS, so changing the time is just one attribute (cheap on phones).
+      document.documentElement.dataset.time = t;
       updateGlows();
     }
     function setWeather(w) {
       const rainy = w === 'rain';
       svg.classList.toggle('rainy', rainy);
-      q('rain').classList.toggle('hide', !rainy);
+      container.classList.toggle('raining', rainy);
       q('rainCover').classList.toggle('hide', !rainy);
       q('gloom').classList.toggle('hide', !rainy);
       if (!rainy) q('stormClouds').classList.add('hide');
@@ -691,41 +675,30 @@ const Scene = (() => {
       if (kind === 'sad') s.droop();
       if (kind && ms) reactTimer = setTimeout(() => delete monkey.dataset.react, ms);
     }
+    // Where the top of the monkey's head is (or will be), in island coordinates
+    function headTop() {
+      if (svg.classList.contains('flooded')) return [400, 400 - 192 - 66 * 0.85];
+      if (svg.classList.contains('stormy')) return [400 - 242, 400 - 72 - 66 * 0.45];
+      if (svg.classList.contains('dry')) return [530, 466 - 66];
+      return [walkPos[0], walkPos[1] - 66];
+    }
+    let bubbleW = 120;
+    function placeBubble(ms = 0) {
+      const b = q('bubble'), [hx, hy] = headTop();
+      const x = Math.max(bubbleW / 2 + 6, Math.min(800 - bubbleW / 2 - 6, hx)), y = Math.max(62, hy - 10);
+      b.style.transition = ms ? `transform ${ms}ms ease-in-out, opacity .25s` : 'opacity .25s';
+      b.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+    }
     function say(text, ms = 3000) {
       const b = q('bubble'), txt = q('bubbleText'), box = q('bubbleBox');
       clearTimeout(bubbleTimer);
       if (!text) { b.classList.add('hide'); return; }
       txt.textContent = text;
-      const w = Math.min(560, txt.getComputedTextLength() + 34);
-      box.setAttribute('x', -w / 2);
-      box.setAttribute('width', w);
-      // place the bubble just above the monkey's head, wherever the monkey is
-      const r = monkey.getBoundingClientRect(), ctm = land.getScreenCTM();
-      let x = 400, y = 300;
-      if (ctm && r.width) {
-        const pt = svg.createSVGPoint();
-        pt.x = r.left + r.width / 2; pt.y = r.top;
-        const p = pt.matrixTransform(ctm.inverse());
-        x = p.x; y = p.y - 10;
-      }
-      x = Math.max(w / 2 + 6, Math.min(800 - w / 2 - 6, x));
-      y = Math.max(62, y);
-      b.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+      bubbleW = Math.min(560, txt.getComputedTextLength() + 34);
+      box.setAttribute('x', -bubbleW / 2);
+      box.setAttribute('width', bubbleW);
+      placeBubble(0);
       b.classList.remove('hide');
-      cancelAnimationFrame(followRaf);
-      const follow = () => {   // keep the bubble above the monkey while it walks around
-        if (b.classList.contains('hide')) return;
-        const r2 = monkey.getBoundingClientRect(), m = land.getScreenCTM();
-        if (m && r2.width) {
-          const pt = svg.createSVGPoint();
-          pt.x = r2.left + r2.width / 2; pt.y = r2.top;
-          const p2 = pt.matrixTransform(m.inverse());
-          const nx = Math.max(w / 2 + 6, Math.min(800 - w / 2 - 6, p2.x)), ny = Math.max(62, p2.y - 10);
-          b.setAttribute('transform', `translate(${nx.toFixed(1)} ${ny.toFixed(1)})`);
-        }
-        followRaf = requestAnimationFrame(follow);
-      };
-      followRaf = requestAnimationFrame(follow);
       restartAnim(b.querySelector('.bubble-in'), 'jump');
       if (ms) bubbleTimer = setTimeout(() => b.classList.add('hide'), ms);
     }
@@ -891,6 +864,7 @@ const Scene = (() => {
 
     function pirates() {
       const wait = (ms) => new Promise((done) => setTimeout(done, ms));
+      s.finishJobs();
       const ship = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       ship.innerHTML = SHIP;
       q('shipLayer').appendChild(ship);
@@ -986,6 +960,7 @@ const Scene = (() => {
 
     function disaster(type) {
       const fx = q('fx');
+      s.finishJobs();
       taskId++;
       const w = svg.querySelector('.walker');
       w.style.transitionDuration = '300ms';
@@ -1049,6 +1024,7 @@ const Scene = (() => {
       },
       eclipse,
       pirates,
+      finishJobs: () => s.finishJobs(),
       allowWhale(on) { whaleAllowed = on; },
       payoff: (id) => ACTIONS[id].pay(s),
       disaster,

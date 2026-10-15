@@ -133,8 +133,8 @@ const I18N = {
       three: ['Never Give Up', 'Play 3 games'],
       whale: ['Whale Hello!', 'Make the island so healthy that a whale visits'],
       stormchaser: ['Storm Chaser', 'See all 3 natural disasters'],
-      eclipse: ['Eclipse Watcher', 'See a super rare solar eclipse'],
-      pirates: ['Ahoy, Pirates!', 'Survive a super rare pirate raid'],
+      eclipse: ['Eclipse Watcher', 'See a rare solar eclipse'],
+      pirates: ['Ahoy, Pirates!', 'Survive a rare pirate raid'],
       legend: ['Climate Legend', 'Unlock every other achievement'],
     },
     choices: [
@@ -390,8 +390,8 @@ const I18N = {
       three: ['Gib nie auf', 'Spiele 3 Spiele'],
       whale: ['Wal-Besuch', 'Mach die Insel so gesund, dass ein Wal vorbeikommt'],
       stormchaser: ['Sturmjäger', 'Erlebe alle 3 Naturkatastrophen'],
-      eclipse: ['Finsternis-Fan', 'Sieh eine super seltene Sonnenfinsternis'],
-      pirates: ['Ahoi, Piraten!', 'Überlebe einen super seltenen Piratenüberfall'],
+      eclipse: ['Finsternis-Fan', 'Sieh eine seltene Sonnenfinsternis'],
+      pirates: ['Ahoi, Piraten!', 'Überlebe einen seltenen Piratenüberfall'],
       legend: ['Klima-Legende', 'Schalte alle anderen Erfolge frei'],
     },
     choices: [
@@ -647,8 +647,8 @@ const I18N = {
       three: ['Mai arrendersi', 'Gioca 3 partite'],
       whale: ['Ciao balena!', 'Rendi l’isola così sana che arriva una balena'],
       stormchaser: ['Cacciatore di tempeste', 'Vedi tutti e 3 i disastri naturali'],
-      eclipse: ['Osservatore dell’eclissi', 'Vedi una rarissima eclissi di sole'],
-      pirates: ['Ahoy, pirati!', 'Sopravvivi a un rarissimo attacco dei pirati'],
+      eclipse: ['Osservatore dell’eclissi', 'Vedi una rara eclissi di sole'],
+      pirates: ['Ahoy, pirati!', 'Sopravvivi a un raro attacco dei pirati'],
       legend: ['Leggenda del clima', 'Sblocca tutti gli altri traguardi'],
     },
     choices: [
@@ -904,8 +904,8 @@ const I18N = {
       three: ['N’abandonne jamais', 'Joue 3 parties'],
       whale: ['Coucou la baleine !', 'Rends l’île si saine qu’une baleine vient la voir'],
       stormchaser: ['Chasseur de tempêtes', 'Vois les 3 catastrophes naturelles'],
-      eclipse: ['Témoin de l’éclipse', 'Vois une éclipse de soleil super rare'],
-      pirates: ['Ohé, les pirates !', 'Survis à une attaque de pirates super rare'],
+      eclipse: ['Témoin de l’éclipse', 'Vois une éclipse de soleil rare'],
+      pirates: ['Ohé, les pirates !', 'Survis à une attaque de pirates rare'],
       legend: ['Légende du climat', 'Débloque tous les autres succès'],
     },
     choices: [
