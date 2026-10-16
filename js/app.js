@@ -55,7 +55,7 @@
   /* Line the page's sky/sea background up with the island drawing's horizon,
      so the sea "outside" the game sits at exactly the same level as inside. */
   function syncHorizon() {
-    const svg = $('#screen svg');
+    const svg = $('#screen svg.scene-main');
     const ctm = svg && svg.getScreenCTM();
     if (!ctm) return; // screens without an island keep the last horizon
     const y = (v) => Math.round(ctm.f + ctm.d * v) + 'px';
@@ -63,6 +63,8 @@
     root.setProperty('--sky-top', y(0));
     root.setProperty('--horizon', y(285));
     root.setProperty('--deep', y(500));
+    root.setProperty('--abyss', y(900));
+    root.setProperty('--cloud-base', y(185));
   }
   const horizonWatcher = new ResizeObserver(() => syncHorizon());
   horizonWatcher.observe(document.getElementById('screen'));

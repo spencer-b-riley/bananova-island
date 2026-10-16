@@ -9,19 +9,57 @@
 @property --sea-deep-c { syntax: '<color>'; inherits: true; initial-value: #0b3a66; }
 :root {
   --sky-top-c: #5ec8f5; --sky-bot-c: #c4f0ff; --sea-top-c: #2bb3e0; --sea-bot-c: #1279b8; --cloud-c: #ffffff; --sea-deep-c: #0b3a66;
-  transition: --sky-top-c 1.2s, --sky-bot-c 1.2s, --sea-top-c 1.2s, --sea-bot-c 1.2s, --cloud-c 1.2s, --sea-deep-c 1.2s;
 }
-/* Day/night tint over the whole island scene (a single layer: cheap to animate on phones) */
-.time-tint { fill: #071230; opacity: 0; transition: opacity 1.2s, fill 1.2s; pointer-events: none; }
-:root[data-time="morning"] .time-tint { fill: #ffb070; opacity: 0.08; }
-:root[data-time="evening"] .time-tint { fill: #5a2a5a; opacity: 0.2; }
-:root[data-time="night"] .time-tint { fill: #071230; opacity: 0.58; }
-:root[data-time="eclipse"] .time-tint { fill: #0b1430; opacity: 0.4; }
+/* ── Full-screen layers as plain HTML: the phone's GPU fades/moves these almost for free ── */
+.backdrop { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+.bd, .bd-haze, .bd-murk, .bd-gloom, .bd-cover { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s; will-change: opacity; }
+/* sky + sea for each time of day; the horizon lines up with the island drawing (app.js: syncHorizon) */
+.bd-morning { background: linear-gradient(#7cc8ef var(--sky-top, 0%), #ffe3c4 var(--horizon, 58%), #45b4dc var(--horizon, 58%), #1a7fb6 var(--deep, 80%), #0e406e var(--abyss, 100%)); }
+.bd-day     { background: linear-gradient(#5ec8f5 var(--sky-top, 0%), #c4f0ff var(--horizon, 58%), #2bb3e0 var(--horizon, 58%), #1279b8 var(--deep, 80%), #0b3a66 var(--abyss, 100%)); }
+.bd-evening { background: linear-gradient(#5b5fb0 var(--sky-top, 0%), #ffae80 var(--horizon, 58%), #3f86b8 var(--horizon, 58%), #1b4f86 var(--deep, 80%), #0c2a52 var(--abyss, 100%)); }
+.bd-night   { background: linear-gradient(#142a5e var(--sky-top, 0%), #3e5aa6 var(--horizon, 58%), #2a5f95 var(--horizon, 58%), #133a6c var(--deep, 80%), #071a36 var(--abyss, 100%)); }
+.bd-eclipse { background: linear-gradient(#1c2850 var(--sky-top, 0%), #4a5590 var(--horizon, 58%), #2a5480 var(--horizon, 58%), #133a6c var(--deep, 80%), #071a36 var(--abyss, 100%)); }
+:root[data-time="morning"] .bd-morning, :root[data-time="day"] .bd-day, :root:not([data-time]) .bd-day,
+:root[data-time="evening"] .bd-evening, :root[data-time="night"] .bd-night, :root[data-time="eclipse"] .bd-eclipse { opacity: 1; }
+.bd-stars { position: absolute; left: 0; right: 0; top: 0; height: var(--horizon, 58%); }
+.bd-stars svg { display: block; }
+.bd-haze { background: linear-gradient(#9c8f86 var(--sky-top, 0%), #e9b98a var(--horizon, 58%), transparent var(--horizon, 58%)); }
+.bd-murk { background: linear-gradient(transparent var(--horizon, 58%), #6f7d3c var(--horizon, 58%)); }
+.bd-gloom { background: #4b5563; }
+.raining .bd-gloom { opacity: 0.3; }
+/* rain / storm: the whole sky is one cloud cover with a soft bumpy edge */
+.bd-cover { bottom: auto; height: var(--cloud-base, 30%); }
+.bd-cover::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 44px; background-size: 80px 44px; background-repeat: repeat-x; }
+.bd-rain { background: linear-gradient(#7c8591, #9aa3ae); }
+.bd-rain::after { background-image: radial-gradient(circle at 50% 0, #9aa3ae 36px, transparent 37px); }
+.bd-storm { background: linear-gradient(#2f3540, #4a525f); height: calc(var(--cloud-base, 30%) + 10px); }
+.bd-storm::after { background-image: radial-gradient(circle at 50% 0, #4a525f 36px, transparent 37px); }
+.raining .bd-rain, .storming .bd-storm { opacity: 1; }
+/* night tint + disaster flashes, on top of the island (but under the lights and speech bubble) */
+.fx-html { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+.fxh { position: absolute; inset: 0; opacity: 0; will-change: opacity; }
+.fxh-tint { background: #071230; transition: opacity 1.2s, background-color 1.2s; }
+:root[data-time="morning"] .fxh-tint { background: #ffb070; opacity: 0.08; }
+:root[data-time="evening"] .fxh-tint { background: #5a2a5a; opacity: 0.2; }
+:root[data-time="night"] .fxh-tint { background: #071230; opacity: 0.58; }
+:root[data-time="eclipse"] .fxh-tint { background: #0b1430; opacity: 0.4; }
+.fxh-heat { background: #ff7a2e; }
+.fx-heat .fxh-heat { animation: heat 3.4s ease-in-out forwards; }
+.fxh-dark { background: #1d2533; }
+.fx-storm .fxh-dark { animation: dark 3.4s ease forwards; }
+.fxh-flash { background: #fff; }
+.fx-storm .fxh-flash { animation: flash 3.4s linear forwards; }
+/* the lights + speech bubble SVG sits exactly over the island SVG */
+.scene-top { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.scene-main { position: relative; z-index: 0; }
+/* pirate visit: slide both pictures to the right side (moved by the GPU, not redrawn) */
+.scene-wrap > svg, .title-scene > svg { transition: transform 1.6s ease-in-out; }
+.panned > svg { transform: translate3d(var(--pan, -250px), 0, 0); }
 
 /* Rain: one big image of raindrops that slides down. Moving it with transform lets the
    phone's graphics chip do the work, so it stays smooth. */
 .rain-fx {
-  position: fixed; inset: 0; z-index: 1; overflow: hidden;
+  position: fixed; inset: 0; z-index: 3; overflow: hidden;
   pointer-events: none; opacity: 0; transition: opacity 0.8s;
 }
 .rain-fx::before {
@@ -379,6 +417,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 
 /* ───────── island scene (SVG) ───────── */
 .hide { opacity: 0 !important; visibility: hidden; }
+.hide, .hide * { animation-play-state: paused !important; }
 .pop {
   transform-box: fill-box; transform-origin: 50% 100%;
   transition: opacity 0.5s, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), visibility 0.5s;
@@ -414,7 +453,7 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 :root[data-time="night"] .st-haze-top { stop-color: #161b2a; }
 :root[data-time="night"] .st-haze-bot { stop-color: #3a3d52; }
 
-.nightsky { opacity: 0; transition: opacity 1.4s; }
+.nightsky { opacity: 0; transition: opacity 1.2s; }
 :root[data-time="night"] .nightsky, :root[data-time="eclipse"] .nightsky { opacity: 1; }
 .star { fill: #fffbe8; }
 .moon-cut { fill: var(--sky-top-c); }
@@ -439,8 +478,9 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 [data-react="hot"] .r-hot, [data-react="sad"] .r-sad, [data-react="think"] .r-think { opacity: 1; }
 [data-react="cold"] .bob { animation: shiver 0.12s linear infinite; }
 [data-react="scared"] .bob { animation: shiver 0.2s linear infinite; }
-.heart { transform-box: fill-box; transform-origin: center; animation: heartUp 1.4s ease-in-out infinite; }
-.drip { animation: drip 1.2s ease-in infinite; }
+.heart { transform-box: fill-box; transform-origin: center; }
+[data-react="yay"] .heart { animation: heartUp 1.4s ease-in-out infinite; }
+[data-react="hot"] .drip, [data-react="sad"] .drip { animation: drip 1.2s ease-in infinite; }
 @keyframes shiver { 25% { transform: translateX(-1.5px); } 75% { transform: translateX(1.5px); } }
 @keyframes heartUp { 0% { transform: translateY(4px) scale(0.8); opacity: 0.4; } 50% { opacity: 1; } 100% { transform: translateY(-8px) scale(1.1); opacity: 0.2; } }
 @keyframes drip { from { transform: translateY(0); } to { transform: translateY(6px); opacity: 0.3; } }
@@ -472,9 +512,9 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 .jolly-roger { transform-box: fill-box; transform-origin: 0 50%; animation: flagWave 1.6s ease-in-out infinite alternate; }
 @keyframes flagWave { from { transform: translate(-16px, -128px) skewY(-4deg) scaleX(0.96); } to { transform: translate(-16px, -128px) skewY(4deg) scaleX(1); } }
 /* the view pans to the right while the pirate ship visits, so the ship fits on screen */
-.camera { transition: transform 1.6s ease-in-out; }
-.pan-pirates .camera { transform: translateX(-250px); }
-.rainy .cloud { fill: #8d97a5; }
+
+.rainy [data-k="skyClouds"] { opacity: 0; }   /* the full cloud cover replaces them */
+.cloud { transition: fill 1.2s; }
 .rain-cloud { fill: #77818f; }
 /* storm cloud cover slowly rolling */
 
@@ -546,6 +586,7 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 .eclipse .corona { animation: corona 7s ease-in-out forwards; }
 .eclipse .nightsky { opacity: 0.8; }
 .eclipse .night-moon { opacity: 0; }  /* the moon is busy covering the sun */
+.rainy .night-moon, .stormy .night-moon { opacity: 0; }  /* hidden behind the cloud cover */
 @keyframes moonPass { 0% { transform: translateX(-120px); opacity: 1; } 40%, 62% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(120px); opacity: 1; } }
 @keyframes corona { 0%, 33% { opacity: 0; } 42%, 60% { opacity: 1; } 70%, 100% { opacity: 0; } }
 .crawl { animation: crawl 4s ease-in infinite; }
@@ -564,7 +605,7 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 .stormy .sway { transform-box: fill-box; transform-origin: 50% 100%; animation: sway 0.9s ease-in-out infinite alternate; }
 .sun { transform-box: fill-box; transform-origin: center; }
 .dry .sun { transform: translate(-160px, -10px) scale(1.45); }
-.stormy .sun, .rainy .sun { opacity: 0.15; transition: opacity 1.5s; }
+.stormy .sun, .rainy .sun { opacity: 0; transition: opacity 1s; }
 .stormy .cloud { fill: #6d7682; transition: fill 1.5s; }
 
 @keyframes swim { from { transform: translateX(-700px); } to { transform: translateX(1500px); } }
@@ -617,15 +658,15 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 .flood-wave { animation: wave 3.2s linear forwards; }
 @keyframes floodRise { 0% { transform: translateY(0); } 50% { transform: translateY(-235px); } 100% { transform: translateY(-112px); } }
 @keyframes wave { from { transform: translateX(0); } to { transform: translateX(-2500px); } }
-.heat-tint { opacity: 0; animation: heat 3.4s ease-in-out forwards; }
+
 @keyframes heat { 40% { opacity: 0.5; } 100% { opacity: 0.32; } }
 .heat-lines path { stroke: #fff2c4; stroke-width: 3; fill: none; opacity: 0.8; animation: rise 1.2s linear infinite; }
 @keyframes rise { from { transform: translateY(20px); opacity: 0; } 50% { opacity: 0.8; } to { transform: translateY(-30px); opacity: 0; } }
-.storm-dark { opacity: 0; animation: dark 3.4s ease forwards; }
+
 @keyframes dark { to { opacity: 0.5; } }
-.storm-flash, .bolt { opacity: 0; animation: flash 3.4s linear forwards; }
+.bolt { opacity: 0; animation: flash 3.4s linear forwards; }
 @keyframes flash { 0%, 28% { opacity: 0; } 30% { opacity: 0.9; } 33% { opacity: 0; } 36% { opacity: 0.7; } 40%, 66% { opacity: 0; } 68% { opacity: 0.8; } 72%, 100% { opacity: 0; } }
-.shake { animation: shake 0.5s ease-in-out 5; }
+.shake > svg { animation: shake 0.5s ease-in-out 5; }
 @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
 @media (prefers-reduced-motion: reduce) {

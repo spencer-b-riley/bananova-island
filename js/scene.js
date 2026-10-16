@@ -86,22 +86,9 @@ const Scene = (() => {
   // simple repeatable "random" so every screen draws the same scene
   const rnd = (n) => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };
 
-  // Storm cloud cover: solid layers with a soft, bumpy bottom edge (no gaps anywhere)
-  const stormLayer = (yBase, amp, step, shift, fill) => {
-    let d = `M-3000 -3000 H3800 V${yBase}`;
-    for (let x = 3800; x > -3000; x -= step) d += ` Q${x - step / 2 + shift} ${yBase + amp} ${x - step} ${yBase}`;
-    return `<path d="${d} Z" fill="${fill}"/>`;
-  };
-  const rainCoverSVG = `<g class="storm-roll">${stormLayer(165, 44, 150, 10, '#9aa3ae')}</g>
-    <g class="storm-roll slow">${stormLayer(125, 38, 120, -25, '#8a939f')}</g>
-    <g class="storm-roll">${stormLayer(80, 32, 100, 15, '#7c8591')}</g>`;
-  const stormCloudsSVG = `<g class="storm-roll">${stormLayer(150, 46, 150, 0, '#5a6371')}</g>
-    <g class="storm-roll slow">${stormLayer(115, 40, 120, 30, '#4a525f')}</g>
-    <g class="storm-roll">${stormLayer(70, 34, 100, -20, '#3c434f')}</g>`;
-
   // Night stars across the whole sky
-  const STARS = Array.from({ length: 46 }, (_, k) =>
-    `<circle class="star" cx="${(-600 + rnd(k + 1) * 2000).toFixed(0)}" cy="${(-220 + rnd(k + 99) * 440).toFixed(0)}" r="${k % 3 ? 1.8 : 2.6}" style="animation-delay:${(-k * 0.37).toFixed(2)}s"/>`).join('');
+  const STARS = `<svg viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">${Array.from({ length: 70 }, (_, k) =>
+    `<circle cx="${(rnd(k + 1) * 1200).toFixed(0)}" cy="${(rnd(k + 99) * 290).toFixed(0)}" r="${k % 3 ? 1.6 : 2.4}" fill="#fffbe8"/>`).join('')}</svg>`;
 
   // Seagull with flapping wings (faces right)
   const gull = `<g class="gull">
@@ -165,32 +152,25 @@ const Scene = (() => {
 
   function buildSVG(u) {
     return `
-<svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Island" xmlns="http://www.w3.org/2000/svg">
+<svg class="scene-main" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Island" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="${u}sky" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="285"><stop offset="0" class="st-sky-top"/><stop offset="1" class="st-sky-bot"/></linearGradient>
     <linearGradient id="${u}haze" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="285"><stop offset="0" class="st-haze-top"/><stop offset="1" class="st-haze-bot"/></linearGradient>
     <linearGradient id="${u}sea" gradientUnits="userSpaceOnUse" x1="0" y1="285" x2="0" y2="900"><stop offset="0" class="st-sea-top"/><stop offset=".35" class="st-sea-bot"/><stop offset="1" class="st-sea-deep"/></linearGradient>
-    <radialGradient id="${u}glow"><stop offset="0" stop-color="#fff2a8" stop-opacity=".95"/><stop offset=".35" stop-color="#ffcf5a" stop-opacity=".55"/><stop offset="1" stop-color="#ffb03a" stop-opacity="0"/></radialGradient>
     <radialGradient id="${u}sun"><stop offset="0" stop-color="#fff6b0"/><stop offset="1" stop-color="#ffd23f"/></radialGradient>
   </defs>
   <g class="camera">
 
-  <rect x="-3000" y="-3000" width="6800" height="3285" fill="url(#${u}sky)"/>
-  <rect data-k="haze" class="fade" x="-3000" y="-3000" width="6800" height="6800" fill="url(#${u}haze)" opacity="0"/>
-  <rect data-k="gloom" class="fade hide" x="-3000" y="-3000" width="6800" height="6800" fill="#4b5563" opacity=".3"/>
   <g data-k="sun" class="sun"><circle data-k="heatGlow" class="fade hide" cx="680" cy="80" r="95" fill="#ffb03a" opacity=".45"/>
     <circle cx="680" cy="80" r="62" fill="#ffe680" opacity=".35"/><circle cx="680" cy="80" r="42" fill="url(#${u}sun)"/>
     <circle class="sun-tint" cx="680" cy="80" r="42" fill="#ff7a3d"/>
     <circle class="corona" cx="680" cy="80" r="50" fill="none" stroke="#fff6c8" stroke-width="7"/>
     <circle class="eclipse-moon" cx="680" cy="80" r="44" fill="#151a2b"/></g>
   <g class="nightsky">
-    ${STARS}
     <g class="night-moon" transform="translate(110 80)"><circle r="30" fill="#fff7d6" opacity=".25"/><circle r="22" fill="#fff4c2"/><circle cx="9" cy="-6" r="19" class="moon-cut"/></g>
   </g>
 
   <g data-k="skyClouds"></g>
-  <g data-k="stormClouds" class="fade hide">${stormCloudsSVG}</g>
-  <g data-k="rainCover" class="fade hide">${rainCoverSVG}</g>
 
   ${item('darkSmoke', 0, 0, `<g class="billow">
       <circle cx="690" cy="330" r="14"/><circle cx="682" cy="290" r="20"/><circle cx="672" cy="245" r="26"/>
@@ -198,8 +178,6 @@ const Scene = (() => {
 
   ${gullFlight(1, 110, 1.4, 19, -4)}${gullFlight(2, 78, 1.1, 25, -15)}${gullFlight(3, 150, 1.2, 22, -9)}
 
-  <rect x="-3000" y="285" width="6800" height="3000" fill="url(#${u}sea)"/>
-  <rect data-k="murk" class="fade" x="-3000" y="285" width="6800" height="3000" fill="#6f7d3c" opacity="0"/>
   <g class="waves"><path d="M20 310 q15 -8 30 0 q15 8 30 0 M640 300 q15 -8 30 0 q15 8 30 0 M300 296 q15 -6 30 0 q15 6 30 0 M-260 320 q15 -8 30 0 q15 8 30 0 M-520 300 q15 -6 30 0 q15 6 30 0 M900 318 q15 -8 30 0 q15 8 30 0 M1160 300 q15 -6 30 0 q15 6 30 0 M-120 460 q15 -8 30 0 q15 8 30 0 M960 470 q15 -8 30 0 q15 8 30 0"/></g>
 
   <g data-k="land">
@@ -389,8 +367,15 @@ const Scene = (() => {
   <g data-k="fxTop"></g>
   </g>
 
-  <!-- evening / night tint over everything (lights and the speech bubble stay on top) -->
-  <rect class="time-tint" x="-3000" y="-3000" width="6800" height="6800"/>
+  </g>
+</svg>`;
+  }
+
+  // Lights and the speech bubble: a second transparent SVG drawn above the night tint
+  function buildTopSVG(u) {
+    return `
+<svg class="scene-top" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <defs><radialGradient id="${u}glow"><stop offset="0" stop-color="#fff2a8" stop-opacity=".95"/><stop offset=".35" stop-color="#ffcf5a" stop-opacity=".55"/><stop offset="1" stop-color="#ffb03a" stop-opacity="0"/></radialGradient></defs>
   <!-- lights that glow at night (drawn on top so they stay bright) -->
   <g class="glows">
     <circle data-glow="caveLamp" cx="176" cy="313" r="34" fill="url(#${u}glow)"/>
@@ -406,9 +391,18 @@ const Scene = (() => {
     <path d="M-11 -7.5 L0 10 L11 -7.5" fill="#fff" stroke="#23313f" stroke-width="3" stroke-linejoin="round"/>
     <text data-k="bubbleText" x="0" y="-21" text-anchor="middle" font-size="25" font-weight="800" fill="#23313f"></text>
   </g></g>
-  </g>
 </svg>`;
   }
+
+  // Full-screen layers drawn with plain HTML (the GPU fades and moves these cheaply)
+  const BACKDROP = `<div class="backdrop" aria-hidden="true">
+      <div class="bd bd-morning"></div><div class="bd bd-day"></div><div class="bd bd-evening"></div><div class="bd bd-night"><div class="bd-stars">${STARS}</div></div><div class="bd bd-eclipse"><div class="bd-stars">${STARS}</div></div>
+      <div class="bd-haze"></div><div class="bd-murk"></div><div class="bd-gloom"></div>
+      <div class="bd-cover bd-rain"></div><div class="bd-cover bd-storm"></div>
+    </div>`;
+  const FX_LAYERS = `<div class="fx-html" aria-hidden="true">
+      <div class="fxh fxh-tint"></div><div class="fxh fxh-heat"></div><div class="fxh fxh-dark"></div><div class="fxh fxh-flash"></div>
+    </div>`;
 
   /* What each choice shows on the island.
      ev = the problem appears, good/bad = result, pay = reward 2 turns later.
@@ -522,9 +516,9 @@ const Scene = (() => {
 
   function create(container) {
     const u = 's' + ++uid + '-';
-    container.innerHTML = buildSVG(u);
-    const svg = container.querySelector('svg');
-    const q = (k) => svg.querySelector(`[data-k="${k}"]`);
+    container.innerHTML = BACKDROP + buildSVG(u) + FX_LAYERS + buildTopSVG(u);
+    const svg = container.querySelector('svg.scene-main');      // the island drawing
+    const q = (k) => container.querySelector(`[data-k="${k}"]`);
     const land = q('land');
     container.insertAdjacentHTML('beforeend', '<div class="rain-fx" aria-hidden="true"></div>');
     // A random sky every game: sometimes clear, sometimes a few clouds drifting by
@@ -550,7 +544,7 @@ const Scene = (() => {
     const visible = (el) => el && !el.classList.contains('hide') && !el.classList.contains('swept');
     function updateGlows() {
       const dark = time === 'night' || time === 'evening' || time === 'eclipse';
-      svg.querySelectorAll('[data-glow]').forEach((g) => {
+      container.querySelectorAll('[data-glow]').forEach((g) => {
         g.classList.toggle('on', dark && !destroyed && visible(q(g.dataset.glow)));
       });
     }
@@ -662,9 +656,7 @@ const Scene = (() => {
       const rainy = w === 'rain';
       svg.classList.toggle('rainy', rainy);
       container.classList.toggle('raining', rainy);
-      q('rainCover').classList.toggle('hide', !rainy);
-      q('gloom').classList.toggle('hide', !rainy);
-      if (!rainy) q('stormClouds').classList.add('hide');
+      if (!rainy) container.classList.remove('storming');
     }
 
     /* ── monkey reactions + speech bubble ── */
@@ -716,6 +708,7 @@ const Scene = (() => {
       q('fx').innerHTML = '';
       svg.classList.remove('dry', 'stormy', 'flooded', 'burned', 'eclipse', 'coral-pale', 'coral-bleached');
       q('fxTop').innerHTML = '';
+      container.classList.remove('fx-heat', 'fx-storm', 'storming', 'panned');
       taskId++; walkPos = [400, 400];
       svg.querySelector('.walker').style.transform = '';
       harmed.sea = false; harmed.fish = false;
@@ -724,9 +717,11 @@ const Scene = (() => {
     }
 
     function setStats(h, i) {
-      q('haze').setAttribute('opacity', Math.min(0.85, Math.max(0, (65 - i) / 65) * 0.75 + s.smoke).toFixed(2));
-      q('murk').setAttribute('opacity', Math.min(0.75, ((100 - i) / 100) * 0.3 + s.murk).toFixed(2));
-      q('wadeMurk').setAttribute('opacity', q('murk').getAttribute('opacity'));
+      const haze = Math.min(0.85, Math.max(0, (65 - i) / 65) * 0.75 + s.smoke).toFixed(2);
+      const murk = Math.min(0.75, ((100 - i) / 100) * 0.3 + s.murk).toFixed(2);
+      container.querySelector('.bd-haze').style.opacity = haze;
+      container.querySelector('.bd-murk').style.opacity = murk;
+      q('wadeMurk').setAttribute('opacity', murk);
       ['birds1', 'birds2', 'birds3'].forEach((k, n) => q(k).classList.toggle('hide', i <= [25, 50, 75][n]));
       q('flowers').classList.toggle('hide', i < 60);
       // critters come and go with the island's health; a whale visits a really healthy island
@@ -937,7 +932,10 @@ const Scene = (() => {
       };
 
       react('scared', 0);
-      svg.classList.add('pan-pirates');      // look a bit to the right so the whole ship is in view
+      // look a bit to the right so the whole ship is in view: slide the pictures (cheap on phones)
+      const m0 = land.getScreenCTM();
+      container.style.setProperty('--pan', `${(-250 * (m0 ? m0.a : 1)).toFixed(1)}px`);
+      container.classList.add('panned');
       return sail(1900, SHIP_X, 3200).then(async () => {
         ladder.classList.remove('ladder-up'); // the ladder comes down
         await wait(900);
@@ -953,7 +951,7 @@ const Scene = (() => {
         ladder.remove();
         await sail(SHIP_X, 2000, 4000);       // sail back off to the right
         ship.remove();
-        svg.classList.remove('pan-pirates');
+        container.classList.remove('panned');
         react('sad', 2600);
       });
     }
@@ -983,20 +981,18 @@ const Scene = (() => {
         svg.classList.add('dry', 'burned');
         setTimeout(() => s.splash(530, 474), 1750);   // the monkey dives into the sea
         q('heatGlow').classList.remove('hide');
+        container.classList.add('fx-heat');
         q('fxTop').insertAdjacentHTML('beforeend', `
-          <rect class="heat-tint" x="-3000" y="-3000" width="6800" height="6800" fill="#ff7a2e"/>
           <g class="heat-lines"><path d="M120 300 q10 -15 0 -30 q-10 -15 0 -30 M300 290 q10 -15 0 -30 q-10 -15 0 -30 M520 300 q10 -15 0 -30 q-10 -15 0 -30 M700 290 q10 -15 0 -30 q-10 -15 0 -30"/></g>`);
         q('pondWater').classList.add('dirty');
         destroyAll('heat');
       } else {
         svg.classList.add('stormy');
         setWeather('rain');
-        s.show('stormClouds');
-        s.hide('rainCover');    // the darker storm cover replaces the rain cover
+        container.classList.add('storming');   // the darker storm cover replaces the rain cover
+        container.classList.add('fx-storm');
         q('fxTop').insertAdjacentHTML('beforeend', `
-          <rect class="storm-dark" x="-3000" y="-3000" width="6800" height="6800" fill="#1d2533"/>
           <path class="bolt" d="M430 0 L400 110 L436 110 L390 240 L470 90 L432 90 L462 0Z" fill="#fff36b"/>
-          <rect class="storm-flash" x="-3000" y="-3000" width="6800" height="6800" fill="#fff"/>
           <g class="wind">${[90, 170, 250, 330, 410].map((y, k) =>
             `<path style="animation-delay:${0.6 + k * 0.17}s" d="M-200 ${y} q60 -18 120 0 t120 0 t120 0"/>`).join('')}</g>`);
         destroyAll('storm');
