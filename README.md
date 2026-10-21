@@ -3,8 +3,7 @@
 A climate game for kids aged 8–10. Bobo the monkey lives in a busy city on an island, and the
 player helps Bobo make **11 everyday choices**: how to get to school, what to do with the lights,
 a broken toy, a birthday party, a new jacket, lunch and more. Every choice changes
-🌡️ **the city's temperature** and 🐒 **Bobo's happiness**, and the city visibly changes with
-the climate. Green choices "pay back" two turns later, and at the end players see a recap that
+🌡️ **the city's temperature**, and the city visibly changes with the climate. Green choices "pay back" two turns later, and at the end players see a recap that
 explains why each decision mattered.
 
 *Made by students of the class "Climate Change Communication: Unraveling Communication and
@@ -16,29 +15,30 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
   a water bottle, a broken toy, a hot day, a cold day, bath time, a birthday party with monkey
   friends, a new jacket (thrift store or fast fashion), a weekend trip (train or car), and lunch
   (a yummy veggie meal or a beef burger every day). Eating green is never about eating less.
-- Real trade-offs: some green choices cost a little fun (a fan instead of the air conditioner),
-  but many are better right away (biking past the traffic jam, a cheaper and cooler thrift jacket,
-  swapping toys with a friend)
+- Green choices are often better right away (biking past the traffic jam, a cheaper and cooler
+  thrift jacket, swapping toys with a friend, cooling down in the shade)
 - A living city: Bobo's street with the school, skyscrapers, a thrift store, a mall, houses, a park,
   a power plant, trees, a train line and a road with bridges to other towns, cars (each with a
   happy monkey driver), trains, cyclists and sailboats. Far away there's a volcano island whose
   trees and animals also come and go with the climate.
 - Bobo really goes places: bikes or rides to school (and gets stuck in a traffic jam), takes the
   train to Grandma's, shops at the thrift store or the mall, throws a party with friends, and more
+- Speech bubbles stay up longer for longer text, so every language gets the same reading time
 - Bobo's outfits: backpack, bike, party hat, sweater, thrift jacket, plain jacket and a shopping bag
 - Energy you can see: electricity flows from the power plant along a wire; using more energy makes
   the plant puff more smoke, and solar panels and wind turbines make it cleaner
 - Rewards two turns later: a bike group, solar panels, a sea turtle on a clean beach, a toy swap box,
   shady trees, wind turbines, a solar water heater, a recycling center, a clothes rack, an extra
   train and a veggie garden with bees
-- The climate changes the city step by step (no disasters, no game over):
+- The climate changes the city step by step (no disasters):
   - cooler: green grass, birds, butterflies, bees, crabs, fish and a sea turtle, colourful coral
   - hotter: dry brown grass, hazy sky, a bigger sun, bugs and flies, the animals leave, the sea
     rises over the beach, the coral bleaches, and the weather gets wilder (more rain, then storms)
-  - once the city is +1.9 °C or more, the heat also makes Bobo less happy
+  - Bobo looks less happy as the city gets hotter
 - Endings by temperature: **Climate Warrior** (up to +1.4 °C), **Warming Island** (up to
   +2.2 °C) and **Hot Island** (above that). The game starts at +1.0 °C, about how much warmer
-  Earth already is today.
+  Earth already is today. If the city reaches +3.0 °C before the last choice, the island
+  overheats and the game ends early (a real loss, with Play again).
 - Every game is different: questions come in a random order (getting to school is always first and
   the birthday party comes early),
   each happens at a fitting time of day (the sun rises on the left and sets on the right), and the
@@ -63,7 +63,7 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
 ```
 index.html          the page
 css/style.css       all styling and animations
-js/content.js       choice numbers (happiness + temperature changes), endings and achievements
+js/content.js       choice numbers (temperature changes), endings and achievements
 js/i18n.js          ALL text in 4 languages, so edit wording here
 js/scene.js         the city drawing, Bobo's trips and how the city changes
 js/app.js           game flow
@@ -81,8 +81,8 @@ There is no build step. It's plain HTML, CSS and JavaScript.
 
 - **Change text:** edit `js/i18n.js`. Each language has the same structure, and the
   `choices` list is in the same order as `CHOICES` in `js/content.js`.
-- **Change difficulty:** edit the `h` (happiness) and `t` (temperature) numbers in
-  `js/content.js`, or `START`, `PAYOFF` and `HEAT_PENALTY` at the top of `js/app.js`.
+- **Change difficulty:** edit the `t` (temperature) numbers in `js/content.js`, or `START_T`,
+  `PAYOFF_T` and `LOSE_T` at the top of `js/app.js`.
 
 ## Run it locally
 

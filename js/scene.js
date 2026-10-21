@@ -1,6 +1,6 @@
 /* Bobo's City: a cartoon SVG city on an island that changes with every choice.
    Scene.create(container) returns an object with:
-     setStats(h, temp)     – Bobo's mood + the climate look (temperature in °C above normal)
+     setStats(temp)        – the climate look and Bobo's face (temperature in °C above normal)
      event(id)             – Bobo goes to where the situation happens (returns a Promise)
      outcome(id, good)     – plays what the choice does (returns a Promise)
      payoff(id)            – a reward 2 turns later (solar panels, wind turbines, a bike gang…)
@@ -240,6 +240,24 @@ const Scene = (() => {
       <rect x="${x}" y="-17" width="62" height="5" fill="#2f80ed"/>
       <rect class="win" x="${x + 6}" y="-34" width="14" height="11" rx="2"/><rect class="win" x="${x + 42}" y="-34" width="14" height="11" rx="2"/>
       <rect x="${x + 25}" y="-36" width="12" height="28" rx="2" fill="#9aa5b1"/>${wheel(x + 12, 5)}${wheel(x + 50, 5)}`;
+  // little rocks and pebbles on the beach (always in the same spots: a fixed pseudo-random sequence)
+  const PEBBLES = (() => {
+    let seed = 7;
+    const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    const tones = ['#b9ad9c', '#9c9284', '#cfc3b0', '#8a8279', '#d8cbb6'];
+    let out = '';
+    for (let k = 0; k < 70; k++) {
+      const x = 40 + rnd() * 650, y = 471 + rnd() * 30, r = 0.8 + rnd() * 1.6;
+      if (x > 690) continue;
+      out += `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${(r * 1.4).toFixed(1)}" ry="${r.toFixed(1)}" fill="${tones[k % 5]}"/>`;
+    }
+    // a few bigger rocks with a light top
+    [[96, 494], [258, 498], [402, 489], [548, 497], [664, 487]].forEach(([x, y], k) => {
+      const w = 4 + (k % 3) * 1.5;
+      out += `<path d="M${x - w} ${y} Q${x - w * 0.8} ${y - w * 0.9} ${x} ${y - w} Q${x + w * 0.9} ${y - w * 0.8} ${x + w} ${y}Z" fill="#8f877c"/><path d="M${x - w * 0.5} ${y - w * 0.6} Q${x} ${y - w * 0.95} ${x + w * 0.5} ${y - w * 0.7}" stroke="#c9c0b2" stroke-width="1.2" fill="none" stroke-linecap="round"/>`;
+    });
+    return out;
+  })();
   // front of the train at x = 0; a carriage door is at x = -98
   const TRAIN = `${carriage(-194)}${carriage(-129)}
       <path d="M-64 -42 H-12 Q6 -42 8 -24 L8 -6 H-64Z" fill="#e63946"/><path d="M-64 -17 H8" stroke="#fff" stroke-width="4"/>
@@ -640,13 +658,14 @@ const Scene = (() => {
   ${[100, 300, 500, 700].map((x) => `<g transform="translate(${x} 465.5) scale(.12)" opacity=".6"><circle cx="-28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><circle cx="28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><path d="M-28 0 L-6 0 L10 -18 L28 0" stroke="#fff" stroke-width="7" fill="none"/></g>`).join('')}
   <g data-k="traffic">${laneCar('A', '#ff6fa8', 15, -2, '#a0673a')}${laneCar('B', '#2f80ed', 13, -7, '#5c3a1e')}</g>
   <g data-k="traffic2" class="fade hide">${laneCar('A', '#ffb627', 15, -9.5, '#7a4a24')}${laneCar('B', '#9aa5b1', 13, -1, '#c08850')}</g>
-  <g data-k="traffic3" class="fade hide">${laneCar('A', '#7d5fff', 15, -6, '#5c3a1e')}${laneCar('B', '#2fb35a', 13, -10.5, '#a0673a')}${laneCar('A', '#e63946', 15, -13, '#7a4a24')}</g>
+  <g data-k="traffic3" class="fade hide">${laneCar('A', '#7d5fff', 15, -6, '#5c3a1e')}${laneCar('B', '#2fb35a', 13, -10.5, '#a0673a')}${laneCar('A', '#1fa7a0', 15, -13, '#7a4a24')}</g>
   <g data-k="cyclists" class="fade hide">${rider('#8d8f94', '#ffd23f', -3, 16)}</g>
   </g>
   <g data-k="roadFx"></g>
 
   <!-- the beach + the sea in front -->
   <g transform="translate(0 24)">
+  <g class="pebbles">${PEBBLES}</g>
   ${item('beachTrash', 0, 0, `${bottle(612, 482, 80, 1.1)}${bottle(640, 480, -60, 1.1)}<path d="M582 482 l10 -3 l2 5Z" fill="#ff6fa8"/>`, 'fade')}
   ${item('beachTurtle', 652, 480, `<g class="float">${turtle(0, 0, 0.8)}</g>`)}
   <g data-k="crabs" class="fade">${crab(150, 484, 0)}${crab(470, 486, -5)}</g>
@@ -1022,7 +1041,7 @@ const Scene = (() => {
           const jam = s.jamStart(QUEUE_A, QUEUE_B);
           sfx('honk'); await s.w(1200); sfx('honk'); await s.w(1200);
           s.jamGo(jam);
-          await ride.move(-650, LANE_A, 910 / JAM_SPEED, 'linear'); ride.remove();
+          await ride.move(-650, LANE_A, (ride.x + 650) / JAM_SPEED, 'linear'); ride.remove();   // (same speed as the jam, so it stays in the queue)
           s.jamEnd();
           s.away = 'car';
         },
@@ -1705,7 +1724,10 @@ const Scene = (() => {
       b.style.transition = `transform ${Math.round(left)}ms ease-out, opacity .25s`;
       b.style.transform = bubbleTransform(x1, y1, bubbleScale(walkPos[1]));
     }
-    function say(text, ms = 3000) {
+    // How long a bubble stays: by the length of the text, so every language gets the same reading time
+    // (a young reader needs about 1.5 s plus 80 ms per letter; never under 3 s, never over 7 s)
+    const readMs = (text) => clamp(1500 + text.length * 80, 3000, 7000);
+    function say(text, ms = null) {
       const b = q('bubble'), txt = q('bubbleText'), box = q('bubbleBox');
       clearTimeout(bubbleTimer);
       if (!text || walker.classList.contains('inside')) { b.classList.add('hide'); return; }
@@ -1716,7 +1738,7 @@ const Scene = (() => {
       placeBubbleWhileWalking();
       b.classList.remove('hide');
       restartAnim(b.querySelector('.bubble-in'), 'jump');
-      if (ms) bubbleTimer = setTimeout(() => b.classList.add('hide'), ms);
+      if (ms !== 0) bubbleTimer = setTimeout(() => b.classList.add('hide'), ms || readMs(text));
     }
 
     function reset() {
@@ -1740,7 +1762,7 @@ const Scene = (() => {
     /* The climate look. temp = how much warmer than the old normal (the game starts at +1.0 °C).
        Cooler = green, birds, butterflies, fish. Hotter = dry and brown, bugs, the sea rises,
        the coral bleaches and the animals leave. */
-    function setStats(h, temp) {
+    function setStats(temp) {
       climate = temp;
       level = temp < 1.4 ? 0 : temp < 1.9 ? 1 : temp < 2.4 ? 2 : 3;
       [1, 2, 3].forEach((n) => svg.classList.toggle('clim-' + n, level >= n));
@@ -1767,7 +1789,7 @@ const Scene = (() => {
       svg.classList.toggle('coral-pale', level === 2);
       svg.classList.toggle('coral-bleached', level >= 3);
       setTime(time);
-      const m = h >= 60 ? 'mHappy' : h >= 30 ? 'mMeh' : 'mSad';
+      const m = level <= 1 ? 'mHappy' : level === 2 ? 'mMeh' : 'mSad';   // (the hotter the city, the less happy Bobo looks)
       if (m !== mood) {
         ['mHappy', 'mMeh', 'mSad'].forEach((k) => q(k).classList.toggle('hide', k !== m));
         mood = m;

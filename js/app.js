@@ -5,10 +5,9 @@
 (() => {
   'use strict';
 
-  const START = { h: 50, t: 1.0 };       // Bobo's happiness + the city's temperature (°C above the old normal)
-  const PAYOFF = { h: 6, t: -0.05 };     // reward when a green choice "comes back" 2 turns later
-  // A hot city makes everyone grumpy: Bobo loses some happiness with every choice once it's +1.9 °C or more
-  const HEAT_PENALTY = [0, 0, 3, 5];
+  const START_T = 1.0;                   // the city's temperature (°C above the old normal)
+  const PAYOFF_T = -0.05;                // reward when a green choice "comes back" 2 turns later
+  const LOSE_T = 3.0;                    // this hot before the last choice = the island overheated (game over)
   const PAYOFF_DELAY = 2;
   const TURNS = CHOICES.length;          // 11
   const MIN_T = 1.0;                     // the planet is already about 1 °C warmer today
@@ -192,7 +191,7 @@
         <p class="credits">${t('credits')}</p>
       </section>`, { tab: 'title', brand: false });
     const s = Scene.create($('#titleScene'));
-    s.setStats(100, START.t);
+    s.setStats(START_T);
     s.showcase();
     s.calm();          // a calm title screen: just a few birds
     watchScene($('#titleScene'));
@@ -214,7 +213,7 @@
           const e = ENDINGS[g.e] ? g.e : 'warming';
           return `<div class="game-row"><span class="emo">${Icon(ENDINGS[e].icon)}</span>
             <div class="info"><b>${esc(L().endings[e][0])}</b><small>${esc(dateFmt.format(new Date(g.d)))}</small></div>
-            <div class="mini">${Icon('thermo')} ${deg(g.t)} · ${Icon('monkey')} ${g.h}<br>${Icon('check')} ${g.g}/${TURNS}</div></div>`;
+            <div class="mini">${Icon('thermo')} ${deg(g.t)}<br>${Icon('check')} ${g.g}/${TURNS}</div></div>`;
         }).join('')}</div>
         ${pages > 1 ? `<div class="pager"><button class="btn ghost small" data-action="pagePrev" ${gamesPage === 0 ? 'disabled' : ''} aria-label="${t('prev')}">${Icon('back')}</button>
           <span>${gamesPage + 1} / ${pages}</span>
@@ -296,7 +295,7 @@
       seq, made: [], times, newDay, weather: [],
       // Super rare: a solar eclipse (about 1 game in 15), on a clear day from this turn on
       eclipseTurn: Math.random() < 1 / 15 ? 1 + Math.floor(Math.random() * 9) : -1, eclipseDone: false,
-      h: START.h, temp: START.t, turn: 0, picks: [], order: [], payQueue: [],
+      temp: START_T, turn: 0, picks: [], order: [], payQueue: [],
       next: null, cardView: null, busy: false,
       ending: null, newAch: [], recapIdx: 0, langs: new Set([lang]),
     };
@@ -311,7 +310,6 @@
         <h2>${t('introTitle')}</h2>
         <p class="intro-text">${t('introText')}</p>
         <div class="meter-legend">
-          <div><span>${Icon('monkey')}</span>${t('monkeyMeter')}</div>
           <div><span>${Icon('thermo')}</span>${t('tempMeter')}</div>
         </div>
         <p class="intro-text">${t('introMeters')}</p>
@@ -325,8 +323,6 @@
     setScreen(`
       <section class="screen game" id="game">
         <div class="hud">
-          <div class="meter" id="mh"><span class="emo">${Icon('monkey')}</span>
-            <div class="mcol"><small data-label="monkeyMeter"></small><div class="bar"><i></i></div></div><b>0</b></div>
           <div class="dots" id="dots" aria-hidden="true">${'<span></span>'.repeat(TURNS)}</div>
           <div class="turn-txt" id="turnTxt"></div>
           <div class="meter thermo" id="mt"><span class="emo">${Icon('thermo')}</span>
@@ -344,18 +340,12 @@
 
   function labelHud() {
     document.querySelectorAll('[data-label]').forEach((el) => { el.textContent = I18N[lang].ui[el.dataset.label]; });
-    $('#mh').title = I18N[lang].ui.monkeyMeter;
     $('#mt').title = I18N[lang].ui.tempMeter;
-    $('#mh').setAttribute('aria-label', `${I18N[lang].ui.monkeyMeter}: ${G.h}`);
     $('#mt').setAttribute('aria-label', `${I18N[lang].ui.tempMeter}: ${deg(G.temp)}`);
     $('#mt b').textContent = deg(G.temp).replace(' °C', '°');
   }
 
   function updateHud() {
-    const mh = $('#mh');
-    mh.querySelector('.bar i').style.width = G.h + '%';
-    mh.querySelector('b').textContent = G.h;
-    mh.dataset.level = G.h > 60 ? 'hi' : G.h > 30 ? 'mid' : 'lo';
     // thermometer: +0.8 °C = empty, +3.5 °C = full
     $('#mt .bar i').style.width = clamp((G.temp - 0.8) / 2.7 * 100, 4, 100) + '%';
     const dots = $('#dots').children;
@@ -364,7 +354,7 @@
       dots[k].className = k < G.made.length ? (pk ? 'g' : 'b') : k === G.turn ? 'now' : '';
     }
     $('#turnTxt').textContent = `${Math.min(G.turn + 1, TURNS)}/${TURNS}`;
-    scene.setStats(G.h, G.temp);
+    scene.setStats(G.temp);
     labelHud();
   }
 
@@ -376,22 +366,18 @@
     setTimeout(() => el.remove(), 1500);
   }
 
-  function applyDelta(dh, dt) {
-    const oldH = G.h, oldT = G.temp;
-    G.h = clamp(G.h + dh, 0, 100);
+  function applyDelta(dt) {
+    const oldT = G.temp;
     G.temp = Math.max(MIN_T, round2(G.temp + dt));
-    if (G.h !== oldH) floatDelta('mh', (G.h > oldH ? '+' : '') + (G.h - oldH), G.h > oldH);
     if (G.temp !== oldT) floatDelta('mt', degDelta(G.temp - oldT).replace(' °C', '°'), G.temp < oldT);
     updateHud();
-    if (dh > 0) scene.jump(); else if (dh < 0) scene.droop();
+    if (dt > 0) scene.droop(); else scene.jump();
     // the city just got warmer (and its weather wilder)
     if (levelOf(G.temp) > levelOf(oldT)) setTimeout(() => { if (G) toast('thermo', t('hotter')); }, 900);
   }
 
-  const deltaChips = (dh, dt, heat = 0) => `<div class="chips">
-      <span class="chip ${dh >= 0 ? 'up' : 'down'}">${Icon('monkey')} ${dh > 0 ? '+' : ''}${dh}</span>
-      <span class="chip ${dt <= 0 ? 'up' : 'down'}">${Icon('thermo')} ${degDelta(dt)}</span>
-      ${heat ? `<span class="chip down">${Icon('hot')} ${t('tooHot')} −${heat}</span>` : ''}</div>`;
+  const deltaChips = (dt) => `<div class="chips">
+      <span class="chip ${dt <= 0 ? 'up' : 'down'}">${Icon('thermo')} ${degDelta(dt)}</span></div>`;
 
   const wait = (ms) => new Promise((done) => setTimeout(done, ms));
   // While an animation plays, the card steps aside so the player can just watch.
@@ -485,15 +471,15 @@
     // 3. then the result: reaction, speech bubble, meters and the text card
     scene.react(good ? 'yay' : 'sad');
     sayLine((sy) => sy.choices[idx][good ? 1 : 2]);
-    const heat = HEAT_PENALTY[levelOf(G.temp)];
-    applyDelta(d.h - heat, d.t);
+    applyDelta(d.t);
     if (good) G.payQueue.push({ idx, due: turn + PAYOFF_DELAY });
 
-    G.next = () => { G.turn++; step(); };
+    // too hot before the end: the island overheated and the game is over
+    G.next = G.temp >= LOSE_T && turn < TURNS - 1 ? () => { G.turn++; finish(true); } : () => { G.turn++; step(); };
     cardShow(() => card(`
       <div class="card-head"><span class="pill">${t('turn', { n: turn + 1 })}</span><span class="topic">${ct(idx, 'topic')}</span></div>
       <div class="result"><span class="emo">${Icon(d.icon)}</span><p>${ct(idx, good ? 'resGood' : 'resBad')}</p></div>
-      ${deltaChips(d.h, d.t, heat)}
+      ${deltaChips(d.t)}
       <div class="row end"><button class="btn primary" data-action="cont">${t('cont')} ${Icon('next')}</button></div>`));
     G.busy = false;
   }
@@ -510,21 +496,21 @@
     if (G !== game) return;
     scene.react('yay');
     sayLine((sy) => sy.choices[idx][3]);
-    applyDelta(PAYOFF.h, PAYOFF.t);
+    applyDelta(PAYOFF_T);
     G.next = step;
     cardShow(() => card(`
       <div class="card-head"><span class="pill">${Icon('sparkle')} ${G.turn < TURNS ? t('remember') : t('later')}</span><span class="topic">${ct(idx, 'topic')}</span></div>
       <div class="result"><span class="emo">${Icon(ch.good.icon)}</span><div>
         <p>${ct(idx, 'payoff')}</p>
         <p class="because">${t('because')} ${ct(idx, 'good')}</p></div></div>
-      ${deltaChips(PAYOFF.h, PAYOFF.t)}
+      ${deltaChips(PAYOFF_T)}
       <div class="row end"><button class="btn primary" data-action="cont">${t('cont')} ${Icon('next')}</button></div>`));
   }
 
   /* ═════════════════════ ENDING ═════════════════════ */
 
-  async function finish() {
-    const ending = G.temp <= 1.4 ? 'warrior' : G.temp <= 2.2 ? 'warming' : 'hot';
+  async function finish(early = false) {
+    const ending = early ? 'overheated' : G.temp <= 1.4 ? 'warrior' : G.temp <= 2.2 ? 'warming' : 'hot';
     if (ending === 'warrior' && !G.sawWhale) {
       // the sea is healthy, so a whale comes to say hello (the card waits so everyone can see it)
       const game = G;
@@ -548,7 +534,7 @@
     }
     G.ending = ending;
     const greens = G.picks.filter(Boolean).length;
-    store.games.push({ d: Date.now(), e: ending, h: G.h, t: G.temp, g: greens, c: G.made.length });
+    store.games.push({ d: Date.now(), e: ending, t: G.temp, g: greens, c: G.made.length });
     Store.save(store);
 
     const earned = [];
@@ -560,17 +546,17 @@
     check(store.games.length >= 3, 'three');
     G.newAch = earned;
 
-    Sound.play(ending === 'warrior' ? 'win' : ending === 'hot' ? 'lose' : 'payoff');
+    Sound.play(ending === 'warrior' ? 'win' : ending === 'warming' ? 'payoff' : 'lose');
     if (earned.length) setTimeout(() => Sound.play('achieve'), 900);
     $('#game').classList.add('ending');
     scene.setTime('day');
-    scene.setWeather(ending === 'hot' ? 'storm' : 'clear');
+    scene.setWeather(ending === 'hot' || ending === 'overheated' ? 'storm' : 'clear');
     sayLine(() => '');
     if (ending !== 'warrior') {
       scene.goHome().then(() => {
         if (!G || G.ending !== ending) return;
-        scene.react({ warming: 'think', hot: 'hot' }[ending], 0);
-        sayLine((sy) => (ending === 'hot' ? sy.heat : ''));
+        scene.react({ warming: 'think', hot: 'hot', overheated: 'hot' }[ending], 0);
+        sayLine((sy) => (ending === 'warming' ? '' : sy.heat));
       });
     } else scene.react('yay', 0);
     G.next = null;
@@ -586,7 +572,7 @@
         <h2>${esc(title)}</h2></div></div>
       <p class="end-text">${esc(fmt(text, { n: deg(G.temp).replace(/^\+| °C$/g, '') }))}</p>
       <p class="note">${Icon('globe')} ${t('tempNote')}</p>
-      <div class="chips"><span class="chip">${Icon('thermo')} ${deg(G.temp)}</span><span class="chip">${Icon('monkey')} ${G.h}</span><span class="chip">${Icon('check')} ${t('greenChoices', { n: greens })}</span></div>
+      <div class="chips"><span class="chip">${Icon('thermo')} ${deg(G.temp)}</span><span class="chip">${Icon('check')} ${t('greenChoices', { n: greens })}</span></div>
       ${G.newAch.length ? `<div class="new-ach"><b>${Icon('trophy')} ${t('newAch')}</b> ${G.newAch.map((id) =>
         G.newAch.length <= 2 ? `<span class="chip ach-chip">${Icon(achIcon(id))} ${achName(id)}</span>`
           : `<span class="ach-mini" title="${achName(id)}" aria-label="${achName(id)}">${Icon(achIcon(id))}</span>`).join('')}</div>` : ''}
@@ -731,7 +717,7 @@
         lastIdle = k;
         scene.react('think', 2600);
         scene.jump();
-        scene.say(lines[k], 3600);
+        scene.say(lines[k]);
       }
       idleCheck();
     }, idleTimer ? IDLE_AGAIN : IDLE_FIRST);
