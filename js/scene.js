@@ -161,15 +161,6 @@ const Scene = (() => {
   </defs>
   <g class="camera">
 
-  <g data-k="sun" class="sun"><circle data-k="heatGlow" class="fade hide" cx="680" cy="80" r="95" fill="#ffb03a" opacity=".45"/>
-    <circle cx="680" cy="80" r="62" fill="#ffe680" opacity=".35"/><circle cx="680" cy="80" r="42" fill="url(#${u}sun)"/>
-    <circle class="sun-tint" cx="680" cy="80" r="42" fill="#ff7a3d"/>
-    <circle class="corona" cx="680" cy="80" r="50" fill="none" stroke="#fff6c8" stroke-width="7"/>
-    <circle class="eclipse-moon" cx="680" cy="80" r="44" fill="#151a2b"/></g>
-  <g class="nightsky">
-    <g class="night-moon" transform="translate(110 80)"><circle r="30" fill="#fff7d6" opacity=".25"/><circle r="22" fill="#fff4c2"/><circle cx="9" cy="-6" r="19" class="moon-cut"/></g>
-  </g>
-
   <g data-k="skyClouds"></g>
 
   ${item('darkSmoke', 0, 0, `<g class="billow">
@@ -387,9 +378,9 @@ const Scene = (() => {
 
 
   <g data-k="bubble" class="bubble hide"><g class="bubble-in">
-    <rect data-k="bubbleBox" x="-60" y="-54" width="120" height="48" rx="18" fill="#fff" stroke="#23313f" stroke-width="3"/>
-    <path d="M-11 -7.5 L0 10 L11 -7.5" fill="#fff" stroke="#23313f" stroke-width="3" stroke-linejoin="round"/>
-    <text data-k="bubbleText" x="0" y="-21" text-anchor="middle" font-size="25" font-weight="800" fill="#23313f"></text>
+    <rect data-k="bubbleBox" x="-60" y="-46" width="120" height="40" rx="15" fill="#fff" stroke="#23313f" stroke-width="2.6"/>
+    <path d="M-9 -7.3 L0 8 L9 -7.3" fill="#fff" stroke="#23313f" stroke-width="3" stroke-linejoin="round"/>
+    <text data-k="bubbleText" x="0" y="-19" text-anchor="middle" font-size="21" font-weight="800" fill="#23313f"></text>
   </g></g>
 </svg>`;
   }
@@ -397,6 +388,8 @@ const Scene = (() => {
   // Full-screen layers drawn with plain HTML (the GPU fades and moves these cheaply)
   const BACKDROP = `<div class="backdrop" aria-hidden="true">
       <div class="bd bd-morning"></div><div class="bd bd-day"></div><div class="bd bd-evening"></div><div class="bd bd-night"><div class="bd-stars">${STARS}</div></div><div class="bd bd-eclipse"><div class="bd-stars">${STARS}</div></div>
+      <div class="moon-html"><div class="moon-halo"></div><div class="moon-disc"></div><div class="moon-cut"></div></div>
+      <div class="sun-html"><div data-k="heatGlow" class="sun-heat fade hide"></div><div class="sun-halo"></div><div class="sun-disc"></div><div class="sun-tint"></div><div class="corona"></div><div class="eclipse-moon"></div></div>
       <div class="bd-haze"></div><div class="bd-murk"></div><div class="bd-gloom"></div>
       <div class="bd-cover bd-rain"></div><div class="bd-cover bd-storm"></div>
     </div>`;
@@ -711,7 +704,7 @@ const Scene = (() => {
       clearTimeout(bubbleTimer);
       if (!text) { b.classList.add('hide'); return; }
       txt.textContent = text;
-      bubbleW = Math.min(560, txt.getComputedTextLength() + 34);
+      bubbleW = Math.min(480, txt.getComputedTextLength() + 28);
       box.setAttribute('x', -bubbleW / 2);
       box.setAttribute('width', bubbleW);
       placeBubbleWhileWalking();
@@ -733,7 +726,7 @@ const Scene = (() => {
       q('fx').innerHTML = '';
       svg.classList.remove('dry', 'stormy', 'flooded', 'burned', 'eclipse', 'coral-pale', 'coral-bleached');
       q('fxTop').innerHTML = '';
-      container.classList.remove('fx-heat', 'fx-storm', 'storming', 'panned');
+      container.classList.remove('fx-heat', 'fx-storm', 'storming', 'panned', 'eclipse');
       taskId++; walkPos = [400, 400];
       svg.querySelector('.walker').style.transform = '';
       harmed.sea = false; harmed.fish = false;
@@ -820,8 +813,9 @@ const Scene = (() => {
     function eclipse() {
       const before = time;
       svg.classList.add('eclipse');
+      container.classList.add('eclipse');
       setTime('eclipse');
-      setTimeout(() => { svg.classList.remove('eclipse'); setTime(before); }, 7000);
+      setTimeout(() => { svg.classList.remove('eclipse'); container.classList.remove('eclipse'); setTime(before); }, 7000);
     }
 
     /* Super rare: a MASSIVE pirate ship parks next to the island. A monkey captain and his

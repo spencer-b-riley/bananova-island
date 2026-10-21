@@ -12,7 +12,7 @@
 }
 /* ── Full-screen layers as plain HTML: the phone's GPU fades/moves these almost for free ── */
 .backdrop { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
-.bd, .bd-haze, .bd-murk, .bd-gloom, .bd-cover { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s; will-change: opacity; }
+.bd, .bd-haze, .bd-murk, .bd-gloom, .bd-cover { position: absolute; inset: 0; opacity: 0; transition: opacity 2s ease-in-out; }
 /* sky + sea for each time of day; the horizon lines up with the island drawing (app.js: syncHorizon) */
 .bd-morning { background: linear-gradient(#7cc8ef var(--sky-top, 0%), #ffe3c4 var(--horizon, 58%), #45b4dc var(--horizon, 58%), #1a7fb6 var(--deep, 80%), #0e406e var(--abyss, 100%)); }
 .bd-day     { background: linear-gradient(#5ec8f5 var(--sky-top, 0%), #c4f0ff var(--horizon, 58%), #2bb3e0 var(--horizon, 58%), #1279b8 var(--deep, 80%), #0b3a66 var(--abyss, 100%)); }
@@ -35,10 +35,48 @@
 .bd-storm { background: linear-gradient(#2f3540, #4a525f); height: calc(var(--cloud-base, 30%) + 10px); }
 .bd-storm::after { background-image: radial-gradient(circle at 50% 0, #4a525f 36px, transparent 37px); }
 .raining .bd-rain, .storming .bd-storm { opacity: 1; }
+/* The sun and moon are HTML too, so moving them never redraws the island.
+   Positions are in island units (see app.js: --u, --ox, --oy). */
+.sun-html, .moon-html { position: absolute; width: 0; height: 0; }
+.sun-html > *, .moon-html > * { position: absolute; border-radius: 50%; }
+.sun-html {
+  left: calc(var(--ox, 0px) + 680 * var(--u, 1px)); top: calc(var(--oy, 0px) + 80 * var(--u, 1px));
+  transform: translate(calc(-160 * var(--u, 1px)), calc(-10 * var(--u, 1px)));
+  transition: transform 3s ease-in-out, opacity 1.5s;
+}
+:root[data-time="morning"] .sun-html { transform: translate(calc(-585 * var(--u, 1px)), calc(85 * var(--u, 1px))); }
+:root[data-time="evening"] .sun-html { transform: translate(calc(30 * var(--u, 1px)), calc(165 * var(--u, 1px))); }
+:root[data-time="night"] .sun-html { transform: translate(calc(80 * var(--u, 1px)), calc(260 * var(--u, 1px))); opacity: 0; }
+.raining .sun-html, .storming .sun-html { opacity: 0; }
+.fx-heat .sun-html { transform: translate(calc(-160 * var(--u, 1px)), calc(-10 * var(--u, 1px))) scale(1.45); }
+.panned .sun-html { translate: var(--pan, 0px) 0; transition: transform 3s ease-in-out, opacity 1.5s, translate 1.6s ease-in-out; }
+.sun-halo { --r: 62; background: #ffe680; opacity: 0.35; }
+.sun-disc { --r: 42; background: radial-gradient(#fff6b0, #ffd23f); }
+.sun-tint { --r: 42; background: #ff7a3d; opacity: 0; transition: opacity 3s; }
+:root[data-time="morning"] .sun-tint { opacity: 0.35; }
+:root[data-time="evening"] .sun-tint { opacity: 0.7; }
+.sun-heat { --r: 95; background: #ffb03a; opacity: 0.45; }
+.corona { --r: 50; border: calc(7 * var(--u, 1px)) solid #fff6c8; box-sizing: border-box; opacity: 0; }
+.eclipse-moon { --r: 44; background: #151a2b; opacity: 0; }
+.sun-html > *, .moon-html > * {
+  width: calc(var(--r) * 2 * var(--u, 1px)); height: calc(var(--r) * 2 * var(--u, 1px));
+  left: calc(var(--r) * -1 * var(--u, 1px)); top: calc(var(--r) * -1 * var(--u, 1px));
+}
+.eclipse .eclipse-moon { animation: moonPassHtml 7s ease-in-out forwards; }
+.eclipse .corona { animation: corona 7s ease-in-out forwards; }
+@keyframes moonPassHtml { 0% { transform: translateX(calc(-120 * var(--u, 1px))); opacity: 1; } 40%, 62% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(calc(120 * var(--u, 1px))); opacity: 1; } }
+.moon-html { left: calc(var(--ox, 0px) + 110 * var(--u, 1px)); top: calc(var(--oy, 0px) + 80 * var(--u, 1px)); opacity: 0; transition: opacity 2s; }
+:root[data-time="night"] .moon-html { opacity: 1; }
+.raining .moon-html, .storming .moon-html { opacity: 0; }
+.moon-halo { --r: 30; background: #fff7d6; opacity: 0.25; }
+.moon-disc { --r: 22; background: #fff4c2; }
+.moon-cut { --r: 19; background: #142a5e; margin-left: calc(9 * var(--u, 1px)); margin-top: calc(-6 * var(--u, 1px)); }
+:root[data-time="eclipse"] .bd-stars { opacity: 0.8; }
+
 /* night tint + disaster flashes, on top of the island (but under the lights and speech bubble) */
 .fx-html { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
-.fxh { position: absolute; inset: 0; opacity: 0; will-change: opacity; }
-.fxh-tint { background: #071230; transition: opacity 1.2s, background-color 1.2s; }
+.fxh { position: absolute; inset: 0; opacity: 0; }
+.fxh-tint { background: #071230; transition: opacity 2s ease-in-out, background-color 2s ease-in-out; }
 :root[data-time="morning"] .fxh-tint { background: #ffb070; opacity: 0.08; }
 :root[data-time="evening"] .fxh-tint { background: #5a2a5a; opacity: 0.2; }
 :root[data-time="night"] .fxh-tint { background: #071230; opacity: 0.58; }
@@ -65,10 +103,10 @@
 .rain-fx::before {
   content: ""; position: absolute; left: 0; right: 0; top: -180px; bottom: 0;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='130' height='180'><g stroke='%23dbe9f5' stroke-width='1.7' stroke-linecap='round' opacity='.8'><line x1='12' y1='8' x2='8' y2='26'/><line x1='58' y1='40' x2='54' y2='58'/><line x1='100' y1='16' x2='96' y2='34'/><line x1='30' y1='92' x2='26' y2='110'/><line x1='84' y1='104' x2='80' y2='122'/><line x1='120' y1='72' x2='116' y2='90'/><line x1='46' y1='150' x2='42' y2='168'/><line x1='108' y1='150' x2='104' y2='168'/><line x1='70' y1='4' x2='66' y2='22'/></g></svg>");
-  background-size: 130px 180px; will-change: transform;
+  background-size: 130px 180px;
 }
 .raining .rain-fx { opacity: 1; }
-.raining .rain-fx::before { animation: rainMove 0.5s linear infinite; }
+.raining .rain-fx::before { animation: rainMove 0.5s linear infinite; will-change: transform; }
 @keyframes rainMove { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, 180px, 0); } }
 :root[data-time="morning"] { --sky-top-c: #7cc8ef; --sky-bot-c: #ffe3c4; --sea-top-c: #45b4dc; --sea-bot-c: #1a7fb6; --cloud-c: #fff6ec; --sea-deep-c: #0e406e; }
 :root[data-time="evening"] { --sky-top-c: #5b5fb0; --sky-bot-c: #ffae80; --sea-top-c: #3f86b8; --sea-bot-c: #1b4f86; --cloud-c: #ffd9c7; --sea-deep-c: #0c2a52; }
@@ -455,18 +493,11 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 :root[data-time="night"] .st-haze-top { stop-color: #161b2a; }
 :root[data-time="night"] .st-haze-bot { stop-color: #3a3d52; }
 
-.nightsky { opacity: 0; transition: opacity 1.2s; }
-:root[data-time="night"] .nightsky, :root[data-time="eclipse"] .nightsky { opacity: 1; }
+
 .star { fill: #fffbe8; }
 .moon-cut { fill: var(--sky-top-c); }
 /* The sun travels across the sky: rises low on the left, high at midday, sets low on the right */
-.sun { transform: translate(-160px, -10px); transition: transform 2.2s ease-in-out, opacity 1.4s; }
-:root[data-time="morning"] .sun { transform: translate(-585px, 85px); }
-:root[data-time="evening"] .sun { transform: translate(30px, 165px); }
-:root[data-time="night"] .sun { transform: translate(80px, 260px); opacity: 0; }
-.sun-tint { opacity: 0; transition: opacity 2s; }
-:root[data-time="morning"] .sun-tint { opacity: 0.35; }
-:root[data-time="evening"] .sun-tint { opacity: 0.7; }
+
 .glows circle { opacity: 0; transition: opacity 1.2s; pointer-events: none; }
 .glows circle.on { opacity: 1; animation: glowFlicker 2.4s ease-in-out infinite alternate; }
 @keyframes glowFlicker { 50% { opacity: 0.8; } }
@@ -516,7 +547,7 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 /* the view pans to the right while the pirate ship visits, so the ship fits on screen */
 
 .rainy [data-k="skyClouds"] { opacity: 0; }   /* the full cloud cover replaces them */
-.cloud { transition: fill 1.2s; }
+.cloud { transition: fill 2s; }
 .rain-cloud { fill: #77818f; }
 /* storm cloud cover slowly rolling */
 
@@ -583,12 +614,7 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 @keyframes spout { 0%, 55% { transform: scale(0.2); opacity: 0; } 65% { transform: scale(1.1); opacity: 1; } 90% { transform: scale(1); opacity: 0.8; } 100% { opacity: 0; } }
 
 /* solar eclipse */
-.corona, .eclipse-moon { opacity: 0; }
-.eclipse .eclipse-moon { animation: moonPass 7s ease-in-out forwards; }
-.eclipse .corona { animation: corona 7s ease-in-out forwards; }
-.eclipse .nightsky { opacity: 0.8; }
-.eclipse .night-moon { opacity: 0; }  /* the moon is busy covering the sun */
-.rainy .night-moon, .stormy .night-moon { opacity: 0; }  /* hidden behind the cloud cover */
+
 @keyframes moonPass { 0% { transform: translateX(-120px); opacity: 1; } 40%, 62% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(120px); opacity: 1; } }
 @keyframes corona { 0%, 33% { opacity: 0; } 42%, 60% { opacity: 1; } 70%, 100% { opacity: 0; } }
 .crawl { animation: crawl 4s ease-in infinite; }
@@ -605,9 +631,7 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 .mjump.jump { animation: jump 0.7s ease; }
 .mjump.droop { animation: droop 0.9s ease; transform-box: fill-box; transform-origin: 50% 100%; }
 .stormy .sway { transform-box: fill-box; transform-origin: 50% 100%; animation: sway 0.9s ease-in-out infinite alternate; }
-.sun { transform-box: fill-box; transform-origin: center; }
-.dry .sun { transform: translate(-160px, -10px) scale(1.45); }
-.stormy .sun, .rainy .sun { opacity: 0; transition: opacity 1s; }
+
 .stormy .cloud { fill: #6d7682; transition: fill 1.5s; }
 
 @keyframes swim { from { transform: translateX(-700px); } to { transform: translateX(1500px); } }

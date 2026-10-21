@@ -68,7 +68,11 @@
     root.setProperty('--horizon', y(285));
     root.setProperty('--deep', y(500));
     root.setProperty('--abyss', y(900));
-    root.setProperty('--cloud-base', y(185));
+    root.setProperty('--cloud-base', y(225));
+    // island units -> screen pixels, so HTML layers (sun, moon) line up with the drawing
+    root.setProperty('--u', ctm.a.toFixed(4) + 'px');
+    root.setProperty('--ox', ctm.e.toFixed(1) + 'px');
+    root.setProperty('--oy', ctm.f.toFixed(1) + 'px');
   }
   const horizonWatcher = new ResizeObserver(() => syncHorizon());
   horizonWatcher.observe(document.getElementById('screen'));
@@ -459,7 +463,7 @@
     if (newSky) {             // the sky changes first…
       cardWait();
       sayLine(() => '');
-      await wait(1300);
+      await wait(2000);
       if (G !== game) return;
     }
     scene.event(ch.id);       // …then the new situation appears, with its question
