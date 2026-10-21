@@ -1082,8 +1082,9 @@ const Scene = (() => {
     const q = (k) => container.querySelector(`[data-k="${k}"]`);
     container.insertAdjacentHTML('beforeend', '<div class="rain-fx" aria-hidden="true"></div>');
     // the slowest devices: the wing flaps stand still too
-    // the birds' flapping wings (SMIL shape morphing) are the heaviest little extra: only on 'high'
-    const wings = (t) => { if (!svg.pauseAnimations) return; if (t === 'high') svg.unpauseAnimations(); else svg.pauseAnimations(); };
+    // the birds' flapping wings (SMIL shape morphing) stop only on 'low', where the flying birds are hidden
+    // (a bird hanging still in the sky looks broken)
+    const wings = (t) => { if (!svg.pauseAnimations) return; if (t === 'low') svg.pauseAnimations(); else svg.unpauseAnimations(); };
     if (typeof Perf !== 'undefined') { wings(Perf.tier); Perf.onChange(wings); }
     // A random sky every game: sometimes clear, sometimes a few clouds drifting by
     q('skyClouds').innerHTML = Array.from({ length: [0, 1, 1, 2, 2, 3][Math.floor(Math.random() * 6)] }, () => {

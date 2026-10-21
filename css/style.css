@@ -740,7 +740,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .fly.left { animation-name: flyLeft; }
 @keyframes flyLeft { from { transform: translateX(1150px); } to { transform: translateX(-350px); } }
 .hawk-fly { animation: flyLeft 48s linear infinite; animation-delay: -12s; }
-:root[data-perf="low"] :is(.hawk-fly) { animation: none !important; }
+:root[data-perf="low"] [data-k="hawk"] { display: none; }   /* (hidden rather than frozen in the air) */
 /* the title screen: calm, just a few birds */
 .calm :is([data-k="butterflies"], [data-k="bees"], [data-k="songbirds"], [data-k="crabs"], [data-k="fish"], [data-k="seaTurtle"], [data-k="farFish"], [data-k="hawk"], [data-k="vBirds"], [data-k="vAnimals"], [data-k="cyclists"], .nest) { display: none; }
 
@@ -750,7 +750,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   50% { transform: translate(-28px, 0); } 62.5% { transform: translate(-20px, 7px); } 75% { transform: translate(0, 9px); } 87.5% { transform: translate(20px, 7px); } }
 .vwing { transform-box: fill-box; transform-origin: center; animation: vflap 0.5s ease-in-out infinite alternate; }
 @keyframes vflap { to { transform: scaleY(0.4); } }
-:root[data-perf="low"] :is(.oval, .vwing) { animation: none !important; }
+:root[data-perf="low"] [data-k="vBirds"] { display: none; }
 
 /* umbrellas come out when it rains */
 .umbrella { opacity: 0; transition: opacity 0.4s; }
