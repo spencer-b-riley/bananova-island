@@ -11,7 +11,11 @@
   const GAMES_PER_PAGE = 4;
   // How the monkey looks when each situation appears
   const REACT = { shelter: 'think', plastic: 'sad', food: 'yay', banana: 'yay', fishing: 'think', compost: 'sad', fire: 'scared', firewood: 'cold', water: 'hot', turtles: 'yay' };
-  const RANDOM_NAMES = ['Coco', 'Mango', 'Kiki', 'Bobo', 'Zuzu', 'Lulu', 'Pippa', 'Tiki', 'Banjo', 'Momo', 'Suki', 'Bongo', 'Kiwi', 'Papaya', 'Juju', 'Pico'];
+  const RANDOM_NAMES = [
+    'Coco', 'Mango', 'Kiki', 'Bobo', 'Zuzu', 'Lulu', 'Pippa', 'Tiki', 'Banjo', 'Momo',
+    'Suki', 'Bongo', 'Kiwi', 'Papaya', 'Juju', 'Pico', 'Peanut', 'Biscuit', 'Noodle', 'Pebble',
+    'Sunny', 'Tango', 'Zippy', 'Coconut', 'Maple', 'Pumpkin', 'Ziggy', 'Lolo', 'Nugget', 'Bubbles',
+  ];
 
   const $ = (sel, root = document) => root.querySelector(sel);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
