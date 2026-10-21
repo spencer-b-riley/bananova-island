@@ -683,3 +683,31 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001s !important; animation-iteration-count: 1 !important; transition-duration: 0.2s !important; }
 }
+
+/* ── animation scaler (js/perf.js) ──
+   mid: the little extras stand still; low: only the animations the story needs */
+:root[data-perf="mid"] :is(.kelp, .sway-soft, .flutter, .bfly, .beefly, .hop, .scuttle, .flag, .balloon, .wander, .float, .boat-rock, .soar, .v-steam .smoke, .flicker, .tv-flicker, .glows circle.on) { animation: none !important; }
+:root[data-perf="mid"] :is([data-k="farFish"], [data-k="seaTurtle"]) { display: none; }
+:root[data-perf="mid"] .plant-smoke .smoke:nth-child(even), :root[data-perf="mid"] .exhaust circle:nth-child(3) { display: none; }
+:root[data-perf="low"] :is(.kelp, .sway-soft, .flutter, .bfly, .beefly, .hop, .scuttle, .flag, .balloon, .wander, .float, .boat-rock, .soar, .wing, .flicker, .tv-flicker, .glows circle.on, .bob, .flies circle, .spout, .whale-bob, .heat-lines path, .cow-gas .smoke, .v-steam .smoke, .energy circle, .wheelspin) { animation: none !important; }
+:root[data-perf="low"] :is([data-k="farFish"], [data-k="seaTurtle"], [data-k="fish"], [data-k="boats"], [data-k="butterflies"], [data-k="bees"], [data-k="skyClouds"], [data-k="traffic2"], [data-k="traffic3"], [data-k^="birds"]) { display: none; }
+:root[data-perf="low"] .plant-smoke .smoke:not(:first-child), :root[data-perf="low"] .exhaust circle:not(:first-child) { display: none; }
+:root[data-perf="low"] .raining .rain-fx::before { animation-duration: 0.9s; }
+:root[data-perf="low"] .bd, :root[data-perf="low"] .fxh-tint { transition-duration: 1s; }
+
+/* our own icons (js/icons.js): they size like text */
+.ic { display: inline-block; width: 1.1em; height: 1.1em; vertical-align: -0.2em; flex: none; overflow: visible; }
+.btn .ic, .link-btn .ic { width: 1em; height: 1em; vertical-align: -0.14em; }
+.icon-btn .ic { width: 22px; height: 22px; vertical-align: middle; }
+.brand .ic { width: 22px; height: 22px; vertical-align: -5px; filter: drop-shadow(0 2px 0 rgba(35, 49, 63, 0.3)); }
+.big-emoji .ic { width: 1em; height: 1em; margin: 0 2px; }
+.meter-legend span .ic, .choice-btn .emo .ic, .result .emo .ic, .end-emoji .ic, .badge .emo .ic, .game-row .emo .ic, .toast .emo .ic { width: 1em; height: 1em; vertical-align: middle; }
+
+/* the volcano island far away: green when the climate is OK, dry and brown when it's too hot */
+.v-land { fill: #8fd17a; transition: fill 1.5s; }
+.v-rock { fill: #9c8a7c; }
+.vleaf { fill: #4f9f4a; transition: fill 1.5s; }
+.clim-1 .v-land { fill: #a6cf78; }
+.clim-2 .v-land { fill: #c8c07a; } .clim-2 .vleaf { fill: #8fae4a; }
+.clim-3 .v-land { fill: #cfae76; } .clim-3 .vleaf { fill: #b0863a; }
+:root[data-perf="low"] .sun-html, :root[data-perf="low"] .moon-html { transition-duration: 1.2s; }

@@ -8,47 +8,47 @@
    times = the times of day that fit the situation. */
 
 const CHOICES = [
-  { id: 'school', good: { h: 6, t: 0, emoji: '🚲' }, bad: { h: -2, t: 0.25, emoji: '🚗' }, times: ['morning'] },
-  { id: 'lights', good: { h: -2, t: 0, emoji: '💡' }, bad: { h: 2, t: 0.15, emoji: '📺' }, times: ['evening', 'night'] },
-  { id: 'bottle', good: { h: 4, t: 0, emoji: '🍶' }, bad: { h: 2, t: 0.15, emoji: '🥤' }, times: ['morning', 'day'] },
-  { id: 'toy', good: { h: 6, t: 0, emoji: '🔧' }, bad: { h: 8, t: 0.2, emoji: '📦' }, times: ['day'] },
-  { id: 'hot', good: { h: -6, t: 0, emoji: '🌬️' }, bad: { h: 8, t: 0.25, emoji: '❄️' }, times: ['day'] },
-  { id: 'cold', good: { h: 2, t: 0, emoji: '🧶' }, bad: { h: 6, t: 0.25, emoji: '🔥' }, times: ['morning', 'evening'] },
-  { id: 'shower', good: { h: 4, t: 0, emoji: '🚿' }, bad: { h: 6, t: 0.15, emoji: '🛁' }, times: ['evening'] },
-  { id: 'party', good: { h: 2, t: 0, emoji: '♻️' }, bad: { h: 4, t: 0.2, emoji: '🗑️' }, times: ['day'] },
-  { id: 'jacket', good: { h: 10, t: 0, emoji: '🛍️' }, bad: { h: 4, t: 0.25, emoji: '🏬' }, times: ['day'] },
-  { id: 'trip', good: { h: 6, t: 0, emoji: '🚆' }, bad: { h: 2, t: 0.3, emoji: '🚗' }, times: ['morning', 'day'] },
-  { id: 'food', good: { h: 4, t: 0, emoji: '🥦' }, bad: { h: 6, t: 0.3, emoji: '🍔' }, times: ['day', 'evening'] },
+  { id: 'school', good: { h: 6, t: 0, icon: 'bike' }, bad: { h: -2, t: 0.25, icon: 'car' }, times: ['morning'] },
+  { id: 'lights', good: { h: -2, t: 0, icon: 'switch' }, bad: { h: 2, t: 0.15, icon: 'tv' }, times: ['evening', 'night'] },
+  { id: 'bottle', good: { h: 4, t: 0, icon: 'refill' }, bad: { h: 2, t: 0.15, icon: 'plastic' }, times: ['morning', 'day'] },
+  { id: 'toy', good: { h: 6, t: 0, icon: 'wrench' }, bad: { h: 8, t: 0.2, icon: 'box' }, times: ['day'] },
+  { id: 'hot', good: { h: -6, t: 0, icon: 'fan' }, bad: { h: 8, t: 0.25, icon: 'ac' }, times: ['day'] },
+  { id: 'cold', good: { h: 2, t: 0, icon: 'sweater' }, bad: { h: 6, t: 0.25, icon: 'flame' }, times: ['morning', 'evening'] },
+  { id: 'shower', good: { h: 4, t: 0, icon: 'shower' }, bad: { h: 6, t: 0.15, icon: 'bath' }, times: ['evening'] },
+  { id: 'party', good: { h: 2, t: 0, icon: 'recycle' }, bad: { h: 4, t: 0.2, icon: 'trashbag' }, times: ['day'] },
+  { id: 'jacket', good: { h: 10, t: 0, icon: 'thrift' }, bad: { h: 4, t: 0.25, icon: 'mall' }, times: ['day'] },
+  { id: 'trip', good: { h: 6, t: 0, icon: 'train' }, bad: { h: 2, t: 0.3, icon: 'car' }, times: ['morning', 'day'] },
+  { id: 'food', good: { h: 4, t: 0, icon: 'veggie' }, bad: { h: 6, t: 0.3, icon: 'burger' }, times: ['day', 'evening'] },
 ];
 
 // Endings depend on the final temperature (see app.js)
 const ENDINGS = {
-  warrior: { emoji: '🦸' },   // up to +1.4 °C
-  warming: { emoji: '🌡️' },   // up to +2.2 °C
-  hot:     { emoji: '🥵' },    // above that
+  warrior: { icon: 'medal' },   // up to +1.4 °C
+  warming: { icon: 'thermo' },  // up to +2.2 °C
+  hot:     { icon: 'hot' },     // above that
 };
 
 const ACHIEVEMENTS = [
-  { id: 'first',   emoji: '👣' },
-  { id: 'warrior', emoji: '🦸' },
-  { id: 'perfect', emoji: '💯' },
-  { id: 'bike',    emoji: '🚲' },
-  { id: 'lights',  emoji: '💡' },
-  { id: 'bottle',  emoji: '🍶' },
-  { id: 'toy',     emoji: '🔧' },
-  { id: 'breeze',  emoji: '🌬️' },
-  { id: 'sweater', emoji: '🧶' },
-  { id: 'shower',  emoji: '🚿' },
-  { id: 'party',   emoji: '🎈' },
-  { id: 'thrift',  emoji: '🛍️' },
-  { id: 'train',   emoji: '🚆' },
-  { id: 'veggie',  emoji: '🥦' },
-  { id: 'learner', emoji: '📚' },
-  { id: 'three',   emoji: '🔁' },
+  { id: 'first', icon: 'paws' },
+  { id: 'warrior', icon: 'medal' },
+  { id: 'perfect', icon: 'hundred' },
+  { id: 'bike', icon: 'bike' },
+  { id: 'lights', icon: 'switch' },
+  { id: 'bottle', icon: 'refill' },
+  { id: 'toy', icon: 'wrench' },
+  { id: 'breeze', icon: 'fan' },
+  { id: 'sweater', icon: 'sweater' },
+  { id: 'shower', icon: 'shower' },
+  { id: 'party', icon: 'balloon' },
+  { id: 'thrift', icon: 'thrift' },
+  { id: 'train', icon: 'train' },
+  { id: 'veggie', icon: 'veggie' },
+  { id: 'learner', icon: 'book' },
+  { id: 'three', icon: 'replay' },
 ];
 
 // which achievement belongs to which choice (unlocked by the climate-smart answer)
 const CHOICE_ACH = { school: 'bike', lights: 'lights', bottle: 'bottle', toy: 'toy', hot: 'breeze', cold: 'sweater',
   shower: 'shower', party: 'party', jacket: 'thrift', trip: 'train', food: 'veggie' };
 
-const TAKEAWAY_EMOJI = ['🚲', '💡', '🔧', '♻️', '🥦', '🗣️'];
+const TAKEAWAY_ICONS = ['bike', 'switch', 'wrench', 'recycle', 'veggie', 'chat'];

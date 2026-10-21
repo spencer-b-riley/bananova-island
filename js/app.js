@@ -95,9 +95,9 @@
   }
 
   function renderTabs(active) {
-    const items = [['title', '🎮', 'tabPlay'], ['games', '📜', 'tabGames'], ['ach', '🏆', 'tabAch'], ['privacy', '🔒', 'tabPrivacy']];
+    const items = [['title', 'gamepad', 'tabPlay'], ['games', 'scroll', 'tabGames'], ['ach', 'trophy', 'tabAch'], ['privacy', 'lock', 'tabPrivacy']];
     $('#tabs').innerHTML = items.map(([id, emo, key]) =>
-      `<button data-action="tab" data-tab="${id}" ${id === active ? 'aria-current="page"' : ''}><span class="ti" aria-hidden="true">${emo}</span>${t(key)}</button>`).join('');
+      `<button data-action="tab" data-tab="${id}" ${id === active ? 'aria-current="page"' : ''}><span class="ti">${Icon(emo)}</span>${t(key)}</button>`).join('');
   }
 
   function updateChrome() {
@@ -110,7 +110,10 @@
     music.setAttribute('aria-pressed', String(store.settings.music));
     music.setAttribute('aria-label', I18N[lang].ui.music); music.title = I18N[lang].ui.music;
     sfx.setAttribute('aria-pressed', String(store.settings.sfx));
-    sfx.textContent = store.settings.sfx ? '🔊' : '🔇';
+    sfx.innerHTML = Icon(store.settings.sfx ? 'sound' : 'mute');
+    music.innerHTML = Icon('music');
+    $('#homeBtn').innerHTML = Icon('home');
+    $('#brand').innerHTML = `${Icon('monkey')} Bobo’s City`;
     sfx.setAttribute('aria-label', I18N[lang].ui.sound); sfx.title = I18N[lang].ui.sound;
     $('#homeBtn').setAttribute('aria-label', I18N[lang].ui.home); $('#homeBtn').title = I18N[lang].ui.home;
   }
@@ -147,10 +150,10 @@
       modalResolve = resolve;
     });
   }
-  function toast(emoji, title, sub = '', long = false) {
+  function toast(icon, title, sub = '', long = false) {
     const el = document.createElement('div');
     el.className = 'toast' + (long ? ' long' : '');
-    el.innerHTML = `<span class="emo">${emoji}</span><div>${title}${sub ? `<small>${sub}</small>` : ''}</div>`;
+    el.innerHTML = `<span class="emo">${Icon(icon)}</span><div>${title}${sub ? `<small>${sub}</small>` : ''}</div>`;
     $('#toasts').appendChild(el);
     setTimeout(() => el.remove(), long ? 7300 : 3300);
   }
@@ -163,10 +166,10 @@
     return true;
   }
   const achName = (id) => esc(L().ach[id][0]);
-  const achEmoji = (id) => ACHIEVEMENTS.find((a) => a.id === id).emoji;
+  const achIcon = (id) => ACHIEVEMENTS.find((a) => a.id === id).icon;
   function unlockWithToast(id) {
     if (!unlock(id)) return;
-    toast(achEmoji(id), t('newAch'), achName(id));
+    toast(achIcon(id), t('newAch'), achName(id));
     Sound.play('achieve');
   }
 
@@ -181,10 +184,10 @@
         <p class="subtitle">${t('subtitle')}</p>
         <div class="title-scene" id="titleScene" aria-hidden="true"></div>
         <div class="title-actions">
-          <button class="btn primary big" data-action="play">▶ ${t('play')}</button>
+          <button class="btn primary big" data-action="play">${Icon('play')} ${t('play')}</button>
           <div class="lang-chips">${Object.keys(I18N).map((k) =>
             `<button data-action="setLang" data-lang="${k}" aria-pressed="${k === lang}">${I18N[k].label}</button>`).join('')}</div>
-          <button class="btn ghost small" data-action="qr">${t('phone')}</button>
+          <button class="btn ghost small" data-action="qr">${Icon('phone')} ${t('phone')}</button>
         </div>
         <p class="credits">${t('credits')}</p>
       </section>`, { tab: 'title', brand: false });
@@ -203,18 +206,18 @@
     const dateFmt = new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
     setScreen(`
       <section class="screen"><div class="panel wide">
-        <h2>${t('gamesTitle')}</h2>
-        <p class="muted small">${t('played', { n: store.games.length })} · ${t('savedLocal')}</p>
-        ${games.length === 0 ? `<p class="intro-text">🐒 ${t('gamesEmpty')}</p><button class="btn primary" data-action="play">▶ ${t('play')}</button>` : `
+        <h2>${t('gamesTitle')} ${Icon('scroll')}</h2>
+        <p class="muted small">${t('played', { n: store.games.length })} · ${Icon('lock')} ${t('savedLocal')}</p>
+        ${games.length === 0 ? `<p class="intro-text">${Icon('monkey')} ${t('gamesEmpty')}</p><button class="btn primary" data-action="play">${Icon('play')} ${t('play')}</button>` : `
         <div class="game-list">${list.map((g) => {
           const e = ENDINGS[g.e] ? g.e : 'warming';
-          return `<div class="game-row"><span class="emo">${ENDINGS[e].emoji}</span>
+          return `<div class="game-row"><span class="emo">${Icon(ENDINGS[e].icon)}</span>
             <div class="info"><b>${esc(L().endings[e][0])}</b><small>${esc(dateFmt.format(new Date(g.d)))}</small></div>
-            <div class="mini">🌡️ ${deg(g.t)} · 🐒 ${g.h}<br>✅ ${g.g}/${TURNS}</div></div>`;
+            <div class="mini">${Icon('thermo')} ${deg(g.t)} · ${Icon('monkey')} ${g.h}<br>${Icon('check')} ${g.g}/${TURNS}</div></div>`;
         }).join('')}</div>
-        ${pages > 1 ? `<div class="pager"><button class="btn ghost small" data-action="pagePrev" ${gamesPage === 0 ? 'disabled' : ''} aria-label="⬅">⬅</button>
+        ${pages > 1 ? `<div class="pager"><button class="btn ghost small" data-action="pagePrev" ${gamesPage === 0 ? 'disabled' : ''} aria-label="${t('prev')}">${Icon('back')}</button>
           <span>${gamesPage + 1} / ${pages}</span>
-          <button class="btn ghost small" data-action="pageNext" ${gamesPage >= pages - 1 ? 'disabled' : ''} aria-label="➜">➜</button></div>` : ''}`}
+          <button class="btn ghost small" data-action="pageNext" ${gamesPage >= pages - 1 ? 'disabled' : ''} aria-label="${t('next')}">${Icon('next')}</button></div>` : ''}`}
       </div></section>`, { tab: 'games' });
   }
 
@@ -223,13 +226,13 @@
     const got = ACHIEVEMENTS.filter((a) => store.ach[a.id]).length;
     setScreen(`
       <section class="screen"><div class="panel wide">
-        <h2>${t('achTitle')}</h2>
-        <p class="muted small">${t('achCount', { a: got, b: ACHIEVEMENTS.length })} · ${t('savedLocal')}</p>
+        <h2>${t('achTitle')} ${Icon('trophy')}</h2>
+        <p class="muted small">${t('achCount', { a: got, b: ACHIEVEMENTS.length })} · ${Icon('lock')} ${t('savedLocal')}</p>
         <div class="ach-grid">${ACHIEVEMENTS.map((a) => {
           const has = !!store.ach[a.id];
           const desc = esc(L().ach[a.id][1]);
           return `<div class="badge ${has ? 'got' : 'locked'}" title="${desc}">
-            <span class="emo">${a.emoji}</span><b>${has ? '' : '🔒 '}${achName(a.id)}</b><small>${desc}</small></div>`;
+            <span class="emo">${Icon(a.icon)}</span><b>${has ? '' : Icon('lock') + ' '}${achName(a.id)}</b><small>${desc}</small></div>`;
         }).join('')}</div>
       </div></section>`, { tab: 'ach' });
   }
@@ -238,13 +241,13 @@
     rerender = renderPrivacy;
     setScreen(`
       <section class="screen"><div class="panel wide privacy">
-        <h2>${t('privTitle')}</h2>
-        <p>🏠 ${t('priv1')}</p>
-        <p>🙅 ${t('priv2')}</p>
-        <p>🌐 ${t('priv3')}</p>
-        <h3>${t('safeTitle')}</h3>
-        <ul>${L().tips.map((tip, k) => `<li>${['🙊', '🦸', '🧑‍🏫', '💬'][k]} ${esc(tip)}</li>`).join('')}</ul>
-        <div class="row"><button class="btn danger small" data-action="deleteData">${t('del')}</button></div>
+        <h2>${t('privTitle')} ${Icon('lock')}</h2>
+        <p>${Icon('home')} ${t('priv1')}</p>
+        <p>${Icon('no')} ${t('priv2')}</p>
+        <p>${Icon('web')} ${t('priv3')}</p>
+        <h3>${t('safeTitle')} ${Icon('shield')}</h3>
+        <ul>${L().tips.map((tip, k) => `<li>${Icon(['secret', 'mask', 'adult', 'chat'][k])} ${esc(tip)}</li>`).join('')}</ul>
+        <div class="row"><button class="btn danger small" data-action="deleteData">${Icon('trash')} ${t('del')}</button></div>
       </div></section>`, { tab: 'privacy' });
   }
 
@@ -258,7 +261,7 @@
       svg = qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
     } catch (e) { svg = ''; }
     const local = /^(file:|https?:\/\/(localhost|127\.|\[::1\]|192\.168\.|10\.))/.test(url);
-    modal(`<h2>${t('phone')}</h2><div class="qr">${svg}</div><p class="intro-text">${t('qrText')}</p>
+    modal(`<h2>${Icon('phone')} ${t('phone')}</h2><div class="qr">${svg}</div><p class="intro-text">${t('qrText')}</p>
       ${local ? `<p class="muted small">${t('qrLocal')}</p>` : `<p class="url">${esc(url)}</p>`}
       <button class="btn primary" data-action="closeModal">${t('close')}</button>`);
   }
@@ -271,8 +274,11 @@
   };
 
   function startGame() {
-    // Getting to school always comes first; the other 10 come in a random order every game.
-    const seq = [0, ...shuffle(CHOICES.slice(1).map((_, k) => k + 1))];
+    // Getting to school always comes first and the birthday party comes early (2nd or 3rd);
+    // the others come in a random order every game.
+    const party = CHOICES.findIndex((c) => c.id === 'party');
+    const seq = [0, ...shuffle(CHOICES.map((_, k) => k).filter((k) => k !== 0 && k !== party))];
+    seq.splice(1 + Math.floor(Math.random() * 2), 0, party);
     // Each situation happens at a time of day that fits it (lights at sunset/night, a bath in the evening…)
     const times = seq.map((ci) => { const ok = CHOICES[ci].times; return ok[Math.floor(Math.random() * ok.length)]; });
     G = {
@@ -290,15 +296,15 @@
     rerender = renderIntro;
     setScreen(`
       <section class="screen"><div class="panel">
-        <div class="big-emoji" aria-hidden="true">🐒🏙️</div>
+        <div class="big-emoji" aria-hidden="true">${Icon('monkey')}${Icon('city')}</div>
         <h2>${t('introTitle')}</h2>
         <p class="intro-text">${t('introText')}</p>
         <div class="meter-legend">
-          <div><span aria-hidden="true">🐒</span>${t('monkeyMeter')}</div>
-          <div><span aria-hidden="true">🌡️</span>${t('tempMeter')}</div>
+          <div><span>${Icon('monkey')}</span>${t('monkeyMeter')}</div>
+          <div><span>${Icon('thermo')}</span>${t('tempMeter')}</div>
         </div>
         <p class="intro-text">${t('introMeters')}</p>
-        <button class="btn primary big" data-action="go">${t('go')}</button>
+        <button class="btn primary big" data-action="go">${t('go')} ${Icon('monkey')}</button>
       </div></section>`, { home: true });
   }
 
@@ -308,11 +314,11 @@
     setScreen(`
       <section class="screen game" id="game">
         <div class="hud">
-          <div class="meter" id="mh"><span class="emo" aria-hidden="true">🐒</span>
+          <div class="meter" id="mh"><span class="emo">${Icon('monkey')}</span>
             <div class="mcol"><small data-label="monkeyMeter"></small><div class="bar"><i></i></div></div><b>0</b></div>
           <div class="dots" id="dots" aria-hidden="true">${'<span></span>'.repeat(TURNS)}</div>
           <div class="turn-txt" id="turnTxt"></div>
-          <div class="meter thermo" id="mt"><span class="emo" aria-hidden="true">🌡️</span>
+          <div class="meter thermo" id="mt"><span class="emo">${Icon('thermo')}</span>
             <div class="mcol"><small data-label="tempMeter"></small><div class="bar"><i></i></div></div><b>0</b></div>
         </div>
         <div class="scene-wrap" id="sceneWrap"></div>
@@ -368,13 +374,13 @@
     updateHud();
     if (dh > 0) scene.jump(); else if (dh < 0) scene.droop();
     // the city just got warmer (and its weather wilder)
-    if (levelOf(G.temp) > levelOf(oldT)) setTimeout(() => { if (G) toast('🌡️', t('hotter')); }, 900);
+    if (levelOf(G.temp) > levelOf(oldT)) setTimeout(() => { if (G) toast('thermo', t('hotter')); }, 900);
   }
 
   const deltaChips = (dh, dt, heat = 0) => `<div class="chips">
-      <span class="chip ${dh >= 0 ? 'up' : 'down'}">🐒 ${dh > 0 ? '+' : ''}${dh}</span>
-      <span class="chip ${dt <= 0 ? 'up' : 'down'}">🌡️ ${degDelta(dt)}</span>
-      ${heat ? `<span class="chip down">🥵 ${t('tooHot')} −${heat}</span>` : ''}</div>`;
+      <span class="chip ${dh >= 0 ? 'up' : 'down'}">${Icon('monkey')} ${dh > 0 ? '+' : ''}${dh}</span>
+      <span class="chip ${dt <= 0 ? 'up' : 'down'}">${Icon('thermo')} ${degDelta(dt)}</span>
+      ${heat ? `<span class="chip down">${Icon('hot')} ${t('tooHot')} −${heat}</span>` : ''}</div>`;
 
   const wait = (ms) => new Promise((done) => setTimeout(done, ms));
   // While an animation plays, the card steps aside so the player can just watch.
@@ -412,8 +418,8 @@
     scene.setTime(G.times[turn]);
     scene.setWeather(G.weather[turn]);
     if (G.weather[turn] === 'storm') Sound.play('storm');
-    if (newSky) {             // the sky changes first…
-      await wait(1800);
+    if (newSky) {             // the sky changes first (and finishes) before anything else moves…
+      await wait(Perf.tier === 'low' ? 1400 : 3000);
       if (G !== game) return;
     }
     // …then Bobo goes to where the new situation happens…
@@ -431,14 +437,14 @@
         if (G !== game || G.turn !== turn) return;
         scene.eclipse();
         sayLine((sy) => sy.eclipse);
-        toast('🌑', t('eclipseTitle'), t('eclipseTip'), true);
+        toast('moon', t('eclipseTitle'), t('eclipseTip'), true);
       }, 1600);
     }
     updateHud();
     cardShow(() => {
       const opts = [
-        { good: true, txt: ct(idx, 'good'), emo: ch.good.emoji },
-        { good: false, txt: ct(idx, 'bad'), emo: ch.bad.emoji },
+        { good: true, txt: ct(idx, 'good'), emo: Icon(ch.good.icon) },
+        { good: false, txt: ct(idx, 'bad'), emo: Icon(ch.bad.icon) },
       ];
       if (!G.order[idx]) opts.reverse();
       card(`
@@ -472,9 +478,9 @@
     G.next = () => { G.turn++; step(); };
     cardShow(() => card(`
       <div class="card-head"><span class="pill">${t('turn', { n: turn + 1 })}</span><span class="topic">${ct(idx, 'topic')}</span></div>
-      <div class="result"><span class="emo" aria-hidden="true">${d.emoji}</span><p>${ct(idx, good ? 'resGood' : 'resBad')}</p></div>
+      <div class="result"><span class="emo">${Icon(d.icon)}</span><p>${ct(idx, good ? 'resGood' : 'resBad')}</p></div>
       ${deltaChips(d.h, d.t, heat)}
-      <div class="row end"><button class="btn primary" data-action="cont">${t('cont')}</button></div>`));
+      <div class="row end"><button class="btn primary" data-action="cont">${t('cont')} ${Icon('next')}</button></div>`));
     G.busy = false;
   }
   function react0() { sayLine(() => ''); scene.react(null); }
@@ -493,12 +499,12 @@
     applyDelta(PAYOFF.h, PAYOFF.t);
     G.next = step;
     cardShow(() => card(`
-      <div class="card-head"><span class="pill">✨ ${G.turn < TURNS ? t('remember') : t('later')}</span><span class="topic">${ct(idx, 'topic')}</span></div>
-      <div class="result"><span class="emo" aria-hidden="true">${ch.good.emoji}</span><div>
+      <div class="card-head"><span class="pill">${Icon('sparkle')} ${G.turn < TURNS ? t('remember') : t('later')}</span><span class="topic">${ct(idx, 'topic')}</span></div>
+      <div class="result"><span class="emo">${Icon(ch.good.icon)}</span><div>
         <p>${ct(idx, 'payoff')}</p>
         <p class="because">${t('because')} ${ct(idx, 'good')}</p></div></div>
       ${deltaChips(PAYOFF.h, PAYOFF.t)}
-      <div class="row end"><button class="btn primary" data-action="cont">${t('cont')}</button></div>`));
+      <div class="row end"><button class="btn primary" data-action="cont">${t('cont')} ${Icon('next')}</button></div>`));
   }
 
   /* ═════════════════════ ENDING ═════════════════════ */
@@ -562,17 +568,17 @@
     const e = G.ending, [title, text] = L().endings[e];
     const greens = G.picks.filter(Boolean).length;
     card(`
-      <div class="end-top"><span class="end-emoji" aria-hidden="true">${ENDINGS[e].emoji}</span><div>
+      <div class="end-top"><span class="end-emoji">${Icon(ENDINGS[e].icon)}</span><div>
         <h2>${esc(title)}</h2></div></div>
       <p class="end-text">${esc(fmt(text, { n: deg(G.temp).replace(/^\+| °C$/g, '') }))}</p>
-      <p class="note">🌍 ${t('tempNote')}</p>
-      <div class="chips"><span class="chip">🌡️ ${deg(G.temp)}</span><span class="chip">🐒 ${G.h}</span><span class="chip">✅ ${t('greenChoices', { n: greens })}</span></div>
-      ${G.newAch.length ? `<div class="new-ach"><b>🏆 ${t('newAch')}</b> ${G.newAch.map((id) =>
-        G.newAch.length <= 2 ? `<span class="chip ach-chip">${achEmoji(id)} ${achName(id)}</span>`
-          : `<span class="ach-mini" title="${achName(id)}" aria-label="${achName(id)}">${achEmoji(id)}</span>`).join('')}</div>` : ''}
+      <p class="note">${Icon('globe')} ${t('tempNote')}</p>
+      <div class="chips"><span class="chip">${Icon('thermo')} ${deg(G.temp)}</span><span class="chip">${Icon('monkey')} ${G.h}</span><span class="chip">${Icon('check')} ${t('greenChoices', { n: greens })}</span></div>
+      ${G.newAch.length ? `<div class="new-ach"><b>${Icon('trophy')} ${t('newAch')}</b> ${G.newAch.map((id) =>
+        G.newAch.length <= 2 ? `<span class="chip ach-chip">${Icon(achIcon(id))} ${achName(id)}</span>`
+          : `<span class="ach-mini" title="${achName(id)}" aria-label="${achName(id)}">${Icon(achIcon(id))}</span>`).join('')}</div>` : ''}
       <div class="row">
-        <button class="btn primary" data-action="recap">${t('recapBtn')}</button>
-        <button class="btn ghost" data-action="takeaways">${t('skip')}</button>
+        <button class="btn primary" data-action="recap">${Icon('book')} ${t('recapBtn')}</button>
+        <button class="btn ghost" data-action="takeaways">${t('skip')} ${Icon('skip')}</button>
       </div>`);
   }
 
@@ -582,26 +588,26 @@
     card(`
       <div class="recap">
         <div class="card-head"><span class="pill">${pos + 1} / ${made}</span><span class="topic">${ct(k, 'topic')}</span>
-          <span class="spacer"></span><button class="link-btn" data-action="takeaways">${t('skip')}</button></div>
-        <p class="verdict ${good ? 'good' : 'bad'}">${good ? t('great') : t('couldBetter')}</p>
-        <p>${t('youChose')} ${good ? ch.good.emoji : ch.bad.emoji} ${ct(k, good ? 'good' : 'bad')}</p>
+          <span class="spacer"></span><button class="link-btn" data-action="takeaways">${t('skip')} ${Icon('skip')}</button></div>
+        <p class="verdict ${good ? 'good' : 'bad'}">${good ? Icon('check') + ' ' + t('great') : Icon('think') + ' ' + t('couldBetter')}</p>
+        <p>${t('youChose')} ${Icon(good ? ch.good.icon : ch.bad.icon)} ${ct(k, good ? 'good' : 'bad')}</p>
         <p>${ct(k, good ? 'recapGood' : 'recapBad')}</p>
-        ${good ? '' : `<p><b>${t('better')}</b> ${ch.good.emoji} ${ct(k, 'good')}</p>`}
-        <div class="fact"><b>${t('didYouKnow')}</b>${ct(k, 'fact')}</div>
+        ${good ? '' : `<p><b>${t('better')}</b> ${Icon(ch.good.icon)} ${ct(k, 'good')}</p>`}
+        <div class="fact"><b>${Icon('bulb')} ${t('didYouKnow')}</b>${ct(k, 'fact')}</div>
         <div class="recap-nav">
-          <button class="btn ghost small" data-action="recapPrev" ${pos === 0 ? 'disabled' : ''}>${t('prev')}</button>
-          <button class="btn primary small" data-action="recapNext">${t('next')}</button>
+          <button class="btn ghost small" data-action="recapPrev" ${pos === 0 ? 'disabled' : ''}>${Icon('back')} ${t('prev')}</button>
+          <button class="btn primary small" data-action="recapNext">${t('next')} ${Icon('next')}</button>
         </div>
       </div>`);
   }
 
   function takeawaysView() {
     card(`
-      <h2 style="margin:0">${t('takeTitle')}</h2>
-      <ul class="takeaways">${L().takeaways.map((tk, k) => `<li><span aria-hidden="true">${TAKEAWAY_EMOJI[k]}</span>${esc(tk)}</li>`).join('')}</ul>
+      <h2 style="margin:0">${t('takeTitle')} ${Icon('globe')}</h2>
+      <ul class="takeaways">${L().takeaways.map((tk, k) => `<li><span>${Icon(TAKEAWAY_ICONS[k])}</span>${esc(tk)}</li>`).join('')}</ul>
       <div class="row">
-        <button class="btn primary" data-action="playAgain">${t('playAgain')}</button>
-        <button class="btn ghost" data-action="menu">${t('menu')}</button>
+        <button class="btn primary" data-action="playAgain">${Icon('replay')} ${t('playAgain')}</button>
+        <button class="btn ghost" data-action="menu">${Icon('home')} ${t('menu')}</button>
       </div>`);
   }
 
@@ -655,7 +661,7 @@
           const alsoAch = Object.keys(store.ach).length > 0 && await confirmBox(t('delAchAsk'));
           if (alsoAch) store.ach = {};
           Store.save(store);
-          toast('🗑️', alsoAch || !Object.keys(store.ach).length ? t('deleted') : t('deletedGames'));
+          toast('trash', alsoAch || !Object.keys(store.ach).length ? t('deleted') : t('deletedGames'));
           renderPrivacy();
         }
         break;

@@ -19,8 +19,10 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
 - Real trade-offs: some green choices cost a little fun (a fan instead of the air conditioner),
   but many are better right away (biking past the traffic jam, a cheaper and cooler thrift jacket,
   swapping toys with a friend)
-- A living city: school, skyscrapers, a thrift store, a mall, houses, a park, a power plant,
-  a train line and a road with bridges to other towns, cars, trains and cyclists
+- A living city: Bobo's street with the school, skyscrapers, a thrift store, a mall, houses, a park,
+  a power plant, trees, a train line and a road with bridges to other towns, cars (each with a
+  happy monkey driver), trains, cyclists and sailboats. Far away there's a volcano island whose
+  trees and animals also come and go with the climate.
 - Bobo really goes places: bikes or rides to school (and gets stuck in a traffic jam), takes the
   train to Grandma's, shops at the thrift store or the mall, throws a party with friends, and more
 - Bobo's outfits: backpack, bike, party hat, sweater, thrift jacket, plain jacket and a shopping bag
@@ -37,10 +39,15 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
 - Endings by temperature: **Climate Warrior** (up to +1.4 °C), **Warming Island** (up to
   +2.2 °C) and **Hot Island** (above that). The game starts at +1.0 °C, about how much warmer
   Earth already is today.
-- Every game is different: questions come in a random order (getting to school is always first),
+- Every game is different: questions come in a random order (getting to school is always first and
+  the birthday party comes early),
   each happens at a fitting time of day (the sun rises on the left and sets on the right), and the
   weather is random (wilder when the city is hotter)
 - On phones the city is zoomed in and the view follows Bobo around
+- Animation scaler (`js/perf.js`): it guesses what the device can handle (CPU, memory, graphics
+  chip, iPhone screen size), then watches the real frame rate and switches off extra animations if
+  the device struggles. Big changes happen one at a time (the sky changes first, then Bobo moves).
+- All icons are our own drawings (`js/icons.js`), no emoji
 - A recap of every decision with "Did you know?" facts (skippable), then simple takeaways
 - 16 achievements
 - English, German, Italian and French (switch anytime, top-right)
@@ -60,6 +67,8 @@ js/content.js       choice numbers (happiness + temperature changes), endings an
 js/i18n.js          ALL text in 4 languages, so edit wording here
 js/scene.js         the city drawing, Bobo's trips and how the city changes
 js/app.js           game flow
+js/icons.js         our own icons (instead of emoji)
+js/perf.js          animation scaler (fewer animations on slower devices)
 js/audio.js         music and sound effects
 js/storage.js       local saving (browser only)
 js/vendor/          QR code library (qrcode-generator 1.4.4, MIT, license file included)
