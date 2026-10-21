@@ -590,10 +590,13 @@ const Scene = (() => {
         // (so e.g. the fire always gets put out), then start walking to the new one.
         if (pendingJob) { const job = pendingJob; pendingJob = null; job(); }
         const id = ++taskId;
-        pendingJob = fn;
+        let jobDone;
+        s.lastTask = new Promise((resolve) => { jobDone = resolve; });   // resolves once the job is done
+        const job = () => { fn(); jobDone(); };
+        pendingJob = job;
         s.walkTo(x, y).then(() => {
           if (id !== taskId) return;
-          if (pendingJob === fn) { pendingJob = null; fn(); }   // (it may already have been done early)
+          if (pendingJob === job) { pendingJob = null; job(); }   // (it may already have been done early)
           if (stay) setTimeout(() => { if (id === taskId && !destroyed) s.home(); }, stay);  // stay = 0: stay there
         });
       },
@@ -1031,7 +1034,10 @@ const Scene = (() => {
       react,
       say,
       event: (id) => ACTIONS[id].ev(s),
+      /* Plays what the choice does. Returns a promise that resolves when the animation
+         (walking there + doing the job + things flying/splashing) is finished. */
       outcome: (id, good) => {
+        s.lastTask = null;
         ACTIONS[id][good ? 'good' : 'bad'](s);
         if (!good) {
           badCount++;
@@ -1039,6 +1045,9 @@ const Scene = (() => {
           if (id === 'plastic' || id === 'compost') harmed.sea = true;
           if (id === 'fishing') harmed.fish = true;
         }
+        const job = s.lastTask || Promise.resolve();
+        const settle = { plastic: 1500, fishing: 1600, fire: 1200, shelter: 1000, firewood: 1000 }[id] || 700;
+        return job.then(() => new Promise((done) => setTimeout(done, settle)));
       },
       eclipse,
       pirates,

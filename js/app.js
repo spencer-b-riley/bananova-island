@@ -422,6 +422,11 @@
     return `<div class="chips">${chip('🐒', dh)}${chip('🏝️', di)}</div>`;
   };
 
+  const wait = (ms) => new Promise((done) => setTimeout(done, ms));
+  // While an animation plays, the card steps aside so the player can just watch.
+  function cardWait() { G.cardView = () => {}; $('#card').classList.add('card-wait'); }
+  function cardShow(view) { G.cardView = view; $('#card').classList.remove('card-wait'); view(); }
+
   function card(html) {
     const c = $('#card');
     c.innerHTML = html;
@@ -441,12 +446,19 @@
     finish();
   }
 
-  function showChoice() {
-    const turn = G.turn, idx = G.seq[turn], ch = CHOICES[idx];
+  async function showChoice() {
+    const game = G, turn = G.turn, idx = G.seq[turn], ch = CHOICES[idx];
     if (G.order[idx] === undefined) G.order[idx] = Math.random() < 0.5; // good option first?
-    scene.event(ch.id);
+    const newSky = turn > 0 && (G.times[turn] !== G.times[turn - 1] || G.rainTurns.has(turn) !== G.rainTurns.has(turn - 1));
     scene.setTime(G.times[turn]);
     scene.setWeather(G.rainTurns.has(turn) ? 'rain' : 'clear');
+    if (newSky) {             // the sky changes first…
+      cardWait();
+      sayLine(() => '');
+      await wait(1300);
+      if (G !== game) return;
+    }
+    scene.event(ch.id);       // …then the new situation appears, with its question
     scene.react(REACT[ch.id], 0);
     if (idx === 0) {
       sayLine((sy) => sy.hello);
@@ -468,6 +480,7 @@
         { good: false, txt: ct(idx, 'bad'), emo: ch.bad.emoji },
       ];
       if (!G.order[idx]) opts.reverse();
+      $('#card').classList.remove('card-wait');
       card(`
         <div class="card-head"><span class="pill">${t('turn', { n: turn + 1 })}</span><span class="topic">${ct(idx, 'topic')}</span></div>
         <p class="situation">${ct(idx, 'sit')}</p>
@@ -477,18 +490,24 @@
     G.cardView();
   }
 
-  function pick(good) {
+  async function pick(good) {
     if (G.busy || G.picks[G.seq[G.turn]] !== undefined) return;
     G.busy = true;
-    const turn = G.turn, idx = G.seq[turn], ch = CHOICES[idx], d = good ? ch.good : ch.bad;
+    const game = G, turn = G.turn, idx = G.seq[turn], ch = CHOICES[idx], d = good ? ch.good : ch.bad;
     G.picks[idx] = good;
     G.made.push(idx);
     G.last = idx;
-    scene.outcome(ch.id, good);
+    // 1. the decision is made: the card steps aside
+    cardWait();
+    sayLine(() => '');
+    Sound.play(good ? 'good' : 'bad');
+    if (!good && (ch.id === 'plastic' || ch.id === 'fishing')) setTimeout(() => Sound.play('splash'), 900);
+    // 2. the monkey does it (walks there, throws, fishes, chops…)
+    await Promise.race([scene.outcome(ch.id, good), wait(5000)]);
+    if (G !== game) return;   // the player left the game meanwhile
+    // 3. then the result: reaction, speech bubble, meters and the text card
     scene.react(good ? 'yay' : 'sad');
     sayLine((sy) => sy.choices[idx][good ? 1 : 2]);
-    Sound.play(good ? 'good' : 'bad');
-    if (!good && (ch.id === 'plastic' || ch.id === 'fishing')) setTimeout(() => Sound.play('splash'), 250);
     applyDelta(d.h, d.i);
     if (good) G.payQueue.push({ idx, due: turn + PAYOFF_DELAY });
 
@@ -497,31 +516,33 @@
       if (G.h <= 0 || G.i <= 0) doDisaster();
       else step();
     };
-    G.cardView = () => card(`
+    cardShow(() => card(`
       <div class="card-head"><span class="pill">${t('turn', { n: turn + 1 })}</span><span class="topic">${ct(idx, 'topic')}</span></div>
       <div class="result"><span class="emo" aria-hidden="true">${d.emoji}</span><p>${ct(idx, good ? 'resGood' : 'resBad')}</p></div>
       ${deltaChips(d.h, d.i)}
-      <div class="row end"><button class="btn primary" data-action="cont">${t('cont')}</button></div>`);
-    G.cardView();
+      <div class="row end"><button class="btn primary" data-action="cont">${t('cont')}</button></div>`));
     G.busy = false;
   }
 
-  function showPayoff({ idx }) {
-    const ch = CHOICES[idx];
+  async function showPayoff({ idx }) {
+    const game = G, ch = CHOICES[idx];
+    cardWait();
+    sayLine(() => '');
     scene.payoff(ch.id);
+    Sound.play('payoff');
+    await wait(1400);          // let the reward appear on the island first
+    if (G !== game) return;
     scene.react('yay');
     sayLine((sy) => sy.choices[idx][3]);
-    Sound.play('payoff');
     applyDelta(PAYOFF.h, PAYOFF.i);
     G.next = step;
-    G.cardView = () => card(`
+    cardShow(() => card(`
       <div class="card-head"><span class="pill">✨ ${G.turn < 10 ? t('remember') : t('later')}</span><span class="topic">${ct(idx, 'topic')}</span></div>
       <div class="result"><span class="emo" aria-hidden="true">${ch.good.emoji}</span><div>
         <p>${ct(idx, 'payoff')}</p>
         <p class="because">${t('because')} ${ct(idx, 'good')}</p></div></div>
       ${deltaChips(PAYOFF.h, PAYOFF.i)}
-      <div class="row end"><button class="btn primary" data-action="cont">${t('cont')}</button></div>`);
-    G.cardView();
+      <div class="row end"><button class="btn primary" data-action="cont">${t('cont')}</button></div>`));
   }
 
   /* Rare pirate raid: not caused by the player's choices, so it doesn't end the game,

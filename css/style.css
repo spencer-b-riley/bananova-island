@@ -265,6 +265,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   animation: cardIn 0.35s ease-out;
 }
 @keyframes cardIn { from { transform: translateY(10px); opacity: 0; } }
+/* while the monkey's animation plays, the card steps aside (text comes after the animation) */
+.card.card-wait { opacity: 0; transform: translateY(14px); pointer-events: none; transition: opacity .25s, transform .25s; }
 .card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .pill { background: var(--ink); color: #fff; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 800; white-space: nowrap; }
 .topic { font-weight: 900; color: var(--leaf-d); }
