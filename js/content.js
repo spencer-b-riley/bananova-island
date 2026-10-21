@@ -9,25 +9,25 @@
    and Bobo never plays outside at night). */
 
 const CHOICES = [
-  { id: 'school', good: { t: 0, icon: 'bike' }, bad: { t: 0.25, icon: 'car' }, times: ['morning'] },
-  { id: 'lights', good: { t: 0, icon: 'switch' }, bad: { t: 0.15, icon: 'tv' }, times: ['day'] },
-  { id: 'bottle', good: { t: 0, icon: 'refill' }, bad: { t: 0.15, icon: 'plastic' }, times: ['morning', 'day'] },
-  { id: 'toy', good: { t: 0, icon: 'wrench' }, bad: { t: 0.2, icon: 'box' }, times: ['day'] },
-  { id: 'hot', good: { t: 0, icon: 'shade' }, bad: { t: 0.25, icon: 'ac' }, times: ['day'] },
-  { id: 'cold', good: { t: 0, icon: 'sweater' }, bad: { t: 0.25, icon: 'flame' }, times: ['morning', 'evening'] },
-  { id: 'shower', good: { t: 0, icon: 'shower' }, bad: { t: 0.15, icon: 'bath' }, times: ['night'] },
-  { id: 'party', good: { t: 0, icon: 'recycle' }, bad: { t: 0.2, icon: 'trashbag' }, times: ['day'] },
-  { id: 'jacket', good: { t: 0, icon: 'thrift' }, bad: { t: 0.25, icon: 'mall' }, times: ['day'] },
-  { id: 'trip', good: { t: 0, icon: 'train' }, bad: { t: 0.3, icon: 'car' }, times: ['morning', 'day'] },
-  { id: 'food', good: { t: 0, icon: 'veggie' }, bad: { t: 0.3, icon: 'burger' }, times: ['day'] },
+  { id: 'school', good: { t: 0, icon: 'bike' }, bad: { t: 0.35, icon: 'car' }, times: ['morning'] },
+  { id: 'lights', good: { t: 0, icon: 'switch' }, bad: { t: 0.2, icon: 'tv' }, times: ['day'] },
+  { id: 'bottle', good: { t: 0, icon: 'refill' }, bad: { t: 0.2, icon: 'plastic' }, times: ['morning', 'day'] },
+  { id: 'toy', good: { t: 0, icon: 'wrench' }, bad: { t: 0.3, icon: 'box' }, times: ['day'] },
+  { id: 'hot', good: { t: 0, icon: 'shade' }, bad: { t: 0.35, icon: 'ac' }, times: ['day'] },
+  { id: 'cold', good: { t: 0, icon: 'sweater' }, bad: { t: 0.35, icon: 'flame' }, times: ['morning', 'evening'] },
+  { id: 'shower', good: { t: 0, icon: 'shower' }, bad: { t: 0.2, icon: 'bath' }, times: ['night'] },
+  { id: 'party', good: { t: 0, icon: 'recycle' }, bad: { t: 0.3, icon: 'trashbag' }, times: ['day'] },
+  { id: 'jacket', good: { t: 0, icon: 'thrift' }, bad: { t: 0.35, icon: 'mall' }, times: ['day'] },
+  { id: 'trip', good: { t: 0, icon: 'train' }, bad: { t: 0.4, icon: 'car' }, times: ['morning', 'day'] },
+  { id: 'food', good: { t: 0, icon: 'veggie' }, bad: { t: 0.4, icon: 'burger' }, times: ['day'] },
 ];
 
-// Endings depend on the final temperature (see app.js). Reaching +3.0 °C early ends the game.
+// Endings depend on the final temperature (see app.js). Reaching +2.5 °C ends the game right away.
 const ENDINGS = {
-  warrior: { icon: 'medal' },   // up to +1.4 °C
-  warming: { icon: 'thermo' },  // up to +2.2 °C
+  warrior: { icon: 'medal' },   // up to +1.3 °C
+  warming: { icon: 'thermo' },  // up to +2.0 °C
   hot:     { icon: 'hot' },     // above that
-  overheated: { icon: 'hot' },  // +3.0 °C before the last choice: game over
+  overheated: { icon: 'hot' },  // +2.5 °C or more: game over (can happen before the last choice)
 };
 
 const ACHIEVEMENTS = [

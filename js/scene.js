@@ -801,23 +801,30 @@ const Scene = (() => {
           ride.remove();
           const up = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', headBack(-5, '#6b4423') + headBack(5, '#8b5a2b', 0.85))}</g>`, 232, LANE_A, 1);
           up.carry(true); up.cam = true;
-          await up.move(232, 396, 1600, 'ease-in-out');                 // …and up to the school (seen from behind)
-          up.cam = false; up.carry(false);
-          // dad walks Bobo to the school door, waves goodbye and drives back home
-          s.place([222, 380]); s.inside(false);
-          const dad = s.family([[246, 380]], ['dad'])[0]; dad.appear();
-          await Promise.all([s.go(P.school), dad.go([132, 368])]);
-          dad.jump(); s.jump(); await s.w(700);
-          await dad.go([246, 380]); await dad.enter();
+          await up.move(232, 384, 1600, 'ease-in-out');                 // …up the little street (seen from behind)…
+          up.remove();
+          // …left along the school street, and stop right at the school's front door
+          const side = s.vehicle('backFx', car('#e63946', '#6b4423', monkeyHead(-3, -23, '#8b5a2b')), 232, 378, -1);
+          side.carry(true); side.cam = true;
+          await side.move(130, 378, 1300, 'ease-out');
+          side.cam = false; side.carry(false);
+          side.g.querySelector('.veh').innerHTML = car('#e63946', '#6b4423', '');   // (Bobo hops out of the back seat)
+          // Bobo hops out at the front of the school, dad honks goodbye from the car
+          s.place([118, 370]); s.inside(false);
+          await s.go(P.school);
+          sfx('honk'); s.jump(); await s.w(800);
           s.jamEnd();
           // (dad's drive home keeps going while the result shows)
           (async () => {
-            up.carry(true);
-            await up.move(232, LANE_B, 1500, 'ease-in-out');             // back down to the main road
-            up.remove(); carGone();
+            const back = s.vehicle('backFx', car('#e63946', '#6b4423', ''), 130, 378, 1);   // turns around…
+            side.remove();
+            await back.move(232, 378, 1100, 'ease-in-out'); back.remove();
+            const down = s.vehicle('roadFx', `<g transform="scale(.94)">${carFront('#e63946', '#6b4423')}</g>`, 232, 384, 1);
+            await down.move(232, LANE_B - 2, 1500, 'ease-in-out'); down.remove();   // …down the little street…
+            carGone();
             const home = s.vehicle('roadFx', familyCar('#e63946', ''), 232, LANE_B, 1);
             home.carry(true);
-            await home.move(398, LANE_B, 900, 'ease-out');
+            await home.move(398, LANE_B, 900, 'ease-out');                          // …and home into the driveway
             await s.carPark(home);
             s.dadIn();
           })().catch(() => {});
@@ -872,6 +879,7 @@ const Scene = (() => {
           s.hide('toyBroken'); s.show('toyFixed'); s.sparkle(380, 440);
           s.toss(398, 430, 350, 432, BALL, 600); await s.w(300);
           s.toss(350, 430, 398, 432, TOY, 600); await s.w(800);
+          s.line('thanksBanjo'); f.jump(); await s.w(1800);   // (the friend who helped is Banjo)
           await f.go(P.friend); await f.enter();
         },
       },
@@ -887,7 +895,8 @@ const Scene = (() => {
           s.hide('boxClosed'); s.show('boxPile'); s.hide('toyBroken');
           // …the new toy jumps out, and the empty box and the packing are left as trash
           s.toss(412, 432, 384, 454, TOY, 650, () => { s.show('toyNew'); s.sparkle(384, 440); });
-          await s.w(400); await s.go(P.home); await s.w(500);
+          await s.w(700); s.line('thanksMom'); await s.w(1800);   // (mom ordered it online)
+          await s.go(P.home); await s.w(300);
           await away; t.remove();
         },
         apply(s) { s.hide('boxClosed'); s.show('boxPile'); },
@@ -980,7 +989,8 @@ const Scene = (() => {
         async play(s) {
           const grownUps = s.remote ? s.remote.people : [];
           await s.withMe(P.thrift, grownUps); s.inside(true); grownUps.forEach((m) => m.fade(false)); await s.w(1100);
-          s.wear('carry'); s.inside(false); grownUps.forEach((m) => m.fade(true)); s.sparkle(462, 330); s.jump(); await s.w(700);
+          s.wear('carry'); s.inside(false); grownUps.forEach((m) => m.fade(true)); s.sparkle(462, 330); s.jump();
+          s.line(s.mode === 'car' ? 'thanksDad' : 'thanksMom'); await s.w(1800);   // (whoever paid for it)
         },
       },
       bad: {
@@ -998,6 +1008,7 @@ const Scene = (() => {
           const grownUps = s.remote ? s.remote.people : [];
           await s.withMe(P.mall, grownUps); s.inside(true); grownUps.forEach((m) => m.fade(false)); await s.w(1300);
           s.wear('bag'); s.inside(false); grownUps.forEach((m) => m.fade(true));
+          s.line(s.mode === 'car' ? 'thanksDad' : 'thanksMom'); await s.w(1800);
           await delivery;
         },
       },
@@ -1071,7 +1082,9 @@ const Scene = (() => {
     const q = (k) => container.querySelector(`[data-k="${k}"]`);
     container.insertAdjacentHTML('beforeend', '<div class="rain-fx" aria-hidden="true"></div>');
     // the slowest devices: the wing flaps stand still too
-    if (typeof Perf !== 'undefined' && Perf.tier === 'low' && svg.pauseAnimations) svg.pauseAnimations();
+    // the birds' flapping wings (SMIL shape morphing) are the heaviest little extra: only on 'high'
+    const wings = (t) => { if (!svg.pauseAnimations) return; if (t === 'high') svg.unpauseAnimations(); else svg.pauseAnimations(); };
+    if (typeof Perf !== 'undefined') { wings(Perf.tier); Perf.onChange(wings); }
     // A random sky every game: sometimes clear, sometimes a few clouds drifting by
     q('skyClouds').innerHTML = Array.from({ length: [0, 1, 1, 2, 2, 3][Math.floor(Math.random() * 6)] }, () => {
       const y = 40 + Math.random() * 110, sc = 0.6 + Math.random() * 0.7, dur = 90 + Math.random() * 70;
@@ -1081,6 +1094,7 @@ const Scene = (() => {
     let mood = '';
     let time = 'day';
     let reactTimer = 0, bubbleTimer = 0, walkTimer = 0, walkEnd = 0;
+    let lineFor = () => '';   // (the game gives us Bobo's lines in the player's language, see setLines)
     let walkPos = [...P.home];
     let gen = 0;               // goes up whenever a new situation starts; old animations then stop
     let pending = null;        // the lasting changes of the choice that is still playing
@@ -1617,6 +1631,7 @@ const Scene = (() => {
         setTimeout(() => g.remove(), 1300);
       },
       jump() { restartAnim(svg.querySelector('.mjump'), 'jump'); },
+      line(key) { const text = lineFor(key); if (text) say(text); },   // Bobo says one of the game's lines (e.g. 'thanksMom')
       droop() { restartAnim(svg.querySelector('.mjump'), 'droop'); },
     };
 
@@ -1764,7 +1779,7 @@ const Scene = (() => {
        the coral bleaches and the animals leave. */
     function setStats(temp) {
       climate = temp;
-      level = temp < 1.4 ? 0 : temp < 1.9 ? 1 : temp < 2.4 ? 2 : 3;
+      level = temp < 1.3 ? 0 : temp < 1.7 ? 1 : temp < 2.2 ? 2 : 3;
       [1, 2, 3].forEach((n) => svg.classList.toggle('clim-' + n, level >= n));
       container.classList.toggle('clim-hot', level >= 3);
       container.querySelector('.bd-haze').style.opacity = hazeFor();
@@ -1824,6 +1839,7 @@ const Scene = (() => {
       },
       finishJobs: finishPending,
       setMode: (m) => { s.mode = m; },   // 'bike' or 'car': how Bobo gets around town
+      setLines: (fn) => { lineFor = fn; },   // fn(key) → that speech bubble line in the current language
       /* A reward 2 turns later (if Bobo was away on a trip, Bobo comes back first) */
       payoff(id) {
         begin();

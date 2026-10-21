@@ -17,7 +17,7 @@ const I18N = {
       credits: 'Made by students of the class “Climate Change Communication: Unraveling Communication and Acceptance Challenges” at the University of St. Gallen (HSG)',
       introTitle: 'Welcome to Bobo’s City!',
       introText: 'This is Bobo! Bobo lives in a busy city on an island, with a school, shops, cars, trains and a power plant. You will help Bobo make 11 everyday choices.',
-      introMeters: 'Watch the thermometer. Some choices make cars and the power plant puff out more CO₂, and the city gets hotter. If it reaches +3 °C, the island overheats and the game is over. Keep it cool!',
+      introMeters: 'Watch the thermometer. Some choices make cars and the power plant puff out more CO₂, and the city gets hotter. If it reaches +2.5 °C, the island overheats and the game is over. Keep it cool!',
       tempMeter: 'City temperature',
       go: 'Let’s go!',
       turn: 'Choice {n} of 11',
@@ -68,6 +68,7 @@ const I18N = {
     // Speech bubbles: [problem, green choice, other choice, reward] for each choice
     say: {
       idle: ['Hey you! Are you still there?', 'Can you help me choose?', 'Psst… which one is better for our city?', 'Help me keep the city cool!', 'I need your help!', 'Which choice helps our planet?', 'Hello? Anybody there?', 'Let’s make a choice that’s good for Earth!'],
+      thanksMom: 'Thanks, Mom!', thanksDad: 'Thanks, Dad!', thanksBanjo: 'Thanks for helping, Banjo!',
       hello: 'Hi! I’m Bobo!', eclipse: 'Eclipse glasses on!', whale: 'A whale! Hi there!', heat: 'Phew… so hot and dry!', storm: 'What a storm!', bugs: 'Ugh, bugs!', warrior: 'We did it!',
       choices: [
         ['Time for school!', 'Wheee! Fastest way!', 'Stuck in traffic…', 'A bike group!'],
@@ -101,11 +102,11 @@ const I18N = {
       warrior: ['Climate Warrior!', 'Bobo’s City stayed at about +{n} °C. Solar panels, birds and animals everywhere! Your choices kept the city cool and happy.'],
       warming: ['Warming Island', 'The city warmed up to +{n} °C. Summers are hotter and fewer animals are around. Some green choices helped. Try again to cool it down!'],
       hot: ['Hot Island', 'The city heated up to +{n} °C. It is dry and stormy, there are bugs everywhere and the animals left. Small choices add up. Try again and see the difference!'],
-      overheated: ['Island Overheated!', 'Oh no! The city got too hot (+{n} °C) before the end. It is dry and stormy, and the animals left. Every green choice keeps the island cooler. Try again!'],
+      overheated: ['Island Overheated!', 'Oh no! The city got too hot (+{n} °C). It is dry and stormy, and the animals left. Every green choice keeps the island cooler. Try again!'],
     },
     ach: {
       first: ['First Steps', 'Finish your first game'],
-      warrior: ['Climate Warrior', 'Keep the city at +1.4 °C or less'],
+      warrior: ['Climate Warrior', 'Keep the city at +1.3 °C or less'],
       perfect: ['Perfect 11', 'Make 11 green choices in one game'],
       bike: ['Bike Buddy', 'Bike to school'],
       lights: ['Power Saver', 'Switch off the lights and TV'],
@@ -271,7 +272,7 @@ const I18N = {
       credits: 'Gemacht von Studierenden des Kurses «Climate Change Communication: Unraveling Communication and Acceptance Challenges» an der Universität St. Gallen (HSG)',
       introTitle: 'Willkommen in Bobos Stadt!',
       introText: 'Das ist Bobo! Bobo lebt in einer belebten Stadt auf einer Insel, mit Schule, Läden, Autos, Zügen und einem Kraftwerk. Du hilfst Bobo bei 11 Entscheidungen aus dem Alltag.',
-      introMeters: 'Achte auf das Thermometer. Manche Entscheidungen lassen Autos und Kraftwerk mehr CO₂ ausstossen, und die Stadt wird heisser. Erreicht sie +3 °C, überhitzt die Insel und das Spiel ist vorbei. Halte sie kühl!',
+      introMeters: 'Achte auf das Thermometer. Manche Entscheidungen lassen Autos und Kraftwerk mehr CO₂ ausstossen, und die Stadt wird heisser. Erreicht sie +2,5 °C, überhitzt die Insel und das Spiel ist vorbei. Halte sie kühl!',
       tempMeter: 'Temperatur der Stadt',
       go: 'Los geht’s!',
       turn: 'Entscheidung {n} von 11',
@@ -321,6 +322,7 @@ const I18N = {
     },
     say: {
       idle: ['Hey du! Bist du noch da?', 'Kannst du mir beim Entscheiden helfen?', 'Psst… was ist besser für unsere Stadt?', 'Hilf mir, die Stadt kühl zu halten!', 'Ich brauche deine Hilfe!', 'Was hilft unserem Planeten?', 'Hallo? Ist da jemand?', 'Lass uns etwas Gutes für die Erde wählen!'],
+      thanksMom: 'Danke, Mama!', thanksDad: 'Danke, Papa!', thanksBanjo: 'Danke fürs Helfen, Banjo!',
       hello: 'Hallo! Ich bin Bobo!', eclipse: 'Finsternis-Brille auf!', whale: 'Ein Wal! Hallo!', heat: 'Puh… so heiss und trocken!', storm: 'Was für ein Sturm!', bugs: 'Igitt, Insekten!', warrior: 'Geschafft!',
       choices: [
         ['Zeit für die Schule!', 'Juhu! Am schnellsten!', 'Im Stau…', 'Eine Velo-Gruppe!'],
@@ -354,11 +356,11 @@ const I18N = {
       warrior: ['Klima-Held!', 'Bobos Stadt blieb bei etwa +{n} °C. Überall Solarzellen, Vögel und Tiere! Deine Entscheidungen haben die Stadt kühl und fröhlich gehalten.'],
       warming: ['Warme Insel', 'Die Stadt wurde +{n} °C wärmer. Die Sommer sind heisser und es gibt weniger Tiere. Einige grüne Entscheidungen haben geholfen. Versuch es nochmal und kühl sie ab!'],
       hot: ['Heisse Insel', 'Die Stadt wurde +{n} °C heisser. Es ist trocken und stürmisch, überall sind Insekten und die Tiere sind weg. Kleine Entscheidungen zählen. Versuch es nochmal und sieh den Unterschied!'],
-      overheated: ['Insel überhitzt!', 'Oh nein! Die Stadt wurde vor dem Ende zu heiss (+{n} °C). Es ist trocken und stürmisch, und die Tiere sind weg. Jede grüne Entscheidung hält die Insel kühler. Versuch es nochmal!'],
+      overheated: ['Insel überhitzt!', 'Oh nein! Die Stadt wurde zu heiss (+{n} °C). Es ist trocken und stürmisch, und die Tiere sind weg. Jede grüne Entscheidung hält die Insel kühler. Versuch es nochmal!'],
     },
     ach: {
       first: ['Erste Schritte', 'Beende dein erstes Spiel'],
-      warrior: ['Klima-Held', 'Halte die Stadt bei +1,4 °C oder weniger'],
+      warrior: ['Klima-Held', 'Halte die Stadt bei +1,3 °C oder weniger'],
       perfect: ['Perfekte 11', 'Triff 11 grüne Entscheidungen in einem Spiel'],
       bike: ['Velo-Fan', 'Fahr mit dem Velo zur Schule'],
       lights: ['Stromsparer', 'Mach Licht und Fernseher aus'],
@@ -524,7 +526,7 @@ const I18N = {
       credits: 'Creato da studenti del corso “Climate Change Communication: Unraveling Communication and Acceptance Challenges” all’Università di San Gallo (HSG)',
       introTitle: 'Benvenuti nella città di Bobo!',
       introText: 'Questo è Bobo! Bobo vive in una città vivace su un’isola, con una scuola, negozi, auto, treni e una centrale elettrica. Aiuterai Bobo a fare 11 scelte di ogni giorno.',
-      introMeters: 'Guarda il termometro. Alcune scelte fanno uscire più CO₂ dalle auto e dalla centrale, e la città si scalda. Se arriva a +3 °C, l’isola si surriscalda e il gioco finisce. Tienila fresca!',
+      introMeters: 'Guarda il termometro. Alcune scelte fanno uscire più CO₂ dalle auto e dalla centrale, e la città si scalda. Se arriva a +2,5 °C, l’isola si surriscalda e il gioco finisce. Tienila fresca!',
       tempMeter: 'Temperatura della città',
       go: 'Andiamo!',
       turn: 'Scelta {n} di 11',
@@ -574,6 +576,7 @@ const I18N = {
     },
     say: {
       idle: ['Ehi tu! Ci sei ancora?', 'Mi aiuti a scegliere?', 'Psst… cosa è meglio per la nostra città?', 'Aiutami a tenere fresca la città!', 'Ho bisogno del tuo aiuto!', 'Cosa aiuta il nostro pianeta?', 'Pronto? C’è qualcuno?', 'Scegliamo qualcosa di buono per la Terra!'],
+      thanksMom: 'Grazie, mamma!', thanksDad: 'Grazie, papà!', thanksBanjo: 'Grazie dell’aiuto, Banjo!',
       hello: 'Ciao! Sono Bobo!', eclipse: 'Occhiali per l’eclissi!', whale: 'Una balena! Ciao!', heat: 'Uff… che caldo secco!', storm: 'Che tempesta!', bugs: 'Bleah, insetti!', warrior: 'Ce l’abbiamo fatta!',
       choices: [
         ['Si va a scuola!', 'Evviva! Velocissimo!', 'Bloccati nel traffico…', 'Un gruppo in bici!'],
@@ -607,11 +610,11 @@ const I18N = {
       warrior: ['Guerriero del clima!', 'La città di Bobo è rimasta a circa +{n} °C. Pannelli solari, uccelli e animali ovunque! Le tue scelte hanno tenuto la città fresca e felice.'],
       warming: ['Isola che si scalda', 'La città si è scaldata fino a +{n} °C. Le estati sono più calde e ci sono meno animali. Alcune scelte verdi hanno aiutato. Riprova per rinfrescarla!'],
       hot: ['Isola rovente', 'La città si è scaldata fino a +{n} °C. È secca e tempestosa, ci sono insetti ovunque e gli animali se ne sono andati. Le piccole scelte contano. Riprova e guarda la differenza!'],
-      overheated: ['Isola surriscaldata!', 'Oh no! La città è diventata troppo calda (+{n} °C) prima della fine. È secco e tempestoso, e gli animali sono andati via. Ogni scelta verde tiene l’isola più fresca. Riprova!'],
+      overheated: ['Isola surriscaldata!', 'Oh no! La città è diventata troppo calda (+{n} °C). È secco e tempestoso, e gli animali sono andati via. Ogni scelta verde tiene l’isola più fresca. Riprova!'],
     },
     ach: {
       first: ['Primi passi', 'Finisci la tua prima partita'],
-      warrior: ['Guerriero del clima', 'Tieni la città a +1,4 °C o meno'],
+      warrior: ['Guerriero del clima', 'Tieni la città a +1,3 °C o meno'],
       perfect: ['11 perfetto', 'Fai 11 scelte verdi in una partita'],
       bike: ['Amico della bici', 'Vai a scuola in bici'],
       lights: ['Salva-energia', 'Spegni luci e TV'],
@@ -777,7 +780,7 @@ const I18N = {
       credits: 'Créé par des étudiants du cours « Climate Change Communication: Unraveling Communication and Acceptance Challenges » à l’Université de Saint-Gall (HSG)',
       introTitle: 'Bienvenue dans la ville de Bobo !',
       introText: 'Voici Bobo ! Bobo vit dans une ville animée sur une île, avec une école, des magasins, des voitures, des trains et une centrale électrique. Tu vas aider Bobo à faire 11 choix de tous les jours.',
-      introMeters: 'Regarde le thermomètre. Certains choix font sortir plus de CO₂ des voitures et de la centrale, et la ville se réchauffe. Si elle atteint +3 °C, l’île surchauffe et la partie est finie. Garde-la au frais !',
+      introMeters: 'Regarde le thermomètre. Certains choix font sortir plus de CO₂ des voitures et de la centrale, et la ville se réchauffe. Si elle atteint +2,5 °C, l’île surchauffe et la partie est finie. Garde-la au frais !',
       tempMeter: 'Température de la ville',
       go: 'C’est parti !',
       turn: 'Choix {n} sur 11',
@@ -827,6 +830,7 @@ const I18N = {
     },
     say: {
       idle: ['Hé toi ! Tu es encore là ?', 'Tu peux m’aider à choisir ?', 'Psst… qu’est-ce qui est mieux pour notre ville ?', 'Aide-moi à garder la ville au frais !', 'J’ai besoin de ton aide !', 'Qu’est-ce qui aide notre planète ?', 'Allô ? Il y a quelqu’un ?', 'Choisissons quelque chose de bien pour la Terre !'],
+      thanksMom: 'Merci, maman !', thanksDad: 'Merci, papa !', thanksBanjo: 'Merci pour ton aide, Banjo !',
       hello: 'Salut ! Je suis Bobo !', eclipse: 'Lunettes d’éclipse !', whale: 'Une baleine ! Coucou !', heat: 'Pff… si chaud et sec !', storm: 'Quelle tempête !', bugs: 'Beurk, des insectes !', warrior: 'On a réussi !',
       choices: [
         ['C’est l’heure de l’école !', 'Youpi ! Le plus rapide !', 'Coincé dans les bouchons…', 'Un groupe à vélo !'],
@@ -860,11 +864,11 @@ const I18N = {
       warrior: ['Héros du climat !', 'La ville de Bobo est restée à environ +{n} °C. Des panneaux solaires, des oiseaux et des animaux partout ! Tes choix ont gardé la ville fraîche et joyeuse.'],
       warming: ['Île qui chauffe', 'La ville s’est réchauffée jusqu’à +{n} °C. Les étés sont plus chauds et il y a moins d’animaux. Certains choix verts ont aidé. Réessaie pour la rafraîchir !'],
       hot: ['Île brûlante', 'La ville a chauffé jusqu’à +{n} °C. Elle est sèche et pleine de tempêtes, il y a des insectes partout et les animaux sont partis. Les petits choix comptent. Réessaie et vois la différence !'],
-      overheated: ['Île en surchauffe !', 'Oh non ! La ville est devenue trop chaude (+{n} °C) avant la fin. C’est sec et orageux, et les animaux sont partis. Chaque choix vert garde l’île plus fraîche. Réessaie !'],
+      overheated: ['Île en surchauffe !', 'Oh non ! La ville est devenue trop chaude (+{n} °C). C’est sec et orageux, et les animaux sont partis. Chaque choix vert garde l’île plus fraîche. Réessaie !'],
     },
     ach: {
       first: ['Premiers pas', 'Termine ta première partie'],
-      warrior: ['Héros du climat', 'Garde la ville à +1,4 °C ou moins'],
+      warrior: ['Héros du climat', 'Garde la ville à +1,3 °C ou moins'],
       perfect: ['11 parfait', 'Fais 11 choix verts dans une partie'],
       bike: ['Copain du vélo', 'Va à l’école à vélo'],
       lights: ['Économe d’énergie', 'Éteins les lumières et la télé'],

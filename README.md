@@ -35,18 +35,20 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
   - hotter: dry brown grass, hazy sky, a bigger sun, bugs and flies, the animals leave, the sea
     rises over the beach, the coral bleaches, and the weather gets wilder (more rain, then storms)
   - Bobo looks less happy as the city gets hotter
-- Endings by temperature: **Climate Warrior** (up to +1.4 °C), **Warming Island** (up to
-  +2.2 °C) and **Hot Island** (above that). The game starts at +1.0 °C, about how much warmer
-  Earth already is today. If the city reaches +3.0 °C before the last choice, the island
-  overheats and the game ends early (a real loss, with Play again).
+- Endings by temperature: **Climate Warrior** (up to +1.3 °C), **Warming Island** (up to
+  +2.0 °C) and **Hot Island** (above that). The game starts at +1.0 °C, about how much warmer
+  Earth already is today. If the city reaches +2.5 °C, the island overheats and the game is
+  lost right away (a real loss, with Play again). It's meant to be hard: roughly, one bad choice
+  is still a Climate Warrior, five or more and the island overheats.
 - Every game is different: questions come in a random order (getting to school is always first and
-  the birthday party comes early),
+  the birthday party comes later on),
   each happens at a fitting time of day (the sun rises on the left and sets on the right), and the
   weather is random (wilder when the city is hotter)
 - On phones the city is zoomed in and the view follows Bobo around
-- Animation scaler (`js/perf.js`): it guesses what the device can handle (CPU, memory, graphics
-  chip, iPhone screen size), then watches the real frame rate and switches off extra animations if
-  the device struggles. Big changes happen one at a time (the sky changes first, then Bobo moves).
+- Animation scaler (`js/perf.js`): to go easy on graphics chips, most devices start with fewer
+  little extras (only strong ones like Apple M-chips or gaming graphics cards get everything). It
+  guesses from the CPU, memory, graphics chip and iPhone screen size, then watches the real frame
+  rate and switches off more animations as soon as the device struggles. Big changes happen one at a time (the sky changes first, then Bobo moves).
 - All icons are our own drawings (`js/icons.js`), no emoji
 - A recap of every decision with "Did you know?" facts (skippable), then simple takeaways
 - 16 achievements

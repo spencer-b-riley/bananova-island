@@ -6,8 +6,8 @@
   'use strict';
 
   const START_T = 1.0;                   // the city's temperature (°C above the old normal)
-  const PAYOFF_T = -0.05;                // reward when a green choice "comes back" 2 turns later
-  const LOSE_T = 3.0;                    // this hot before the last choice = the island overheated (game over)
+  const PAYOFF_T = -0.03;                // reward when a green choice "comes back" 2 turns later
+  const LOSE_T = 2.5;                    // this hot = the island overheated (game over, even before the last choice)
   const PAYOFF_DELAY = 2;
   const TURNS = CHOICES.length;          // 11
   const MIN_T = 1.0;                     // the planet is already about 1 °C warmer today
@@ -15,8 +15,8 @@
   // How Bobo looks when each situation appears
   const REACT = { school: 'think', lights: 'think', bottle: 'hot', toy: 'sad', hot: 'hot', cold: 'cold', shower: 'think',
     party: 'yay', jacket: 'think', trip: 'yay', food: 'yay' };
-  // Climate levels: below +1.4 °C, +1.9, +2.4, above
-  const levelOf = (temp) => (temp < 1.4 ? 0 : temp < 1.9 ? 1 : temp < 2.4 ? 2 : 3);
+  // Climate levels: below +1.3 °C, +1.7, +2.2, above
+  const levelOf = (temp) => (temp < 1.3 ? 0 : temp < 1.7 ? 1 : temp < 2.2 ? 2 : 3);
   const RAIN_CHANCE = [0.12, 0.2, 0.3, 0.42];   // hotter = wilder weather
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -274,11 +274,11 @@
   };
 
   function startGame() {
-    // Getting to school always comes first and the birthday party comes early (2nd or 3rd);
+    // Getting to school always comes first and the birthday party comes later on (6th, 7th or 8th);
     // the others come in a random order every game.
     const party = CHOICES.findIndex((c) => c.id === 'party');
     const seq = [0, ...shuffle(CHOICES.map((_, k) => k).filter((k) => k !== 0 && k !== party))];
-    seq.splice(1 + Math.floor(Math.random() * 2), 0, party);
+    seq.splice(5 + Math.floor(Math.random() * 3), 0, party);
     // Time of day only moves forward (morning → day → evening → night), like a real day.
     // When the next situation needs an earlier time (school is in the morning), a new day starts.
     const DAY = ['morning', 'day', 'evening', 'night'];
@@ -332,6 +332,7 @@
         <div class="card" id="card" aria-live="polite"></div>
       </section>`, { home: true });
     scene = Scene.create($('#sceneWrap'));
+    scene.setLines((key) => L().say[key] || '');
     watchScene($('#sceneWrap'));
     labelHud();
     updateHud();
@@ -346,8 +347,8 @@
   }
 
   function updateHud() {
-    // thermometer: +0.8 °C = empty, +3.5 °C = full
-    $('#mt .bar i').style.width = clamp((G.temp - 0.8) / 2.7 * 100, 4, 100) + '%';
+    // thermometer: +0.8 °C = empty, +2.5 °C (the island overheats) = full
+    $('#mt .bar i').style.width = clamp((G.temp - 0.8) / (LOSE_T - 0.8) * 100, 4, 100) + '%';
     const dots = $('#dots').children;
     for (let k = 0; k < TURNS; k++) {
       const pk = G.picks[G.seq[k]];
@@ -475,7 +476,7 @@
     if (good) G.payQueue.push({ idx, due: turn + PAYOFF_DELAY });
 
     // too hot before the end: the island overheated and the game is over
-    G.next = G.temp >= LOSE_T && turn < TURNS - 1 ? () => { G.turn++; finish(true); } : () => { G.turn++; step(); };
+    G.next = G.temp >= LOSE_T ? () => { G.turn++; finish(true); } : () => { G.turn++; step(); };
     cardShow(() => card(`
       <div class="card-head"><span class="pill">${t('turn', { n: turn + 1 })}</span><span class="topic">${ct(idx, 'topic')}</span></div>
       <div class="result"><span class="emo">${Icon(d.icon)}</span><p>${ct(idx, good ? 'resGood' : 'resBad')}</p></div>
@@ -510,7 +511,7 @@
   /* ═════════════════════ ENDING ═════════════════════ */
 
   async function finish(early = false) {
-    const ending = early ? 'overheated' : G.temp <= 1.4 ? 'warrior' : G.temp <= 2.2 ? 'warming' : 'hot';
+    const ending = early || G.temp >= LOSE_T ? 'overheated' : G.temp <= 1.3 ? 'warrior' : G.temp <= 2.0 ? 'warming' : 'hot';
     if (ending === 'warrior' && !G.sawWhale) {
       // the sea is healthy, so a whale comes to say hello (the card waits so everyone can see it)
       const game = G;

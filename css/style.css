@@ -689,7 +689,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 /* ── animation scaler (js/perf.js) ──
    mid: the little extras stand still; low: only the animations the story needs */
 :root[data-perf="mid"] :is(.kelp, .sway-soft, .flag, .balloon, .wander, .float, .boat-rock, .soar, .v-steam .smoke, .flicker, .tv-flicker, .glows circle.on) { animation: none !important; }
-:root[data-perf="mid"] :is([data-k="farFish"], [data-k="seaTurtle"]) { display: none; }
+:root[data-perf="mid"] [data-k="farFish"] { display: none; }
+:root[data-perf="mid"] [data-k="seaTurtle"] * { animation: none !important; }   /* (the turtle still shows the sea is healthy, it just stays still) */
 :root[data-perf="mid"] .plant-smoke .smoke:nth-child(even), :root[data-perf="mid"] .exhaust circle:nth-child(3) { display: none; }
 :root[data-perf="low"] :is(.kelp, .sway-soft, .flutter, .bfly, .beefly, .hop, .scuttle, .flag, .balloon, .wander, .float, .boat-rock, .soar, .wing, .flicker, .tv-flicker, .glows circle.on, .bob, .flies circle, .spout, .whale-bob, .heat-lines path, .cow-gas .smoke, .v-steam .smoke, .energy circle, .wheelspin) { animation: none !important; }
 :root[data-perf="low"] :is([data-k="farFish"], [data-k="seaTurtle"], [data-k="fish"], [data-k="boats"], [data-k="butterflies"], [data-k="bees"], [data-k="skyClouds"], [data-k="traffic2"], [data-k="traffic3"], [data-k^="birds"]) { display: none; }
