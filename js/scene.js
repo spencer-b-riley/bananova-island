@@ -62,10 +62,11 @@ const Scene = (() => {
 
   // Seagull with flapping wings (faces right)
   const gull = `<g class="gull">
-      <g class="wing far"><path d="M-2 -1 C-6 -9 -14 -15 -26 -17 C-18 -11 -10 -5 -4 1Z" fill="#b7c0c8"/><path d="M-26 -17 L-20 -13.6 L-18.6 -15.4Z" fill="#2b2f36"/></g>
+      <g class="wing far"><path d="M0 -1 C-2 -6 -7 -11 -12 -13 C-17 -14 -22 -12.5 -27 -10 L-24 -9.6 C-19 -10.2 -15 -9.8 -11 -8 C-7 -6 -4 -3 -3 1Z" fill="#b9c2ca"/><path d="M-27 -10 L-24 -9.6 L-21.5 -11 L-23.5 -12Z" fill="#2b2f36"/></g>
       <path d="M-15 1 C-11 -3 2 -4.5 9 -2 C13 -0.5 14 1.5 11 2.6 C3 4.8 -8 4.2 -15 2.6 L-21 2Z" fill="#fff"/><path d="M-15 1.4 L-21 2 L-15 2.8Z" fill="#9aa3ad"/>
       <circle cx="10" cy="-2" r="3.4" fill="#fff"/><path d="M13 -2.4 L18.5 -1.2 L13 0Z" fill="#f2c94c"/><circle cx="17" cy="-1" r=".7" fill="#e63946"/><circle cx="11" cy="-2.8" r=".8" fill="#23313f"/>
-      <g class="wing near"><path d="M1 -1 C-2 -10 -12 -19 -28 -24 L-31 -21 C-20 -15 -10 -7 -4 1.5Z" fill="#e3e8ec" stroke="#aab3bb" stroke-width=".6"/><path d="M-28 -24 L-31 -21 L-26 -20.4 L-24 -22.4Z" fill="#2b2f36"/></g></g>`;
+      <g class="wing near"><path d="M2 -1 C0 -7 -6 -13 -13 -15 C-19 -16 -26 -14 -32 -11 L-28 -10.5 C-22 -11.5 -17 -11 -12 -9 C-7 -7 -3 -3 -2 1.5Z" fill="#e9edf0" stroke="#9aa3ad" stroke-width=".6"/>
+        <path d="M-32 -11 L-28 -10.5 L-25 -12 L-27.5 -13.6Z" fill="#2b2f36"/></g></g>`;
   const gullFlight = (k, y, sc, dur, delay, left = false) =>
     `<g data-k="birds${k}" class="fade"><g class="fly${left ? ' left' : ''}" style="animation-duration:${dur}s;animation-delay:${delay}s"><g transform="translate(0 ${y}) scale(${left ? -sc : sc} ${sc})"><g class="soar">${gull}</g></g></g></g>`;
 
@@ -180,14 +181,15 @@ const Scene = (() => {
   // a little monkey head looking out of a window (faces right)
   const monkeyHead = (x, y, fur, cls = '') => `<g class="${cls}" transform="translate(${x} ${y})"><circle cx="-4.6" cy="-.5" r="2.4" fill="${fur}"/><circle r="5.2" fill="${fur}"/>
       <ellipse cx="2.2" cy="1" rx="3.4" ry="3" fill="#e8c39e"/><circle cx="1.6" cy="-1.5" r=".95" fill="#23313f"/><path d="M1.2 2.4 q1.6 1.3 3.2 -.2" stroke="#5a2d0c" stroke-width=".8" fill="none"/></g>`;
-  const car = (c, fur = '#7a4a24', back = monkeyHead(-3, -23, '#8b5a2b')) => `${exhaust(-38)}
+  const car = (c, fur = '#7a4a24', back = monkeyHead(-3, -23, '#8b5a2b'), driver = true) => `${exhaust(-38)}
       <path d="M-32 -8 Q-32 -19 -24 -19 L-16 -19 L-8 -31 L12 -31 L22 -19 L28 -19 Q34 -19 34 -11 L34 -6 L-32 -6Z" fill="${c}"/>
       <path d="M-5 -28 L3 -28 L3 -20 L-11 -20Z M7 -28 L11 -28 L18 -20 L7 -20Z" fill="#cfefff"/>
-      ${monkeyHead(11, -23, fur)}<g class="passenger">${back}</g>
+      ${driver ? monkeyHead(11, -23, fur) : ''}<g class="passenger">${back}</g>
       <rect x="27" y="-16" width="6" height="4" rx="1" fill="#fff3a8"/><rect x="-32" y="-16" width="4" height="4" fill="#ff5b4a"/>
       ${wheel(-17)}${wheel(17)}`;
   // the family car: dad drives; mom, Bobo and the little sister sit in the back
-  const familyCar = (c) => car(c, '#6b4423', `<g transform="translate(-8.6 -22.5) scale(.62)">${monkeyHead(0, 0, '#a0703f')}</g><g transform="translate(-3.6 -22.5) scale(.66)">${monkeyHead(0, 0, '#8b5a2b')}</g><g transform="translate(1 -21.5) scale(.5)">${monkeyHead(0, 0, '#b07a44')}</g>`);
+  const BACK_FAMILY = `<g transform="translate(-8.6 -22.5) scale(.62)">${monkeyHead(0, 0, '#a0703f')}</g><g transform="translate(-3.6 -22.5) scale(.66)">${monkeyHead(0, 0, '#8b5a2b')}</g><g transform="translate(1 -21.5) scale(.5)">${monkeyHead(0, 0, '#b07a44')}</g>`;
+  const familyCar = (c, back = BACK_FAMILY) => car(c, '#6b4423', back);
   const truck = `${exhaust(-52)}
       <rect x="-48" y="-50" width="64" height="42" rx="3" fill="#f7f7f7" stroke="#c8cdd3" stroke-width="2"/>
       <path d="M-38 -36 h44 M-38 -26 h44" stroke="#ffb627" stroke-width="5"/>
@@ -229,6 +231,7 @@ const Scene = (() => {
       <path d="M-18 -8 Q-34 6 -24 20 M18 -8 Q34 6 24 20" stroke="${shirt}" stroke-width="9" fill="none" stroke-linecap="round"/>
       <circle cx="-24" cy="21" r="5" fill="${fur}"/><circle cx="24" cy="21" r="5" fill="${fur}"/>
       ${extra === 'tie' ? TIE : ''}
+      <g class="umbrella"><path d="M14 18 L4 -86" stroke="#6b4423" stroke-width="3" stroke-linecap="round"/><path d="M-44 -78 Q2 -118 48 -78 Q36 -85 25 -78 Q14 -85 2 -78 Q-10 -85 -21 -78 Q-32 -85 -44 -78Z" fill="#ff5b4a" stroke="#c0392b" stroke-width="2.5" stroke-linejoin="round"/><path d="M2 -78 Q4 -100 2 -112 M-21 -78 Q-14 -98 0 -110 M25 -78 Q18 -98 4 -110" stroke="#c0392b" stroke-width="1.6" fill="none"/></g>
       <g transform="translate(0 -40)">
         <circle cx="-26" cy="0" r="10" fill="${fur}"/><circle cx="-26" cy="0" r="6" fill="${face}"/><circle cx="26" cy="0" r="10" fill="${fur}"/><circle cx="26" cy="0" r="6" fill="${face}"/>
         <circle cx="0" cy="0" r="26" fill="${fur}"/><ellipse cx="0" cy="8" rx="18" ry="14" fill="${face}"/>
@@ -460,14 +463,17 @@ const Scene = (() => {
     ${[0, 1, 2].map((r) => `<rect x="624" y="${399 + r * 6}" width="4" height="4" fill="#2f80ed"/><rect x="630" y="${399 + r * 6}" width="4" height="4" fill="#ff6fa8"/>`).join('')}
     <rect x="625" y="421" width="8" height="4" fill="#23313f"/>
     <path d="M692 432 V414" stroke="#9aa5b1" stroke-width="5"/><path d="M682 414 H702 Q702 420 692 420 Q682 420 682 414Z" fill="#9aa5b1"/><path d="M692 414 Q694 404 699 410" stroke="#7fd3f7" stroke-width="2" fill="none"/>
-    ${bush(722, 432, 0.8)}${tree(770, 436, 0.85)}
+    ${bush(722, 432, 0.8)}<ellipse cx="760" cy="437" rx="24" ry="4.5" fill="#23313f" opacity=".16"/>${tree(770, 436, 0.85)}
   </g>
   ${item('veggieGarden', 0, 0, `<rect x="708" y="440" width="78" height="10" rx="3" fill="#8b5a2b"/>${[714, 730, 746, 762, 778].map((x, k) =>
     `<g transform="translate(${x} 441)"><path d="M0 0 q-6 -8 -2 -14 M0 0 q6 -8 2 -14 M0 0 V-12" stroke="#3d9a2e" stroke-width="2.4" fill="none"/>${k % 2 ? '<circle cx="0" cy="-2" r="3" fill="#ff8c42"/>' : '<circle cx="0" cy="-6" r="5" fill="#7fe06a"/>'}</g>`).join('')}
       ${flower(704, 438, '#ff6fa8')}${bee(728, 416, 0)}${bee(760, 420, -1.4)}`)}
 
+  <!-- the driveway with the family car -->
+  <path d="M262 426 H338 V438 H262Z" fill="#c9c2b0"/><path d="M266 431 H334 M266 435 H334" stroke="#b5ad9a" stroke-width="1.2"/>
+  ${item('parkedCar', 300, 435, `<g transform="scale(-.96 .96)">${car('#e63946', '#6b4423', '', false)}</g>`, 'fade', false)}
   <!-- pigeons pecking on the pavement (behind the road, so the cars drive in front of them) -->
-  <g data-k="pigeons" class="fade">${pigeon(262, 435, false, 0)}${pigeon(596, 436, true, -1.1)}</g>
+  <g data-k="pigeons" class="fade">${pigeon(234, 435, false, 0)}${pigeon(596, 436, true, -1.1)}</g>
   <!-- the toy in front of Bobo's house -->
   ${item('toyBroken', 384, 436, `<g transform="rotate(-14)"><path d="M-14 -10 h28 v8 h-28Z" fill="#ff5b4a"/><circle cx="-8" cy="0" r="4" fill="#23313f"/></g><circle cx="12" cy="0" r="4" fill="#23313f"/><path d="M2 -14 l3 -4 l2 4" stroke="#23313f" stroke-width="1.5" fill="none"/>`)}
       ${item('toyFixed', 384, 436, `<path d="M-14 -10 h28 v8 h-28Z" fill="#ff5b4a"/><path d="M-6 -16 h12 v6 h-12Z" fill="#cfefff"/><circle cx="-8" cy="0" r="4" fill="#23313f"/><circle cx="8" cy="0" r="4" fill="#23313f"/><path d="M-2 -6 h4" stroke="#ffd23f" stroke-width="3"/>`)}
@@ -494,6 +500,8 @@ const Scene = (() => {
     <g data-k="mBottle" class="fade hide"><g transform="translate(26 14) rotate(-10)"><rect x="-5" y="-18" width="10" height="20" rx="4" fill="#2fb35a"/><rect x="-3" y="-23" width="6" height="5" rx="1" fill="#1d8f43"/><circle cx="0" cy="-8" r="2.5" fill="#ffd23f"/></g></g>
     <g data-k="mPlastic" class="fade hide"><g transform="translate(26 14) rotate(-10)">${bottle(0, 2, 0, 1.1)}</g></g>
     <g data-k="mGlass" class="fade hide"><g transform="translate(26 12)"><path d="M-5 -14 h10 l-1.5 15 h-7Z" fill="#cfefff" stroke="#7fd3f7" stroke-width="1.5"/><rect x="-4" y="-8" width="8" height="8" fill="#7fd3f7" opacity=".6"/></g></g>
+    <g data-k="mCarry" class="fade hide"><g transform="translate(-26 10) rotate(8)"><path d="M-10 -12 h20 l3 22 h-26Z" fill="#2fb35a" stroke="#1d8f43" stroke-width="2"/><circle cx="-3" cy="2" r="3.6" fill="#ff6fa8"/><path d="M4 -6 l5 0 l-2.5 5Z" fill="#ffd23f"/></g></g>
+    <g class="umbrella"><path d="M14 18 L4 -86" stroke="#6b4423" stroke-width="3" stroke-linecap="round"/><path d="M-44 -78 Q2 -118 48 -78 Q36 -85 25 -78 Q14 -85 2 -78 Q-10 -85 -21 -78 Q-32 -85 -44 -78Z" fill="#ff5b4a" stroke="#c0392b" stroke-width="2.5" stroke-linejoin="round"/><path d="M2 -78 Q4 -100 2 -112 M-21 -78 Q-14 -98 0 -110 M25 -78 Q18 -98 4 -110" stroke="#c0392b" stroke-width="1.6" fill="none"/></g>
     <g data-k="mBag" class="fade hide"><g transform="translate(-27 16)"><rect x="-8" y="-8" width="16" height="16" rx="1.5" fill="#ff5b4a"/><path d="M-4 -8 q4 -7 8 0" stroke="#c0392b" stroke-width="2" fill="none"/></g></g>
     <g transform="translate(0 -40)">
       <circle cx="-26" cy="0" r="10" fill="#8b5a2b"/><circle cx="-26" cy="0" r="6" fill="#e8c39e"/>
@@ -557,8 +565,14 @@ const Scene = (() => {
   <!-- the beach + the sea in front -->
   <g transform="translate(0 24)">
   ${item('beachTrash', 0, 0, `${bottle(612, 482, 80, 1.1)}${bottle(640, 480, -60, 1.1)}<path d="M582 482 l10 -3 l2 5Z" fill="#ff6fa8"/>`, 'fade')}
-  ${item('beachTurtle', 700, 480, `<g class="float">${turtle(0, 0, 0.8)}</g>`)}
+  ${item('beachTurtle', 652, 480, `<g class="float">${turtle(0, 0, 0.8)}</g>`)}
   <g data-k="crabs" class="fade">${crab(150, 484, 0)}${crab(470, 486, -5)}</g>
+  </g>
+  <!-- the harbor: a wooden pier with a crane -->
+  <g class="harbor">
+    <path d="M700 512 H724 V566 H700Z" fill="#b5773f"/><path d="M700 520 H724 M700 530 H724 M700 540 H724 M700 550 H724 M700 560 H724" stroke="#8b5a2b" stroke-width="1.2"/>
+    <path d="M703 566 V578 M721 566 V578" stroke="#6b4423" stroke-width="3"/>
+    <path d="M708 548 V498 L742 498 M708 512 L722 498 M742 498 V512" stroke="#ffb627" stroke-width="3" fill="none"/><rect x="738" y="512" width="8" height="6" fill="#555b63"/>
   </g>
   <g data-k="reef" class="reef">${reef(110, 604, 0.7, 'staghorn', 'brain', 'anemone', 'a', 'd', 'b')}${reef(700, 610, 0.65, 'fan', 'tube', 'brain', 'c', 'b', 'e')}</g>
   <g data-k="fish">
@@ -643,7 +657,7 @@ const Scene = (() => {
   const CUP = '<path d="M-3 -4 h6 l-1 8 h-4Z" fill="#fff" stroke="#2fb35a" stroke-width="1.2"/>';
   const PLASTIC = '<path d="M-3 -4 h6 l-1 8 h-4Z" fill="#ff5b4a"/>';
   // A traffic jam across the whole city: a queue of cars in both lanes
-  const QUEUE_A = [280, 208, 136, 64, -8, -80];               // lane A (going left), in front of Bobo's car
+  const QUEUE_A = [196, 124, 52, -20, -92, -164];             // lane A (going left), in front of the family car
   const QUEUE_B = [412, 484, 556, 628, 700, 772, 844];         // lane B (going right)
   const JAM_SPEED = 0.2;   // city units per millisecond; every car in a jam moves at this speed
 
@@ -655,38 +669,45 @@ const Scene = (() => {
       async ev(s) { s.wear('pack'); await s.go(P.home); },
       good: {
         async play(s) {
-          await s.go(P.lane);                 // to the bike lane, hop on the bike
+          // there's a traffic jam on the street… and Bobo just bikes right past it
+          const jam = s.jamStart(QUEUE_A.map((x) => x + 120), QUEUE_B);
+          await s.go(P.lane);
           s.wear('bike'); await s.w(150);
-          await s.ride([232, 487]);            // along the street…
+          await s.ride([232, 487]);            // along the bike lane, past all the cars…
           await s.ride([232, 372], 0.09);      // …and up the little street to the school (seen from behind)
           s.wear('bike', false); await s.w(150);
+          s.jamGo(jam);
           await s.go(P.school);
-          s.sparkle(108, 330); s.jump(); await s.w(700);
+          s.sparkle(108, 330); s.jump(); await s.w(900);
+          s.jamEnd();
         },
       },
       bad: {
         async play(s) {
-          await s.go(P.curb);
-          const ride = s.vehicle('roadFx', car('#e63946'), 900, LANE_A, -1);
-          await ride.move(352, LANE_A, 1500, 'ease-out');
-          s.inside(true); ride.carry(true); ride.cam = true;
+          // dad drives Bobo in the family car from the driveway
+          await s.go([346, 458]);
+          await s.dadOut();
+          s.inside(true);
+          const ride = await s.carOut(monkeyHead(-3, -23, '#8b5a2b'));
+          ride.cam = true;
           // the whole city is stuck in a traffic jam, puffing smoke
           const jam = s.jamStart(QUEUE_A, QUEUE_B);
           sfx('honk'); await s.w(1200); sfx('honk'); await s.w(1200);
           s.jamGo(jam);
-          await ride.move(232, LANE_A, 120 / JAM_SPEED, 'linear');   // along the street…
-          await ride.move(232, 396, 1400, 'ease-in-out');              // …and up the little street to the school
-          ride.cam = false; ride.carry(false);
-          s.place([232, 374]); s.inside(false);
-          const leave = (async () => { await ride.move(232, LANE_A, 1200); await ride.move(-420, LANE_A, 2400, 'ease-in'); })();
-          leave.catch(() => {});
+          await ride.move(232, LANE_A, 30 / JAM_SPEED, 'linear');   // to the little street…
+          await ride.move(232, 396, 1400, 'ease-in-out');             // …and up to the school
+          ride.cam = false;
+          ride.carry(false); s.place([232, 374]); s.inside(false);
+          // dad drives back home and parks in the driveway
+          const back = (async () => { await ride.move(232, LANE_A, 1200); await s.carPark(ride); s.dadIn(); })();
+          back.catch(() => {});
           await s.go(P.school);
-          await leave; ride.remove();
+          await back;
           s.jamEnd();
         },
         apply(s) { s.traffic++; s.jamEnd(); },
       },
-      pay(s) { s.show('cyclists'); s.look(400); s.sparkle(300, 470); s.sparkle(560, 470); },
+      pay(s) { s.reveal('cyclists', 330, 470); },
     },
     lights: {
       async ev(s) { await s.go(P.home); s.houseLights(true); },
@@ -701,7 +722,7 @@ const Scene = (() => {
         async play(s) { await s.go(P.fountain); s.energy('fast'); s.burst(); await s.w(2200); },
         apply(s) { s.energyBad++; s.houseLights(true); },
       },
-      pay(s) { s.show('solarRoof'); s.show('solarSchool'); s.renew++; s.updatePlant(); s.look(260); s.sparkle(350, 370); s.sparkle(70, 296); },
+      pay(s) { s.reveal(['solarRoof', 'solarSchool'], 350, 360); s.renew++; s.updatePlant(); },
     },
     bottle: {
       async ev(s) { await s.go(P.fountain); },
@@ -721,7 +742,7 @@ const Scene = (() => {
         },
         apply(s) { s.show('beachTrash'); s.show('seaBottles'); s.seaHurt = true; },
       },
-      pay(s) { s.hide('beachTrash'); s.show('beachTurtle'); s.look(700); s.sparkle(700, 490); },
+      pay(s) { s.hide('beachTrash'); s.reveal('beachTurtle', 652, 498); },
     },
     toy: {
       async ev(s) { await s.go(P.home); s.show('toyBroken'); },
@@ -748,18 +769,22 @@ const Scene = (() => {
         },
         apply(s) { s.show('boxPile'); },
       },
-      pay(s) { s.show('swapBox'); s.look(150); s.sparkle(150, 344); },
+      pay(s) { s.reveal('swapBox', 150, 345); },
     },
     hot: {
       async ev(s) { s.show('heatGlow'); await s.go(P.home); },
       good: {
-        async play(s) { s.show('fan'); s.q('boboHouse').classList.add('win-open'); await s.w(700); s.wear('glass'); s.sparkle(384, 420); await s.w(1000); },
+        // open the windows, then cool down in the shade of the park tree with a cold drink (no electricity)
+        async play(s) {
+          s.q('boboHouse').classList.add('win-open'); await s.w(500);
+          await s.go([756, 458]); s.wear('glass'); s.sparkle(756, 420); await s.w(1000);
+        },
       },
       bad: {
         async play(s) { s.show('acUnit'); s.show('acAir'); await s.w(500); s.energy('fast'); s.burst(); await s.w(2000); },
         apply(s) { s.show('acUnit'); s.energyBad++; },
       },
-      pay(s) { s.show('shadeTrees'); s.look(350); s.sparkle(272, 410); s.sparkle(426, 410); },
+      pay(s) { s.reveal('shadeTrees', 350, 410); },
     },
     cold: {
       async ev(s) { await s.go(P.home); },
@@ -770,7 +795,7 @@ const Scene = (() => {
         async play(s) { await s.go(P.door); s.inside(true); await s.w(500); s.show('houseSmoke'); s.energy('fast'); await s.w(1600); s.inside(false); await s.go(P.home); },
         apply(s) { s.show('houseSmoke'); s.energyBad++; },
       },
-      pay(s) { s.show('turbines'); s.renew++; s.updatePlant(); s.look(80); s.sparkle(80, 250); },
+      pay(s) { s.reveal('turbines', 82, 250); s.renew++; s.updatePlant(); },
     },
     shower: {
       // it's night: Bobo is already home (no playing outside in the dark)
@@ -782,7 +807,7 @@ const Scene = (() => {
         async play(s) { await s.go(P.door); s.inside(true); await s.w(300); s.show('bathBubbles'); s.energy('fast'); s.burst(); await s.w(2600); s.hide('bathBubbles'); s.wear('mud', false); s.inside(false); await s.w(300); },
         apply(s) { s.energyBad++; },
       },
-      pay(s) { s.show('solarHeater'); s.renew++; s.updatePlant(); s.look(200); s.sparkle(178, 388); },
+      pay(s) { s.reveal('solarHeater', 178, 386); s.renew++; s.updatePlant(); },
     },
     party: {
       async ev(s) {
@@ -811,22 +836,31 @@ const Scene = (() => {
         },
         apply(s) { s.show('trashPile'); },
       },
-      pay(s) { s.show('recycling'); s.look(150); s.sparkle(44, 420); },
+      pay(s) { s.reveal('recycling', 44, 420); },
     },
     jacket: {
       async ev(s) { await s.go(P.shops); },
       good: {
-        async play(s) { await s.go(P.thrift); s.inside(true); await s.w(1100); s.wear('cool'); s.inside(false); s.sparkle(462, 330); s.jump(); await s.w(700); },
+        // a cool jacket from the thrift store (it's sunny, so Bobo carries it home)
+        async play(s) { await s.go(P.thrift); s.inside(true); await s.w(1100); s.wear('carry'); s.inside(false); s.sparkle(462, 330); s.jump(); await s.w(700); },
       },
       bad: {
         async play(s) {
-          // a big cargo ship brings the new clothes from a faraway factory
-          const ship = s.vehicle('fx', SHIP, 950, 578, 1, 1.1);
-          ship.move(-380, 578, 7500, 'linear');      // (it keeps sailing; no need to wait for it)
-          await s.go(P.mall); s.inside(true); await s.w(1300); s.wear('plain'); s.wear('bag'); s.inside(false); await s.w(500);
+          // the new clothes come from a faraway factory: a cargo ship docks at the harbor and leaves again
+          s.hide('boats');
+          const ship = s.vehicle('fx', SHIP, 1000, 578, 1, 1.1);
+          const delivery = (async () => {
+            await ship.move(784, 578, 2600, 'ease-out');
+            s.toss(770, 540, 714, 530, BOX, 600);
+            await s.w(800);
+            await ship.move(1100, 578, 2400, 'ease-in'); ship.remove(); s.show('boats');
+          })();
+          delivery.catch(() => {});
+          await s.go(P.mall); s.inside(true); await s.w(1300); s.wear('bag'); s.inside(false);
+          await delivery;
         },
       },
-      pay(s) { s.show('clothesRack'); s.look(505); s.sparkle(505, 340); },
+      pay(s) { s.reveal('clothesRack', 505, 340); },
     },
     trip: {
       async ev(s) {
@@ -834,7 +868,7 @@ const Scene = (() => {
         // the whole family comes out of the house for the trip
         const fam = s.family(P.door);
         fam.forEach((m) => m.appear());
-        await Promise.all(fam.map(async (m, k) => { await s.w(200 * k); await m.walk([314, 384, 404][k], [456, 456, 458][k]); }));
+        await Promise.all(fam.map(async (m, k) => { await s.w(200 * k); await m.walk([376, 396, 414][k], [456, 456, 458][k]); }));
       },
       good: {
         async play(s) {
@@ -856,23 +890,22 @@ const Scene = (() => {
       },
       bad: {
         async play(s) {
+          // everybody gets into the family car in the driveway
           const fam = s.buddies.slice();
-          fam.forEach((m, k) => m.walk([296, 320, 382][k], 458));   // they wait next to Bobo at the curb
-          await s.go(P.curb);
-          const ride = s.vehicle('roadFx', familyCar('#e63946'), -220, LANE_B, 1);
-          await ride.move(340, LANE_B, 1500, 'ease-out');
-          s.buddies.slice().forEach((m) => { m.fade(false); setTimeout(() => m.remove(), 450); });
-          s.inside(true); ride.carry(true);
+          await Promise.all([s.go([346, 458]), ...fam.map((m, k) => m.walk([320, 334, 360][k], 457))]);
+          await Promise.all(fam.map((m) => m.enter()));
+          s.inside(true);
+          const ride = await s.carOut(BACK_FAMILY);
           const jam = s.jamStart(QUEUE_A, QUEUE_B);
           sfx('honk'); await s.w(1200); sfx('honk'); await s.w(1200);
           s.jamGo(jam);
-          await ride.move(1250, LANE_B, 910 / JAM_SPEED, 'linear'); ride.remove();
+          await ride.move(-650, LANE_A, 910 / JAM_SPEED, 'linear'); ride.remove();
           s.jamEnd();
           s.away = 'car';
         },
         apply(s) { s.traffic++; s.jamEnd(); },
       },
-      pay(s) { s.show('train2'); s.look(400); s.sparkle(400, 300); },
+      pay(s) { s.reveal('train2', 400, 300); },
     },
     food: {
       async ev(s) { await s.go(P.garden); },
@@ -883,7 +916,7 @@ const Scene = (() => {
         async play(s) { s.show('burger'); await s.w(900); s.look(690); s.show('cows'); s.sparkle(696, 340); await s.w(1600); },
         apply(s) { s.show('cows'); },
       },
-      pay(s) { s.show('veggieGarden'); s.look(746); s.sparkle(746, 440); },
+      pay(s) { s.reveal('veggieGarden', 746, 446); },
     },
   };
 
@@ -999,7 +1032,7 @@ const Scene = (() => {
     }
 
     const WEAR = { pack: ['mPack', 'mStraps'], bike: ['mRide'], hat: ['mHat'], sweater: ['mSweater'], cool: ['mJacketCool'], plain: ['mJacketPlain'],
-      mud: ['mMud', 'mMudFace'], bottle: ['mBottle'], plastic: ['mPlastic'], glass: ['mGlass'], bag: ['mBag'] };
+      mud: ['mMud', 'mMudFace'], bottle: ['mBottle'], plastic: ['mPlastic'], glass: ['mGlass'], bag: ['mBag'], carry: ['mCarry'] };
 
     const s = {
       q,
@@ -1047,6 +1080,35 @@ const Scene = (() => {
         s.energyTimer = setTimeout(() => e.classList.remove('fast', 'slow'), 3500);
       },
       burst() { s.flash('plantBurst', 2600); },
+      // The family car pulls out of the driveway onto the street (dad drives)
+      async carOut(back) {
+        s.hide('parkedCar');
+        const v = s.vehicle('roadFx', familyCar('#e63946', back), 300, 455, -1);
+        v.carry(true);
+        await v.move(262, LANE_A, 900, 'ease-in-out');
+        return v;
+      },
+      // …and comes back along the street (from the right) into the driveway
+      async carPark(v) {
+        await v.move(338, LANE_A, Math.max(600, (v.x - 338) * 2.2), 'ease-out');
+        await v.move(300, 455, 800, 'ease-in-out');
+        v.carry(false);
+        s.show('parkedCar'); v.remove();
+      },
+      // dad comes out of the house to drive, or goes back in after parking
+      async dadOut() { const d = s.family(P.door, ['dad'])[0]; d.appear(); await d.walk(322, 456); await d.enter(); },
+      dadIn() { const d = s.family([322, 456], ['dad'])[0]; d.appear(); (async () => { await d.go(P.door); await d.enter(); })().catch(() => {}); },
+      // a reward appears: it pops in, a glowing ring pulses around it and stars burst out (so it's easy to notice)
+      reveal(keys, x, y) {
+        [].concat(keys).forEach((k) => { const el = q(k); s.show(k); if (el) restartAnim(el, 'reveal'); });
+        s.look(x);
+        const g = document.createElementNS(NS, 'g');
+        g.setAttribute('transform', `translate(${x} ${y})`);
+        g.innerHTML = '<circle class="ring" r="22"/><circle class="ring" r="22" style="animation-delay:.35s"/><circle class="ring" r="22" style="animation-delay:.7s"/>';
+        q('fxTop').appendChild(g);
+        setTimeout(() => g.remove(), 2400);
+        [[0, 0], [-26, -10], [26, -12], [-12, 18], [14, 16]].forEach(([dx, dy], k) => setTimeout(() => s.sparkle(x + dx, y + dy), k * 160));
+      },
       // A traffic jam across the whole city: the normal traffic stops and queues of cars fill both lanes
       jamStart(qa, qb) {
         container.classList.add('jammed');
@@ -1081,18 +1143,16 @@ const Scene = (() => {
           await Promise.all([s.go(P.home), ...fam.map(async (m, k) => { await s.w(220 * k); await m.go(P.door); await m.enter(); })]);
           await leave; tr.remove(); s.show('trains');
         } else if (how === 'car') {
-          place(P.curb); s.inside(true, true);
-          const c = s.vehicle('roadFx', familyCar('#e63946'), 1300, LANE_A, -1);
+          s.hide('parkedCar'); place(P.home); s.inside(true, true);
+          const c = s.vehicle('roadFx', familyCar('#e63946'), 1400, LANE_A, -1);
           c.carry(true);
-          await c.move(352, LANE_A, 2400, 'ease-out');
-          // Bobo, mom and the little sister get out (dad drives off to park the car)
-          c.carry(false); s.inside(false);
-          const fam = s.family([[330, 458], [372, 458]], ['mom', 'sister']);
+          await s.carPark(c);
+          // the whole family gets out of the parked car and goes inside; Bobo stays out
+          s.inside(false);
+          const fam = s.family([[318, 456], [332, 457], [362, 457]]);
           fam.forEach((m) => m.appear());
           await s.w(500);
-          const leave = c.move(-420, LANE_A, 2400, 'ease-in');
-          await Promise.all([s.go(P.home), ...fam.map(async (m, k) => { await s.w(250 * k); await m.go(P.door); await m.enter(); })]);
-          await leave; c.remove();
+          await Promise.all(fam.map(async (m, k) => { await s.w(220 * k); await m.go(P.door); await m.enter(); }));
         }
       },
       updatePlant() {
@@ -1197,7 +1257,7 @@ const Scene = (() => {
     };
 
     function restartAnim(el, cls) {
-      el.classList.remove('jump', 'droop', 'chop');
+      el.classList.remove('jump', 'droop', 'chop', 'reveal');
       void el.getBoundingClientRect();
       el.classList.add(cls);
     }
@@ -1316,7 +1376,7 @@ const Scene = (() => {
     function reset() {
       gen++; pending = null;
       svg.querySelectorAll('.pop[data-k], .fade[data-k]').forEach((el) => {
-        const visibleAtStart = ['birds1', 'birds2', 'birds3', 'mHappy', 'ps1', 'farFish', 'crabs', 'butterflies', 'songbirds', 'bees', 'seaTurtle', 'boats', 'vt1', 'vt2', 'vt3', 'vAnimals', 'vBirds', 'hawk', 'pigeons', 'nestLife'];
+        const visibleAtStart = ['parkedCar', 'birds1', 'birds2', 'birds3', 'mHappy', 'ps1', 'farFish', 'crabs', 'butterflies', 'songbirds', 'bees', 'seaTurtle', 'boats', 'vt1', 'vt2', 'vt3', 'vAnimals', 'vBirds', 'hawk', 'pigeons', 'nestLife'];
         el.classList.toggle('hide', !visibleAtStart.includes(el.dataset.k));
       });
       q('fx').innerHTML = ''; q('fxTop').innerHTML = '';

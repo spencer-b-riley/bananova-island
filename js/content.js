@@ -13,13 +13,13 @@ const CHOICES = [
   { id: 'lights', good: { h: -2, t: 0, icon: 'switch' }, bad: { h: 2, t: 0.15, icon: 'tv' }, times: ['day'] },
   { id: 'bottle', good: { h: 4, t: 0, icon: 'refill' }, bad: { h: 2, t: 0.15, icon: 'plastic' }, times: ['morning', 'day'] },
   { id: 'toy', good: { h: 6, t: 0, icon: 'wrench' }, bad: { h: 8, t: 0.2, icon: 'box' }, times: ['day'] },
-  { id: 'hot', good: { h: -6, t: 0, icon: 'fan' }, bad: { h: 8, t: 0.25, icon: 'ac' }, times: ['day'] },
+  { id: 'hot', good: { h: -6, t: 0, icon: 'shade' }, bad: { h: 8, t: 0.25, icon: 'ac' }, times: ['day'] },
   { id: 'cold', good: { h: 2, t: 0, icon: 'sweater' }, bad: { h: 6, t: 0.25, icon: 'flame' }, times: ['morning', 'evening'] },
   { id: 'shower', good: { h: 4, t: 0, icon: 'shower' }, bad: { h: 6, t: 0.15, icon: 'bath' }, times: ['night'] },
   { id: 'party', good: { h: 2, t: 0, icon: 'recycle' }, bad: { h: 4, t: 0.2, icon: 'trashbag' }, times: ['day'] },
   { id: 'jacket', good: { h: 10, t: 0, icon: 'thrift' }, bad: { h: 4, t: 0.25, icon: 'mall' }, times: ['day'] },
   { id: 'trip', good: { h: 6, t: 0, icon: 'train' }, bad: { h: 2, t: 0.3, icon: 'car' }, times: ['morning', 'day'] },
-  { id: 'food', good: { h: 4, t: 0, icon: 'veggie' }, bad: { h: 6, t: 0.3, icon: 'burger' }, times: ['day', 'evening'] },
+  { id: 'food', good: { h: 4, t: 0, icon: 'veggie' }, bad: { h: 6, t: 0.3, icon: 'burger' }, times: ['day'] },
 ];
 
 // Endings depend on the final temperature (see app.js)
@@ -37,7 +37,7 @@ const ACHIEVEMENTS = [
   { id: 'lights', icon: 'switch' },
   { id: 'bottle', icon: 'refill' },
   { id: 'toy', icon: 'wrench' },
-  { id: 'breeze', icon: 'fan' },
+  { id: 'breeze', icon: 'shade' },
   { id: 'sweater', icon: 'sweater' },
   { id: 'shower', icon: 'shower' },
   { id: 'party', icon: 'balloon' },
