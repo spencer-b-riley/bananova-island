@@ -536,6 +536,7 @@ const Scene = (() => {
     let badCount = 0;
     let walkPos = [400, 400];
     let walkTimer = 0;
+    let walkEnd = 0;
     let taskId = 0;
     let pendingJob = null;
     let whaleAllowed = false;
@@ -577,6 +578,7 @@ const Scene = (() => {
         walkPos = [x, y];
         w.style.transitionDuration = ms + 'ms';
         w.style.transform = `translate(${x - 400}px, ${y - 400}px)`;
+        walkEnd = performance.now() + ms;
         placeBubble(ms);
         monkey.classList.toggle('walking', dist > 4);
         clearTimeout(walkTimer);
@@ -675,11 +677,31 @@ const Scene = (() => {
       return [walkPos[0], walkPos[1] - 66];
     }
     let bubbleW = 120;
+    // Further back on the island (higher up) = a bit smaller, closer to the front = a bit bigger
+    const depthScale = (y) => Math.max(0.7, Math.min(1.15, 0.7 + (y - 320) / 130 * 0.45));
+    const bubbleXY = (hx, hy) => [Math.max(bubbleW / 2 + 6, Math.min(800 - bubbleW / 2 - 6, hx)), Math.max(62, hy - 10)];
+    const bubbleTransform = (x, y, sc) => `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${sc.toFixed(3)})`;
+    // Glide the bubble to where the monkey's head will be, in the same time as the walk
     function placeBubble(ms = 0) {
       const b = q('bubble'), [hx, hy] = headTop();
-      const x = Math.max(bubbleW / 2 + 6, Math.min(800 - bubbleW / 2 - 6, hx)), y = Math.max(62, hy - 10);
+      const [x, y] = bubbleXY(hx, hy);
       b.style.transition = ms ? `transform ${ms}ms ease-in-out, opacity .25s` : 'opacity .25s';
-      b.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      b.style.transform = bubbleTransform(x, y, depthScale(hy + 66));
+    }
+    // If the monkey is already walking when it starts talking, start the bubble above its head
+    // right now and let it travel along for the rest of the walk.
+    function placeBubbleWhileWalking() {
+      const left = walkEnd - performance.now();
+      if (left <= 30 || svg.classList.contains('flooded') || svg.classList.contains('stormy') || svg.classList.contains('dry')) { placeBubble(0); return; }
+      const w = svg.querySelector('.walker'), m = new DOMMatrixReadOnly(getComputedStyle(w).transform);
+      const b = q('bubble'), cx = 400 + m.m41, cy = 400 + m.m42;
+      const [x0, y0] = bubbleXY(cx, cy - 66);
+      b.style.transition = 'opacity .25s';
+      b.style.transform = bubbleTransform(x0, y0, depthScale(cy));
+      void b.getBoundingClientRect();
+      const [hx, hy] = headTop(), [x1, y1] = bubbleXY(hx, hy);
+      b.style.transition = `transform ${Math.round(left)}ms ease-out, opacity .25s`;
+      b.style.transform = bubbleTransform(x1, y1, depthScale(hy + 66));
     }
     function say(text, ms = 3000) {
       const b = q('bubble'), txt = q('bubbleText'), box = q('bubbleBox');
@@ -689,7 +711,7 @@ const Scene = (() => {
       bubbleW = Math.min(560, txt.getComputedTextLength() + 34);
       box.setAttribute('x', -bubbleW / 2);
       box.setAttribute('width', bubbleW);
-      placeBubble(0);
+      placeBubbleWhileWalking();
       b.classList.remove('hide');
       restartAnim(b.querySelector('.bubble-in'), 'jump');
       if (ms) bubbleTimer = setTimeout(() => b.classList.add('hide'), ms);
