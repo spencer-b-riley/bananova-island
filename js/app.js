@@ -714,6 +714,29 @@
 
   $('#langSel').addEventListener('change', (e) => setLang(e.target.value));
 
+  // If nobody taps for a while during a question, Bobo asks if the player is still there
+  // and asks for help (a different line each time).
+  const IDLE_FIRST = 14000, IDLE_AGAIN = 16000;
+  let idleTimer = 0, lastIdle = -1;
+  function idleCheck() {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      const waiting = G && !G.ending && scene && document.querySelector('#card:not(.card-wait) [data-good]');
+      if (waiting) {
+        const lines = L().say.idle;
+        let k;
+        do { k = Math.floor(Math.random() * lines.length); } while (lines.length > 1 && k === lastIdle);
+        lastIdle = k;
+        scene.react('think', 2600);
+        scene.jump();
+        scene.say(lines[k], 3600);
+      }
+      idleCheck();
+    }, idleTimer ? IDLE_AGAIN : IDLE_FIRST);
+  }
+  ['pointerdown', 'keydown'].forEach((ev) => window.addEventListener(ev, () => { idleTimer = 0; idleCheck(); }));
+  idleCheck();
+
   // Browsers only allow sound after the first tap/click.
   const firstTouch = () => {
     Sound.unlock();

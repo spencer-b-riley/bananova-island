@@ -69,6 +69,7 @@ const I18N = {
     },
     // Speech bubbles: [problem, green choice, other choice, reward] for each choice
     say: {
+      idle: ['Hey you! Are you still there?', 'Can you help me choose?', 'Psst… which one is better for our city?', 'Help me keep the city cool!', 'I need your help!', 'Which choice helps our planet?', 'Hello? Anybody there?', 'Let’s make a choice that’s good for Earth!'],
       hello: 'Hi! I’m Bobo!', eclipse: 'Eclipse glasses on!', whale: 'A whale! Hi there!', heat: 'Phew… so hot and dry!', storm: 'What a storm!', bugs: 'Ugh, bugs!', warrior: 'We did it!',
       choices: [
         ['Time for school!', 'Wheee! Fastest way!', 'Stuck in traffic…', 'A bike group!'],
@@ -322,6 +323,7 @@ const I18N = {
       mystery: 'Geheimer Erfolg',
     },
     say: {
+      idle: ['Hey du! Bist du noch da?', 'Kannst du mir beim Entscheiden helfen?', 'Psst… was ist besser für unsere Stadt?', 'Hilf mir, die Stadt kühl zu halten!', 'Ich brauche deine Hilfe!', 'Was hilft unserem Planeten?', 'Hallo? Ist da jemand?', 'Lass uns etwas Gutes für die Erde wählen!'],
       hello: 'Hallo! Ich bin Bobo!', eclipse: 'Finsternis-Brille auf!', whale: 'Ein Wal! Hallo!', heat: 'Puh… so heiss und trocken!', storm: 'Was für ein Sturm!', bugs: 'Igitt, Insekten!', warrior: 'Geschafft!',
       choices: [
         ['Zeit für die Schule!', 'Juhu! Am schnellsten!', 'Im Stau…', 'Eine Velo-Gruppe!'],
@@ -575,6 +577,7 @@ const I18N = {
       mystery: 'Traguardo misterioso',
     },
     say: {
+      idle: ['Ehi tu! Ci sei ancora?', 'Mi aiuti a scegliere?', 'Psst… cosa è meglio per la nostra città?', 'Aiutami a tenere fresca la città!', 'Ho bisogno del tuo aiuto!', 'Cosa aiuta il nostro pianeta?', 'Pronto? C’è qualcuno?', 'Scegliamo qualcosa di buono per la Terra!'],
       hello: 'Ciao! Sono Bobo!', eclipse: 'Occhiali per l’eclissi!', whale: 'Una balena! Ciao!', heat: 'Uff… che caldo secco!', storm: 'Che tempesta!', bugs: 'Bleah, insetti!', warrior: 'Ce l’abbiamo fatta!',
       choices: [
         ['Si va a scuola!', 'Evviva! Velocissimo!', 'Bloccati nel traffico…', 'Un gruppo in bici!'],
@@ -828,6 +831,7 @@ const I18N = {
       mystery: 'Succès mystère',
     },
     say: {
+      idle: ['Hé toi ! Tu es encore là ?', 'Tu peux m’aider à choisir ?', 'Psst… qu’est-ce qui est mieux pour notre ville ?', 'Aide-moi à garder la ville au frais !', 'J’ai besoin de ton aide !', 'Qu’est-ce qui aide notre planète ?', 'Allô ? Il y a quelqu’un ?', 'Choisissons quelque chose de bien pour la Terre !'],
       hello: 'Salut ! Je suis Bobo !', eclipse: 'Lunettes d’éclipse !', whale: 'Une baleine ! Coucou !', heat: 'Pff… si chaud et sec !', storm: 'Quelle tempête !', bugs: 'Beurk, des insectes !', warrior: 'On a réussi !',
       choices: [
         ['C’est l’heure de l’école !', 'Youpi ! Le plus rapide !', 'Coincé dans les bouchons…', 'Un groupe à vélo !'],

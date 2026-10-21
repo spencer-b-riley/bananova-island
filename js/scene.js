@@ -61,14 +61,33 @@ const Scene = (() => {
     `<circle cx="${(rnd(k + 1) * 1200).toFixed(0)}" cy="${(rnd(k + 99) * 290).toFixed(0)}" r="${k % 3 ? 1.6 : 2.4}" fill="#fffbe8"/>`).join('')}</svg>`;
 
   // Seagull with flapping wings (faces right)
+  /* Flapping wings: each wing is one shape that bends at the wrist. We morph it smoothly between
+     a few poses (up, glide, down) with SVG <animate>, so the wing really flaps instead of just tilting. */
+  const f1 = (v) => Math.round(v * 10) / 10;
+  const wingD = ([wx, wy], [tx, ty], back = 6, tipBack = 4) => {
+    const len = Math.hypot(tx - wx, ty - wy) || 1, dx = (tx - wx) / len, dy = (ty - wy) / len;
+    const nx = dy, ny = -dx;   // the side the feathers trail to
+    return `M2 -1 Q${f1(wx)} ${f1(wy)} ${f1(tx)} ${f1(ty)} L${f1(tx + nx * tipBack - dx * 2)} ${f1(ty + ny * tipBack - dy * 2)} Q${f1(wx + nx * back * 1.6)} ${f1(wy + ny * back * 1.6)} -5 2Z`;
+  };
+  const tipD = ([wx, wy], [tx, ty]) => {
+    const len = Math.hypot(tx - wx, ty - wy) || 1, dx = (tx - wx) / len, dy = (ty - wy) / len, nx = dy, ny = -dx;
+    return `M${f1(tx)} ${f1(ty)} L${f1(tx - dx * 7)} ${f1(ty - dy * 7)} L${f1(tx - dx * 6 + nx * 3)} ${f1(ty - dy * 6 + ny * 3)} L${f1(tx + nx * 3 - dx * 2)} ${f1(ty + ny * 3 - dy * 2)}Z`;
+  };
+  const morph = (fn, poses, seq, dur, times) => `<animate attributeName="d" dur="${dur}s" repeatCount="indefinite" calcMode="spline"
+      values="${seq.map((k) => fn(...poses[k])).join(';')}" keyTimes="${times}" keySplines="${seq.slice(1).map(() => '.45 0 .55 1').join(';')}"/>`;
+  // seagull wing poses: [wrist, tip]
+  const GULL_NEAR = { up: [[-5, -14], [-16, -27]], mid: [[-10, -7], [-30, -6]], down: [[-7, 3], [-17, 15]] };
+  const GULL_FAR = { up: [[-3, -14], [-12, -25]], mid: [[-8, -8], [-25, -8]], down: [[-5, 1], [-13, 11]] };
+  const GULL_SEQ = ['mid', 'up', 'down', 'up', 'down', 'mid', 'mid'], GULL_T = '0;.09;.2;.31;.42;.55;1';
+  const gullWing = (poses, fill, tipFill, stroke) => `<path d="${wingD(...poses.mid)}" fill="${fill}"${stroke ? ` stroke="${stroke}" stroke-width=".7"` : ''}>${morph(wingD, poses, GULL_SEQ, 2.4, GULL_T)}</path>
+      <path d="${tipD(...poses.mid)}" fill="${tipFill}">${morph(tipD, poses, GULL_SEQ, 2.4, GULL_T)}</path>`;
   const gull = `<g class="gull">
-      <g class="wing far"><path d="M0 -1 C-2 -6 -7 -11 -12 -13 C-17 -14 -22 -12.5 -27 -10 L-24 -9.6 C-19 -10.2 -15 -9.8 -11 -8 C-7 -6 -4 -3 -3 1Z" fill="#b9c2ca"/><path d="M-27 -10 L-24 -9.6 L-21.5 -11 L-23.5 -12Z" fill="#2b2f36"/></g>
+      ${gullWing(GULL_FAR, '#b9c2ca', '#3a3f47')}
       <path d="M-15 1 C-11 -3 2 -4.5 9 -2 C13 -0.5 14 1.5 11 2.6 C3 4.8 -8 4.2 -15 2.6 L-21 2Z" fill="#fff"/><path d="M-15 1.4 L-21 2 L-15 2.8Z" fill="#9aa3ad"/>
       <circle cx="10" cy="-2" r="3.4" fill="#fff"/><path d="M13 -2.4 L18.5 -1.2 L13 0Z" fill="#f2c94c"/><circle cx="17" cy="-1" r=".7" fill="#e63946"/><circle cx="11" cy="-2.8" r=".8" fill="#23313f"/>
-      <g class="wing near"><path d="M2 -1 C0 -7 -6 -13 -13 -15 C-19 -16 -26 -14 -32 -11 L-28 -10.5 C-22 -11.5 -17 -11 -12 -9 C-7 -7 -3 -3 -2 1.5Z" fill="#e9edf0" stroke="#9aa3ad" stroke-width=".6"/>
-        <path d="M-32 -11 L-28 -10.5 L-25 -12 L-27.5 -13.6Z" fill="#2b2f36"/></g></g>`;
+      ${gullWing(GULL_NEAR, '#eef1f4', '#2b2f36', '#9aa3ad')}</g>`;
   const gullFlight = (k, y, sc, dur, delay, left = false) =>
-    `<g data-k="birds${k}" class="fade"><g class="fly${left ? ' left' : ''}" style="animation-duration:${dur}s;animation-delay:${delay}s"><g transform="translate(0 ${y}) scale(${left ? -sc : sc} ${sc})"><g class="soar">${gull}</g></g></g></g>`;
+    `<g data-k="birds${k}" class="fade"><g class="fly${left ? ' left' : ''}" style="animation-duration:${dur}s;animation-delay:${delay}s"><g transform="translate(0 ${y}) scale(${left ? -sc : sc} ${sc})"><g class="soar">${gull.replace(/<animate /g, `<animate begin="${delay}s" `)}</g></g></g></g>`;
 
   const tree = (x, y, sc = 1) => `<g transform="translate(${x} ${y}) scale(${sc})"><g class="tree">
       <path d="M-4 0 L-3 -30 L3 -30 L4 0Z" fill="#9b6a3c"/>
@@ -113,16 +132,24 @@ const Scene = (() => {
       <path d="M-7 2 l-5 4 M-4 3 l-3 5 M7 2 l5 4 M4 3 l3 5" stroke="#e8573f" stroke-width="2" stroke-linecap="round"/>
       <ellipse cx="0" cy="0" rx="9" ry="5.5" fill="#ff6b4a"/><path d="M-4 -4 v-5 M4 -4 v-5" stroke="#e8573f" stroke-width="1.6"/><circle cx="-4" cy="-9" r="1.8" fill="#23313f"/><circle cx="4" cy="-9" r="1.8" fill="#23313f"/>
       <circle cx="-12" cy="-3" r="3.5" fill="#ff6b4a"/><circle cx="12" cy="-3" r="3.5" fill="#ff6b4a"/></g></g>`;
-  // A hawk gliding high above the city (side view; it flaps only now and then)
+  // A hawk/eagle gliding high above the city: broad wings with spread "finger" feathers at the tips,
+  // a few slow, deep flaps and then a long glide
+  const hawkWingD = ([wx, wy], [tx, ty]) => {
+    const len = Math.hypot(tx - wx, ty - wy) || 1, dx = (tx - wx) / len, dy = (ty - wy) / len, nx = dy, ny = -dx;
+    const p = (a, b) => `${f1(tx - dx * a + nx * b)} ${f1(ty - dy * a + ny * b)}`;
+    return `M3 -2 Q${f1(wx)} ${f1(wy)} ${f1(tx)} ${f1(ty)} L${p(4, 1.5)} L${p(1, 3.5)} L${p(5, 4.5)} L${p(2, 6.5)} L${p(7, 7.5)} L${p(4, 10)} L${p(11, 10)} Q${f1(wx + nx * 12)} ${f1(wy + ny * 12)} -6 4Z`;
+  };
+  const HAWK_NEAR = { up: [[-8, -16], [-24, -30]], mid: [[-13, -7], [-38, -8]], down: [[-9, 5], [-22, 20]] };
+  const HAWK_FAR = { up: [[-6, -16], [-19, -28]], mid: [[-11, -9], [-32, -11]], down: [[-7, 3], [-17, 15]] };
+  const HAWK_SEQ = ['mid', 'up', 'down', 'up', 'down', 'mid', 'mid'], HAWK_T = '0;.08;.18;.28;.38;.5;1';
   const HAWK = `<g class="hawk-side">
-      <g class="hwing far"><path d="M-2 -2 C-7 -9 -16 -14 -29 -14 L-33 -11 L-29 -10.5 L-31.5 -8 L-27.5 -8 L-28.5 -5.5 C-18 -5 -8 -2 -2 2Z" fill="#6b4423"/></g>
+      <path d="${hawkWingD(...HAWK_FAR.mid)}" fill="#5a3a1e">${morph(hawkWingD, HAWK_FAR, HAWK_SEQ, 6, HAWK_T)}</path>
       <path d="M-16 1 L-29 -2.5 L-30 2 L-28 6 L-16 3.5Z" fill="#a0673a"/><path d="M-27 -1.5 L-27.5 4.5 M-23 -0.5 L-23.5 4.5" stroke="#5a3a1e" stroke-width="1.2"/>
-      <path d="M-17 1 C-11 -4.5 4 -6 12 -3.5 C16 -2 18 0.5 15.5 2.5 C8 5.5 -6 5 -16 3.5Z" fill="#8a5a33"/>
+      <path d="M-17 1 C-11 -4.5 4 -6 12 -3.5 C16 -2 18 0.5 15.5 2.5 C8 5.5 -6 5 -16 3.5Z" fill="#7a4e2a"/>
       <path d="M1 2.2 C7 3.8 12 2.8 15 1.2 C12 -1 6 -1 1 2.2Z" fill="#ead8b8"/>
-      <circle cx="14" cy="-3.6" r="4.2" fill="#6b4423"/><path d="M17.6 -4.8 Q21.6 -4.2 20.4 -1.2 L17.8 -1.8Z" fill="#f2c94c" stroke="#8a6a1e" stroke-width=".5"/>
-      <circle cx="15.4" cy="-4.4" r="1.1" fill="#ffd23f"/><circle cx="15.6" cy="-4.4" r=".55" fill="#23313f"/><path d="M13 -6.4 L17 -5.6" stroke="#4a2e16" stroke-width="1"/>
-      <g class="hwing near"><path d="M2 -2 C-2 -12 -14 -21 -31 -23 L-35 -20 L-31 -19 L-34 -16 L-29.5 -16 L-31.5 -13 L-26.5 -13 C-16 -8.5 -6 -3.5 -3 2Z" fill="#8a5a33" stroke="#5a3a1e" stroke-width=".7"/>
-        <path d="M-31 -23 L-35 -20 L-31 -19 L-34 -16 L-29.5 -16 L-31.5 -13 L-27 -14 L-28 -19Z" fill="#4a2e16"/><path d="M-6 -9 C-12 -11 -18 -14 -24 -15" stroke="#c49a6c" stroke-width="1.2" fill="none"/></g></g>`;
+      <circle cx="14" cy="-3.6" r="4.2" fill="#f4f1ea"/><path d="M17.6 -4.8 Q21.6 -4.2 20.4 -1.2 L17.8 -1.8Z" fill="#f2c94c" stroke="#8a6a1e" stroke-width=".5"/>
+      <circle cx="15.4" cy="-4.4" r="1.1" fill="#ffd23f"/><circle cx="15.6" cy="-4.4" r=".55" fill="#23313f"/><path d="M13 -6.4 L17 -5.6" stroke="#6b5a4a" stroke-width="1"/>
+      <path d="${hawkWingD(...HAWK_NEAR.mid)}" fill="#8a5a33" stroke="#4a2e16" stroke-width=".7">${morph(hawkWingD, HAWK_NEAR, HAWK_SEQ, 6, HAWK_T)}</path></g>`;
   // A pigeon on the pavement that pecks at the ground (faces left; feet at 0,0)
   const pigeon = (x, y, flip, d) => `<g transform="translate(${x} ${y}) scale(${flip ? -0.6 : 0.6} .6)"><g class="pigeon-walk" style="animation-delay:${d}s"><g class="peck" style="animation-delay:${d * 0.7}s">
       <path d="M-1.5 -1 v1.6 M1.6 -1 v1.6" stroke="#e8573f" stroke-width="1"/>
@@ -442,7 +469,9 @@ const Scene = (() => {
       <g transform="translate(0 -24)"><g class="spin fast-spin"><path d="M0 0 L-3 -8 L3 -8Z M0 0 L-3 8 L3 8Z M0 0 L-8 -3 L-8 3Z M0 0 L8 -3 L8 3Z" fill="#7fd3f7"/></g></g>`)}
     ${item('steam', 0, 0, puffs(386, 388, 4, 8, '#ffffff', 2), 'fade')}
     ${item('bathBubbles', 0, 0, `<g class="bubbles-up">${[0, 1, 2, 3, 4, 5, 6, 7].map((k) => `<circle cx="${376 + (k % 4) * 9}" cy="392" r="${4 + (k % 3) * 2}" fill="#ffffffcc" stroke="#4fb0d8" stroke-width="1.5" style="animation-delay:${-k * 0.3}s"/>`).join('')}</g>`, 'fade')}
-    ${item('boxPile', 304, 436, `<rect x="-14" y="-16" width="24" height="16" fill="#c98f4f" stroke="#8b5a2b" stroke-width="1.5"/><rect x="-6" y="-26" width="18" height="11" fill="#d9a36a" stroke="#8b5a2b" stroke-width="1.5"/><path d="M-14 -9 h24" stroke="#8b5a2b"/>`)}
+    ${item('boxClosed', 412, 436, `<path d="M-13 0 V-17 H13 V0Z" fill="#c98f4f" stroke="#8b5a2b" stroke-width="1.5"/><path d="M-13 -17 H13 L10 -21 H-10Z" fill="#d9a36a" stroke="#8b5a2b" stroke-width="1.5"/><path d="M0 -21 V0" stroke="#e6c27a" stroke-width="3"/><path d="M-9 -8 h6" stroke="#8b5a2b" stroke-width="1.2"/>`)}
+    ${item('boxPile', 412, 436, `<path d="M-13 0 V-17 H13 V0Z" fill="#c98f4f" stroke="#8b5a2b" stroke-width="1.5"/><path d="M-13 -17 L-21 -24 L-12 -22Z M13 -17 L21 -24 L12 -22Z" fill="#d9a36a" stroke="#8b5a2b" stroke-width="1.5"/>
+      <circle cx="-6" cy="-18" r="2.2" fill="#fff"/><circle cx="-1" cy="-19.5" r="2.2" fill="#f4f6f8"/><circle cx="5" cy="-18" r="2.2" fill="#fff"/><path d="M-26 0 q4 -6 9 -2 q3 2 6 0" stroke="#dfe5ea" stroke-width="3" fill="none" stroke-linecap="round"/>`)}
   </g>
   ${item('shadeTrees', 0, 0, `${tree(272, 434, 0.95)}${tree(426, 434, 0.95)}`)}
   <g class="garden">
@@ -763,11 +792,17 @@ const Scene = (() => {
           const t = s.vehicle('roadFx', truck, -260, LANE_B, 1);
           t.puff(true);
           await t.move(330, LANE_B, 2200, 'ease-out');
-          s.toss(330, 430, 304, 456, BOX, 700, () => s.show('boxPile')); await s.w(500);
-          s.hide('toyBroken'); s.show('toyNew'); s.sparkle(380, 440); await s.w(600);
-          await t.move(1150, LANE_B, 2400, 'ease-in'); t.remove();
+          s.toss(336, 430, 412, 452, BOX, 700, () => s.show('boxClosed')); await s.w(800);
+          const away = t.move(1150, LANE_B, 2400, 'ease-in');
+          // Bobo unpacks it…
+          await s.go([392, 456]); s.chop(); await s.w(900);
+          s.hide('boxClosed'); s.show('boxPile'); s.hide('toyBroken');
+          // …the new toy jumps out, and the empty box and the packing are left as trash
+          s.toss(412, 432, 384, 454, TOY, 650, () => { s.show('toyNew'); s.sparkle(384, 440); });
+          await s.w(400); await s.go(P.home); await s.w(500);
+          await away; t.remove();
         },
-        apply(s) { s.show('boxPile'); },
+        apply(s) { s.hide('boxClosed'); s.show('boxPile'); },
       },
       pay(s) { s.reveal('swapBox', 150, 345); },
     },
@@ -928,6 +963,8 @@ const Scene = (() => {
     const svg = container.querySelector('svg.scene-main');
     const q = (k) => container.querySelector(`[data-k="${k}"]`);
     container.insertAdjacentHTML('beforeend', '<div class="rain-fx" aria-hidden="true"></div>');
+    // the slowest devices: the wing flaps stand still too
+    if (typeof Perf !== 'undefined' && Perf.tier === 'low' && svg.pauseAnimations) svg.pauseAnimations();
     // A random sky every game: sometimes clear, sometimes a few clouds drifting by
     q('skyClouds').innerHTML = Array.from({ length: [0, 1, 1, 2, 2, 3][Math.floor(Math.random() * 6)] }, () => {
       const y = 40 + Math.random() * 110, sc = 0.6 + Math.random() * 0.7, dur = 90 + Math.random() * 70;
@@ -1275,7 +1312,7 @@ const Scene = (() => {
       q('seaFx').innerHTML = ''; q('trainFx').innerHTML = '';
       s.show('trains');
       ['partyCloth', 'balloons', 'cake', 'platesReal', 'platesPlastic', 'sortBins', 'trashBag', 'tacos', 'burger', 'fan', 'acAir', 'steam', 'bathBubbles',
-        'toyBroken', 'toyFixed', 'toyNew', 'heatGlow', 'tv'].forEach(s.hide);
+        'toyBroken', 'toyFixed', 'toyNew', 'boxClosed', 'heatGlow', 'tv'].forEach(s.hide);
       s.q('boboHouse').classList.remove('win-open', 'lit', 'lights-off');
       s.hide('houseLit');
       Object.keys(WEAR).forEach((w) => s.wear(w, false));
