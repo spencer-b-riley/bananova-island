@@ -180,12 +180,14 @@ const Scene = (() => {
   // a little monkey head looking out of a window (faces right)
   const monkeyHead = (x, y, fur, cls = '') => `<g class="${cls}" transform="translate(${x} ${y})"><circle cx="-4.6" cy="-.5" r="2.4" fill="${fur}"/><circle r="5.2" fill="${fur}"/>
       <ellipse cx="2.2" cy="1" rx="3.4" ry="3" fill="#e8c39e"/><circle cx="1.6" cy="-1.5" r=".95" fill="#23313f"/><path d="M1.2 2.4 q1.6 1.3 3.2 -.2" stroke="#5a2d0c" stroke-width=".8" fill="none"/></g>`;
-  const car = (c, fur = '#7a4a24') => `${exhaust(-38)}
+  const car = (c, fur = '#7a4a24', back = monkeyHead(-3, -23, '#8b5a2b')) => `${exhaust(-38)}
       <path d="M-32 -8 Q-32 -19 -24 -19 L-16 -19 L-8 -31 L12 -31 L22 -19 L28 -19 Q34 -19 34 -11 L34 -6 L-32 -6Z" fill="${c}"/>
       <path d="M-5 -28 L3 -28 L3 -20 L-11 -20Z M7 -28 L11 -28 L18 -20 L7 -20Z" fill="#cfefff"/>
-      ${monkeyHead(11, -23, fur)}${monkeyHead(-3, -23, '#8b5a2b', 'passenger')}
+      ${monkeyHead(11, -23, fur)}<g class="passenger">${back}</g>
       <rect x="27" y="-16" width="6" height="4" rx="1" fill="#fff3a8"/><rect x="-32" y="-16" width="4" height="4" fill="#ff5b4a"/>
       ${wheel(-17)}${wheel(17)}`;
+  // the family car: dad drives; mom, Bobo and the little sister sit in the back
+  const familyCar = (c) => car(c, '#6b4423', `<g transform="translate(-8.6 -22.5) scale(.62)">${monkeyHead(0, 0, '#a0703f')}</g><g transform="translate(-3.6 -22.5) scale(.66)">${monkeyHead(0, 0, '#8b5a2b')}</g><g transform="translate(1 -21.5) scale(.5)">${monkeyHead(0, 0, '#b07a44')}</g>`);
   const truck = `${exhaust(-52)}
       <rect x="-48" y="-50" width="64" height="42" rx="3" fill="#f7f7f7" stroke="#c8cdd3" stroke-width="2"/>
       <path d="M-38 -36 h44 M-38 -26 h44" stroke="#ffb627" stroke-width="5"/>
@@ -357,7 +359,7 @@ const Scene = (() => {
   </g>
 
   <!-- the railway -->
-  <rect x="-400" y="316" width="1600" height="6" fill="#8b7a68"/><path d="M-400 316 H1200" stroke="#4a5563" stroke-width="2"/>
+  <rect x="-800" y="316" width="2600" height="6" fill="#8b7a68"/><path d="M-800 316 H1800" stroke="#4a5563" stroke-width="2"/>
   <g data-k="trains"><g class="trainrun" style="animation-duration:26s;animation-delay:-6s"><g transform="translate(0 316) scale(.95)">${TRAIN}</g></g>
     <g data-k="train2" class="fade hide"><g class="trainrun back" style="animation-duration:26s;animation-delay:-19s"><g transform="translate(0 316) scale(-.95 .95)">${TRAIN}</g></g></g></g>
   <g data-k="trainFx"></g>
@@ -368,19 +370,21 @@ const Scene = (() => {
   </g>
 
   <!-- trees in the background -->
-  ${tree(22, 340, 0.62)}${tree(132, 338, 0.6)}${tree(168, 342, 0.55)}${tree(292, 334, 0.6)}${tree(352, 332, 0.55)}${tree(412, 336, 0.62)}${tree(508, 330, 0.55)}${tree(622, 338, 0.6)}${tree(782, 338, 0.62)}
+  ${tree(22, 340, 0.62)}${tree(292, 334, 0.6)}${tree(352, 332, 0.55)}${tree(412, 336, 0.62)}${tree(508, 330, 0.55)}${tree(622, 338, 0.6)}${tree(782, 338, 0.62)}
 
   <!-- back row: the friend's house, thrift store, mall (and the paths in front of them) -->
   <rect x="26" y="362" width="610" height="9" rx="3" class="pave"/>
   <rect x="218" y="326" width="28" height="132" class="pave"/>
-  <g class="friend-house">
-    <rect x="54" y="330" width="58" height="32" fill="#ffb3c7"/><path d="M46 332 L83 304 L120 332Z" fill="#c94f6d"/>
-    <rect class="win" x="61" y="338" width="14" height="11" rx="1"/><rect x="88" y="342" width="12" height="20" fill="#8b5a2b"/>
-    ${item('solarHeater', 92, 318, `<g transform="rotate(37)"><rect x="-4" y="-5" width="18" height="8" rx="1" fill="#2f5d9e" stroke="#9cc3ff"/><rect x="1" y="-11" width="10" height="6" rx="3" fill="#dfe5ea"/></g>`)}
+  <g class="school">
+    <rect x="40" y="312" width="136" height="50" fill="#ffcf5a"/><rect x="36" y="306" width="144" height="7" rx="2" fill="#c98f4f"/>
+    <path d="M90 306 V290 L108 276 L126 290 V306Z" fill="#ffcf5a" stroke="#c98f4f" stroke-width="3"/><circle cx="108" cy="292" r="7" fill="#fff" stroke="#23313f" stroke-width="1.5"/><path d="M108 292 V287 M108 292 h4" stroke="#23313f" stroke-width="1.5"/>
+    ${[50, 70, 136, 156].map((x) => `<rect class="win" x="${x}" y="320" width="13" height="12" rx="1"/><rect class="win" x="${x}" y="340" width="13" height="12" rx="1"/>`).join('')}
+    <rect x="98" y="336" width="20" height="26" fill="#2f80ed"/><path d="M108 336 V362" stroke="#1d5fae" stroke-width="2"/>
+    <text x="108" y="328" text-anchor="middle" font-size="9" font-weight="900" fill="#c0392b">A B C</text>
+    <path d="M108 276 V264" stroke="#9aa5b1" stroke-width="2"/><path d="M109 264 l12 4 l-12 4Z" fill="#ff6fa8" class="flag"/>
+    ${item('solarSchool', 46, 296, solar(10, 3), 'fade')}
+    ${item('swapBox', 150, 362, `<rect x="-12" y="-14" width="24" height="14" rx="2" fill="#c98f4f" stroke="#8b5a2b" stroke-width="1.5"/><circle cx="-5" cy="-17" r="4" fill="#ff5b4a"/><rect x="0" y="-22" width="8" height="8" fill="#2f80ed"/><path d="M-9 -7 h18" stroke="#fff" stroke-width="2"/>`)}
   </g>
-  ${item('recycling', 152, 362, `<rect x="-22" y="-30" width="44" height="30" rx="3" fill="#2fb35a"/><path d="M-26 -30 H26 L22 -37 H-22Z" fill="#23863e"/>
-      <g transform="translate(0 -15)" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M-6 4 A7 7 0 0 1 -4 -6"/><path d="M4 -6 A7 7 0 0 1 7 3"/><path d="M3 7 A7 7 0 0 1 -6 6"/></g>
-      <rect x="-20" y="-7" width="11" height="7" fill="#2f80ed"/><rect x="-5" y="-7" width="11" height="7" fill="#ffd23f"/><rect x="10" y="-7" width="10" height="7" fill="#9aa5b1"/>`)}
   <g class="thrift">
     <rect x="424" y="324" width="76" height="38" fill="#b388ff"/><rect x="420" y="308" width="84" height="15" rx="3" fill="#7e57c2"/>
     <path d="M454 320 q8 -9 16 0 M462 311 v4" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M450 320 h24" stroke="#fff" stroke-width="2.2"/>
@@ -409,15 +413,13 @@ const Scene = (() => {
   <!-- front row: the houses, the garden, the park (drawn 20 lower than the numbers inside) -->
   <g transform="translate(0 20)">
   <rect x="14" y="426" width="772" height="12" class="pave"/>
-  <g class="school">
-    <rect x="30" y="376" width="166" height="50" fill="#ffcf5a"/><rect x="26" y="370" width="174" height="7" rx="2" fill="#c98f4f"/>
-    <path d="M95 370 V356 L113 342 L131 356 V370Z" fill="#ffcf5a" stroke="#c98f4f" stroke-width="3"/><circle cx="113" cy="358" r="6.5" fill="#fff" stroke="#23313f" stroke-width="1.5"/><path d="M113 358 V354 M113 358 h3.5" stroke="#23313f" stroke-width="1.5"/>
-    ${[40, 60, 146, 168].map((x) => `<rect class="win" x="${x}" y="384" width="14" height="12" rx="1"/><rect class="win" x="${x}" y="404" width="14" height="12" rx="1"/>`).join('')}
-    <rect x="102" y="398" width="22" height="28" fill="#2f80ed"/><path d="M113 398 V426" stroke="#1d5fae" stroke-width="2"/>
-    <text x="113" y="392" text-anchor="middle" font-size="9" font-weight="900" fill="#c0392b">A B C</text>
-    <path d="M113 342 V330" stroke="#9aa5b1" stroke-width="2"/><path d="M114 330 l12 4 l-12 4Z" fill="#ff6fa8" class="flag"/>
-    ${item('solarSchool', 34, 360, solar(10, 3), 'fade')}
-    ${item('swapBox', 150, 426, `<rect x="-12" y="-14" width="24" height="14" rx="2" fill="#c98f4f" stroke="#8b5a2b" stroke-width="1.5"/><circle cx="-5" cy="-17" r="4" fill="#ff5b4a"/><rect x="0" y="-22" width="8" height="8" fill="#2f80ed"/><path d="M-9 -7 h18" stroke="#fff" stroke-width="2"/>`)}
+  ${item('recycling', 44, 438, `<rect x="-26" y="-36" width="52" height="36" rx="3" fill="#2fb35a"/><path d="M-30 -36 H30 L26 -44 H-26Z" fill="#23863e"/>
+      <g transform="translate(0 -19)" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M-7 5 A8 8 0 0 1 -5 -7"/><path d="M5 -7 A8 8 0 0 1 8 4"/><path d="M4 8 A8 8 0 0 1 -7 7"/></g>
+      <rect x="-24" y="-8" width="12" height="8" fill="#2f80ed"/><rect x="-6" y="-8" width="12" height="8" fill="#ffd23f"/><rect x="12" y="-8" width="12" height="8" fill="#9aa5b1"/>`)}
+  <g class="friend-house">
+    <rect x="132" y="388" width="68" height="38" fill="#ffb3c7"/><path d="M124 390 L166 356 L208 390Z" fill="#c94f6d"/>
+    <rect class="win" x="139" y="398" width="16" height="13" rx="1"/><rect class="win" x="178" y="398" width="15" height="13" rx="1"/><rect x="160" y="402" width="13" height="24" fill="#8b5a2b"/>
+    ${item('solarHeater', 172, 371, `<g transform="rotate(39)"><rect x="-4" y="-6" width="22" height="9" rx="1" fill="#2f5d9e" stroke="#9cc3ff"/><rect x="2" y="-13" width="12" height="7" rx="3" fill="#dfe5ea"/></g>`)}
   </g>
   ${lamp(212, 432, true)}
   <g data-k="boboHouse" class="bobo-house">
@@ -541,9 +543,9 @@ const Scene = (() => {
 
   <!-- the road + bike lane in front (they go over the bridges to the other towns) -->
   <g transform="translate(0 20)">
-  <rect x="-400" y="438" width="1600" height="21" class="road"/><path d="M-400 448.5 H1200" stroke="#fff" stroke-width="2" stroke-dasharray="14 12" opacity=".8"/>
-  <path d="M-400 437.5 H1200 M-400 459.5 H1200" stroke="#c8cdd3" stroke-width="2"/>
-  <rect x="-400" y="459" width="1600" height="9" fill="#4c9a6a"/><path d="M-400 459.5 H1200" stroke="#fff" stroke-width="1.6"/><path d="M-400 468 H1200" stroke="#c8cdd3" stroke-width="2"/>
+  <rect x="-800" y="438" width="2600" height="21" class="road"/><path d="M-800 448.5 H1800" stroke="#fff" stroke-width="2" stroke-dasharray="14 12" opacity=".8"/>
+  <path d="M-800 437.5 H1800 M-800 459.5 H1800" stroke="#c8cdd3" stroke-width="2"/>
+  <rect x="-800" y="459" width="2600" height="9" fill="#4c9a6a"/><path d="M-800 459.5 H1800" stroke="#fff" stroke-width="1.6"/><path d="M-800 468 H1800" stroke="#c8cdd3" stroke-width="2"/>
   ${[100, 300, 500, 700].map((x) => `<g transform="translate(${x} 465.5) scale(.12)" opacity=".6"><circle cx="-28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><circle cx="28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><path d="M-28 0 L-6 0 L10 -18 L28 0" stroke="#fff" stroke-width="7" fill="none"/></g>`).join('')}
   <g data-k="traffic">${laneCar('A', '#ff6fa8', 15, -2, '#a0673a')}${laneCar('B', '#2f80ed', 13, -7, '#5c3a1e')}</g>
   <g data-k="traffic2" class="fade hide">${laneCar('A', '#ffb627', 15, -9.5, '#7a4a24')}${laneCar('B', '#9aa5b1', 13, -1, '#c08850')}</g>
@@ -575,7 +577,7 @@ const Scene = (() => {
 
   <!-- animals and bugs (they come and go with the climate) -->
   <g data-k="butterflies" class="fade">${butterfly(660, 410, '#ff8ad8', 0)}${butterfly(588, 404, '#ffd23f', -5)}${butterfly(742, 414, '#8fd3ff', -9)}</g>
-  <g data-k="songbirds" class="fade">${songbird(150, 390, '#ff5b4a', 0)}${songbird(350, 355, '#2f80ed', -1.2)}${songbird(704, 432, '#ffb627', -2.2)}</g>
+  <g data-k="songbirds" class="fade">${songbird(164, 377, '#ff5b4a', 0)}${songbird(350, 355, '#2f80ed', -1.2)}${songbird(704, 432, '#ffb627', -2.2)}</g>
   <g data-k="bees" class="fade">${bee(712, 432, 0)}${bee(745, 428, -2.4)}</g>
   <g data-k="bugs1" class="fade hide">${flies(318, 438)}${flies(690, 428)}</g>
   <g data-k="bugs2" class="fade hide">${flies(150, 430)}${flies(505, 418)}${flies(420, 360)}${flies(760, 432)}</g>
@@ -627,8 +629,8 @@ const Scene = (() => {
 
   /* Where things are (x, y = where Bobo's feet are) */
   const P = {
-    home: [350, 454], door: [350, 450], friend: [94, 366], garden: [505, 454], vend: [650, 458], fountain: [676, 458],
-    school: [113, 454], shops: [517, 368], thrift: [462, 368], mall: [574, 368], station: [232, 326],
+    home: [350, 454], door: [350, 450], friend: [166, 450], garden: [505, 454], vend: [650, 458], fountain: [676, 458],
+    school: [108, 366], shops: [517, 368], thrift: [462, 368], mall: [574, 368], station: [232, 326],
     curb: [350, 458], gapF: [232, 454], gapB: [232, 368], lane: [350, 487],
   };
   const BACK_Y = 400;   // above this line = the back row
@@ -655,10 +657,11 @@ const Scene = (() => {
         async play(s) {
           await s.go(P.lane);                 // to the bike lane, hop on the bike
           s.wear('bike'); await s.w(150);
-          await s.ride([118, 487]);            // one smooth ride along the street to the school
+          await s.ride([232, 487]);            // along the street…
+          await s.ride([232, 372], 0.09);      // …and up the little street to the school (seen from behind)
           s.wear('bike', false); await s.w(150);
           await s.go(P.school);
-          s.sparkle(113, 400); s.jump(); await s.w(700);
+          s.sparkle(108, 330); s.jump(); await s.w(700);
         },
       },
       bad: {
@@ -671,10 +674,12 @@ const Scene = (() => {
           const jam = s.jamStart(QUEUE_A, QUEUE_B);
           sfx('honk'); await s.w(1200); sfx('honk'); await s.w(1200);
           s.jamGo(jam);
-          await ride.move(122, LANE_A, 230 / JAM_SPEED, 'linear');   // along the street to the school
+          await ride.move(232, LANE_A, 120 / JAM_SPEED, 'linear');   // along the street…
+          await ride.move(232, 396, 1400, 'ease-in-out');              // …and up the little street to the school
           ride.cam = false; ride.carry(false);
-          s.place([122, 458]); s.inside(false);
-          const leave = ride.move(-420, LANE_A, 2600, 'ease-in');
+          s.place([232, 374]); s.inside(false);
+          const leave = (async () => { await ride.move(232, LANE_A, 1200); await ride.move(-420, LANE_A, 2400, 'ease-in'); })();
+          leave.catch(() => {});
           await s.go(P.school);
           await leave; ride.remove();
           s.jamEnd();
@@ -723,12 +728,13 @@ const Scene = (() => {
       good: {
         async play(s) {
           const f = s.buddy('golden', '#ffd23f', P.friend);
+          f.appear();
           await f.go([398, 456]);
           s.chop(); f.chop(); await s.w(1100);
           s.hide('toyBroken'); s.show('toyFixed'); s.sparkle(380, 440);
           s.toss(398, 430, 350, 432, BALL, 600); await s.w(300);
           s.toss(350, 430, 398, 432, TOY, 600); await s.w(800);
-          await f.go(P.friend); f.remove();
+          await f.go(P.friend); await f.enter();
         },
       },
       bad: {
@@ -742,7 +748,7 @@ const Scene = (() => {
         },
         apply(s) { s.show('boxPile'); },
       },
-      pay(s) { s.show('swapBox'); s.look(150); s.sparkle(150, 420); },
+      pay(s) { s.show('swapBox'); s.look(150); s.sparkle(150, 344); },
     },
     hot: {
       async ev(s) { s.show('heatGlow'); await s.go(P.home); },
@@ -767,7 +773,8 @@ const Scene = (() => {
       pay(s) { s.show('turbines'); s.renew++; s.updatePlant(); s.look(80); s.sparkle(80, 250); },
     },
     shower: {
-      async ev(s) { s.wear('mud'); await s.go(P.home); },
+      // it's night: Bobo is already home (no playing outside in the dark)
+      async ev(s) { s.wear('mud'); if (s.time() === 'night') s.place(P.home); else await s.go(P.home); },
       good: {
         async play(s) { await s.go(P.door); s.inside(true); await s.w(300); s.flash('steam', 1300); await s.w(1300); s.wear('mud', false); s.inside(false); s.sparkle(350, 420); await s.w(500); },
       },
@@ -775,12 +782,13 @@ const Scene = (() => {
         async play(s) { await s.go(P.door); s.inside(true); await s.w(300); s.show('bathBubbles'); s.energy('fast'); s.burst(); await s.w(2600); s.hide('bathBubbles'); s.wear('mud', false); s.inside(false); await s.w(300); },
         apply(s) { s.energyBad++; },
       },
-      pay(s) { s.show('solarHeater'); s.renew++; s.updatePlant(); s.look(150); s.sparkle(96, 312); },
+      pay(s) { s.show('solarHeater'); s.renew++; s.updatePlant(); s.look(200); s.sparkle(178, 388); },
     },
     party: {
       async ev(s) {
         s.wear('hat'); s.show('partyCloth'); s.show('balloons'); s.show('cake');
         const a = s.buddy('dark', '#ffd23f', P.friend, '#2f80ed'), b = s.buddy('red', '#2fb35a', [900, 460], '#ffd23f');
+        a.appear();
         const ga = a.go([470, 452]), gb = b.go([542, 452]);
         ga.catch(() => {}); gb.catch(() => {});
         await s.go(P.garden);
@@ -803,7 +811,7 @@ const Scene = (() => {
         },
         apply(s) { s.show('trashPile'); },
       },
-      pay(s) { s.show('recycling'); s.look(200); s.sparkle(152, 330); },
+      pay(s) { s.show('recycling'); s.look(150); s.sparkle(44, 420); },
     },
     jacket: {
       async ev(s) { await s.go(P.shops); },
@@ -814,9 +822,8 @@ const Scene = (() => {
         async play(s) {
           // a big cargo ship brings the new clothes from a faraway factory
           const ship = s.vehicle('fx', SHIP, 950, 578, 1, 1.1);
-          const sail = ship.move(-380, 578, 7500, 'linear');
-          await s.go(P.mall); s.inside(true); await s.w(1300); s.wear('plain'); s.wear('bag'); s.inside(false);
-          await sail; ship.remove();
+          ship.move(-380, 578, 7500, 'linear');      // (it keeps sailing; no need to wait for it)
+          await s.go(P.mall); s.inside(true); await s.w(1300); s.wear('plain'); s.wear('bag'); s.inside(false); await s.w(500);
         },
       },
       pay(s) { s.show('clothesRack'); s.look(505); s.sparkle(505, 340); },
@@ -826,7 +833,8 @@ const Scene = (() => {
         s.wear('pack'); await s.go(P.home);
         // the whole family comes out of the house for the trip
         const fam = s.family(P.door);
-        await Promise.all(fam.map((m, k) => m.walk([314, 384, 404][k], [456, 456, 458][k])));
+        fam.forEach((m) => m.appear());
+        await Promise.all(fam.map(async (m, k) => { await s.w(200 * k); await m.walk([314, 384, 404][k], [456, 456, 458][k]); }));
       },
       good: {
         async play(s) {
@@ -837,11 +845,11 @@ const Scene = (() => {
           await s.go([240, 326]);
           await Promise.all(walks);
           s.hide('trains');
-          const tr = s.vehicle('trainFx', TRAIN, -280, 316, 1, 0.95);
+          const tr = s.vehicle('trainFx', TRAIN, -700, 316, 1, 0.95);
           sfx('choo');
-          await tr.move(325, 316, 2600, 'ease-out');
+          await tr.move(325, 316, 3200, 'ease-out');
           fam.forEach((m) => m.fade(false)); s.inside(true); await s.w(900);   // all aboard!
-          await tr.move(1250, 316, 2600, 'ease-in'); tr.remove(); s.show('trains');
+          await tr.move(1700, 316, 3400, 'ease-in'); tr.remove(); s.show('trains');
           fam.forEach((m) => m.remove());
           s.away = 'train';    // back from Grandma's by train next time
         },
@@ -849,9 +857,9 @@ const Scene = (() => {
       bad: {
         async play(s) {
           const fam = s.buddies.slice();
-          fam.forEach((m, k) => m.walk(330 + k * 18, 458));
+          fam.forEach((m, k) => m.walk([296, 320, 382][k], 458));   // they wait next to Bobo at the curb
           await s.go(P.curb);
-          const ride = s.vehicle('roadFx', car('#e63946'), -220, LANE_B, 1);
+          const ride = s.vehicle('roadFx', familyCar('#e63946'), -220, LANE_B, 1);
           await ride.move(340, LANE_B, 1500, 'ease-out');
           s.buddies.slice().forEach((m) => { m.fade(false); setTimeout(() => m.remove(), 450); });
           s.inside(true); ride.carry(true);
@@ -1009,9 +1017,15 @@ const Scene = (() => {
         WEAR[what].forEach((k) => q(k).classList.toggle('hide', !on));
         if (what === 'bike') walker.classList.toggle('riding', on);   // the side view on the bike replaces the front view
       },
-      inside(on) { walker.classList.toggle('inside', on); if (on) q('bubble').classList.add('hide'); },
+      // Bobo goes in / comes out of a house, shop, car or train: the same gentle fade as everybody else
+      inside(on, instant = false) {
+        if (instant) { walker.style.transition = 'none'; walker.classList.toggle('inside', on); void walker.getBoundingClientRect(); walker.style.transition = ''; }
+        else walker.classList.toggle('inside', on);
+        if (on) q('bubble').classList.add('hide');
+      },
       place,
       look(x) { camTo(x, 900); },
+      time: () => time,
       // wait, but stop if a new situation started meanwhile
       async w(ms) { const g = gen; await sleep(ms); guard(g); },
       async go(to) {
@@ -1053,27 +1067,32 @@ const Scene = (() => {
         const how = s.away;
         s.away = null;
         if (how === 'train') {
-          place(P.station); s.inside(true); s.hide('trains');
-          const tr = s.vehicle('trainFx', TRAIN, 1250, 316, -1, 0.95);
+          place(P.station); s.inside(true, true); s.hide('trains');
+          const tr = s.vehicle('trainFx', TRAIN, 1600, 316, -1, 0.95);
           sfx('choo');
-          await tr.move(139, 316, 2600, 'ease-out');
+          await tr.move(139, 316, 3200, 'ease-out');
+          // everybody gets off…
           s.inside(false);
-          const fam = s.family([222, 326]);
-          fam.forEach((m, k) => { m.place = [[206, 326], [222, 326], [258, 326]][k]; });
-          await s.w(700);
-          fam.forEach((m, k) => { (async () => { await m.walk(...m.place); await s.w(300 * k); await m.go(P.door); m.remove(); })().catch(() => {}); });
-          await tr.move(-480, 316, 2600, 'ease-in'); tr.remove(); s.show('trains');
+          const fam = s.family([[206, 326], [222, 326], [258, 326]]);
+          fam.forEach((m) => m.appear());
+          await s.w(600);
+          const leave = tr.move(-700, 316, 3200, 'ease-in');
+          // …and they all walk home together; the family goes inside
+          await Promise.all([s.go(P.home), ...fam.map(async (m, k) => { await s.w(220 * k); await m.go(P.door); await m.enter(); })]);
+          await leave; tr.remove(); s.show('trains');
         } else if (how === 'car') {
-          place(P.curb); s.inside(true);
-          const c = s.vehicle('roadFx', car('#e63946'), 950, LANE_A, -1);
+          place(P.curb); s.inside(true, true);
+          const c = s.vehicle('roadFx', familyCar('#e63946'), 1300, LANE_A, -1);
           c.carry(true);
-          await c.move(352, LANE_A, 1800, 'ease-out');
+          await c.move(352, LANE_A, 2400, 'ease-out');
+          // Bobo, mom and the little sister get out (dad drives off to park the car)
           c.carry(false); s.inside(false);
-          // the family gets out too and goes into the house
-          const fam = s.family([352, 458]);
-          fam.forEach((m, k) => { (async () => { await m.walk(326 + k * 22, 456); await s.w(250 * k); await m.go(P.door); m.remove(); })().catch(() => {}); });
-          await s.w(400);
-          await c.move(-420, LANE_A, 2200, 'ease-in'); c.remove();
+          const fam = s.family([[330, 458], [372, 458]], ['mom', 'sister']);
+          fam.forEach((m) => m.appear());
+          await s.w(500);
+          const leave = c.move(-420, LANE_A, 2400, 'ease-in');
+          await Promise.all([s.go(P.home), ...fam.map(async (m, k) => { await s.w(250 * k); await m.go(P.door); await m.enter(); })]);
+          await leave; c.remove();
         }
       },
       updatePlant() {
@@ -1106,8 +1125,9 @@ const Scene = (() => {
         return v;
       },
       // Bobo's family: dad (with a tie), mom (with a bow) and a little sister (with a bow)
-      family(at) {
-        return [s.buddy('dad', '#2f80ed', at, null, 'tie', 1.1), s.buddy('mom', '#ff6fa8', at, null, 'bow', 1.04), s.buddy('sister', '#ffd23f', at, null, 'bow', 0.76)];
+      family(spots, who = ['dad', 'mom', 'sister']) {
+        const look = { dad: ['#2f80ed', 'tie', 1.1], mom: ['#ff6fa8', 'bow', 1.04], sister: ['#ffd23f', 'bow', 0.76] };
+        return who.map((k, n) => s.buddy(k, look[k][0], Array.isArray(spots[0]) ? spots[n] : spots, null, look[k][1], look[k][2]));
       },
       // a friend monkey who can walk around
       buddy(kind, shirt, from, hat, extra = '', size = 1) {
@@ -1141,6 +1161,9 @@ const Scene = (() => {
         b.jump = () => restartAnim(g.querySelector('.mjump'), 'jump');
         b.remove = () => { g.remove(); const k = buddies.indexOf(b); if (k >= 0) buddies.splice(k, 1); };
         b.fade = (on) => { g.style.transition = 'opacity .4s'; g.style.opacity = on ? '1' : '0'; };
+        // come out of a door (fade in where they are) / go in through a door (fade out, then gone)
+        b.appear = () => { g.style.transition = 'none'; g.style.opacity = '0'; void g.getBoundingClientRect(); b.fade(true); };
+        b.enter = async () => { b.fade(false); await sleep(450); b.remove(); };
         buddies.push(b);
         return b;
       },

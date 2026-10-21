@@ -37,6 +37,7 @@ const Icon = (() => {
     shield: `<path d="M16 3 L26 7 V15 Q26 24 16 29 Q6 24 6 15 V7Z" fill="#2f80ed" ${st}/><path d="M11 16 L15 20 L21.5 12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`,
     sparkle: `<path d="M16 3 L18.5 13.5 L29 16 L18.5 18.5 L16 29 L13.5 18.5 L3 16 L13.5 13.5Z" fill="#ffd23f" ${st}/><path d="M25 4 l1 3 l3 1 l-3 1 l-1 3 l-1 -3 l-3 -1 l3 -1Z" fill="#fff36b"/>`,
     hot: `<circle cx="16" cy="17" r="12" fill="#ff7a4d" ${st}/><path d="M10 14 q2 -2 4 0 M18 14 q2 -2 4 0" fill="none" ${st}/><path d="M11 21 Q16 17 21 21" fill="#5a2d0c" ${st}/><path d="M25 6 q-3 4 0 6 q3 -2 0 -6Z" fill="#6fc3f5"/>`,
+    sun: `<g stroke="#ffb627" stroke-width="2.4" stroke-linecap="round"><path d="M16 2 V6 M16 26 V30 M2 16 H6 M26 16 H30 M6 6 L8.8 8.8 M23.2 23.2 L26 26 M6 26 L8.8 23.2 M23.2 8.8 L26 6"/></g><circle cx="16" cy="16" r="7.5" fill="#ffd23f" ${st}/>`,
     moon: `<circle cx="16" cy="16" r="13" fill="#fff6c8"/><circle cx="16" cy="16" r="10.5" fill="#151a2b"/>`,
     city: `<rect x="4" y="13" width="8" height="15" fill="#8fb3d9" ${st}/><rect x="12" y="5" width="9" height="23" fill="#f2c94c" ${st}/><rect x="21" y="10" width="7" height="18" fill="#ff9f80" ${st}/><path d="M15 9 h3 M15 13 h3 M15 17 h3 M7 17 h2 M7 21 h2 M23.5 14 h2 M23.5 18 h2" stroke="#fff" stroke-width="1.6"/>`,
     no: `<circle cx="16" cy="16" r="12" fill="#fff" ${st}/><circle cx="16" cy="16" r="8.5" fill="none" stroke="#ff5b4a" stroke-width="3"/><path d="M10 10 L22 22" stroke="#ff5b4a" stroke-width="3"/>`,

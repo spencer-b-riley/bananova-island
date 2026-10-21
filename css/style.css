@@ -524,8 +524,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 /* moving things */
 .driveL { animation: driveL 15s linear infinite; }
 .driveR { animation: driveR 13s linear infinite; }
-@keyframes driveL { from { transform: translateX(1150px); } to { transform: translateX(-350px); } }
-@keyframes driveR { from { transform: translateX(-350px); } to { transform: translateX(1150px); } }
+@keyframes driveL { from { transform: translateX(1300px); } to { transform: translateX(-500px); } }
+@keyframes driveR { from { transform: translateX(-500px); } to { transform: translateX(1300px); } }
 .ride { animation: driveR 16s linear infinite; }
 /* bike riders seen from the side: legs pedal, wheels turn */
 .leg-a { animation: pedal 0.5s ease-in-out infinite alternate; }
@@ -553,8 +553,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .eclipse-on .shades { opacity: 1; }
 .trainrun { animation: train 26s linear infinite; }
 .trainrun.back { animation-name: trainBack; }
-@keyframes train { 0% { transform: translateX(-350px); } 55%, 100% { transform: translateX(1250px); } }
-@keyframes trainBack { 0% { transform: translateX(1150px); } 55%, 100% { transform: translateX(-450px); } }
+@keyframes train { 0% { transform: translateX(-750px); } 60%, 100% { transform: translateX(1700px); } }
+@keyframes trainBack { 0% { transform: translateX(1550px); } 60%, 100% { transform: translateX(-900px); } }
 .vehicle, .buddy { transform-box: view-box; }
 .spin { transform-box: fill-box; transform-origin: center; animation: spin 3.2s linear infinite; }
 .fast-spin { animation-duration: 0.4s; }
@@ -599,11 +599,12 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 /* seagulls, butterflies, bees, birds, crabs */
 .fly { animation: fly 20s linear infinite; }
 .soar { animation: soar 3s ease-in-out infinite; }
-.wing { animation: flap 2.4s ease-in-out infinite; }
+.wing { animation: flap 2.6s ease-in-out infinite; transform: rotate(-32deg); }
 .wing.far { animation-delay: -0.06s; }
 @keyframes fly { from { transform: translateX(-350px); } to { transform: translateX(1150px); } }
 @keyframes soar { 50% { transform: translateY(-10px); } }
-@keyframes flap { 0%, 44%, 100% { transform: scaleY(1); } 8%, 24% { transform: scaleY(-0.45); } 16%, 32% { transform: scaleY(0.9); } }
+/* wings swing down and up from the shoulder (two flaps, then a long glide) */
+@keyframes flap { 0%, 44%, 100% { transform: rotate(-32deg); } 9%, 27% { transform: rotate(-82deg); } 18%, 36% { transform: rotate(8deg); } }
 .flutter { animation: flutter 16s ease-in-out infinite; }
 .bfly .bwing { transform-box: fill-box; transform-origin: center; }
 .bfly { animation: wingbeat 0.25s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
@@ -662,7 +663,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .flicker { transform-box: fill-box; transform-origin: 50% 100%; animation: flicker 0.32s ease-in-out infinite alternate; }
 .drift { animation: drift 110s linear infinite; }
 .sparkle { transform-box: fill-box; transform-origin: center; animation: spark 1.2s ease-out forwards; }
-.walker { transition: transform 1s ease-in-out, opacity 0.3s; }
+.walker { transition: transform 1s ease-in-out, opacity 0.4s; }
 .walking .bob, .walking .bd-bob { animation: walkbob 0.26s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
 @keyframes walkbob { from { transform: translateY(0) rotate(-4deg); } to { transform: translateY(-6px) rotate(4deg); } }
 .mjump.chop { animation: chop 0.25s ease-in-out 4; transform-box: fill-box; transform-origin: 50% 100%; }
@@ -742,9 +743,9 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .fly.left { animation-name: flyLeft; }
 @keyframes flyLeft { from { transform: translateX(1150px); } to { transform: translateX(-350px); } }
 .hawk-fly { animation: flyLeft 48s linear infinite; animation-delay: -12s; }
-.hwing { animation: hawkFlap 5s ease-in-out infinite; }
+.hwing { animation: hawkFlap 5s ease-in-out infinite; transform: rotate(-30deg); }
 .hwing.far { animation-delay: -0.08s; }
-@keyframes hawkFlap { 0%, 60%, 100% { transform: scaleY(1); } 68%, 84% { transform: scaleY(-0.3); } 76%, 92% { transform: scaleY(0.95); } }
+@keyframes hawkFlap { 0%, 60%, 100% { transform: rotate(-30deg); } 69%, 87% { transform: rotate(-78deg); } 78%, 96% { transform: rotate(4deg); } }
 :root[data-perf="low"] :is(.hawk-fly, .hwing) { animation: none !important; }
 /* the title screen: calm, just a few birds */
 .calm :is([data-k="butterflies"], [data-k="bees"], [data-k="songbirds"], [data-k="crabs"], [data-k="fish"], [data-k="seaTurtle"], [data-k="farFish"], [data-k="hawk"], [data-k="vBirds"], [data-k="vAnimals"], [data-k="cyclists"], .nest) { display: none; }

@@ -280,10 +280,20 @@
     const party = CHOICES.findIndex((c) => c.id === 'party');
     const seq = [0, ...shuffle(CHOICES.map((_, k) => k).filter((k) => k !== 0 && k !== party))];
     seq.splice(1 + Math.floor(Math.random() * 2), 0, party);
-    // Each situation happens at a time of day that fits it (lights at sunset/night, a bath in the evening…)
-    const times = seq.map((ci) => { const ok = CHOICES[ci].times; return ok[Math.floor(Math.random() * ok.length)]; });
+    // Time of day only moves forward (morning → day → evening → night), like a real day.
+    // When the next situation needs an earlier time (school is in the morning), a new day starts.
+    const DAY = ['morning', 'day', 'evening', 'night'];
+    let now = 0;
+    const times = [], newDay = [];
+    seq.forEach((ci, turn) => {
+      const ok = CHOICES[ci].times.map((tm) => DAY.indexOf(tm));
+      const later = ok.filter((k) => k >= now);
+      newDay.push(turn > 0 && !later.length);
+      now = turn === 0 ? Math.min(...ok) : later.length ? Math.min(...later) : Math.min(...ok);
+      times.push(DAY[now]);
+    });
     G = {
-      seq, made: [], times, weather: [],
+      seq, made: [], times, newDay, weather: [],
       // Super rare: a solar eclipse (about 1 game in 15), on a clear day from this turn on
       eclipseTurn: Math.random() < 1 / 15 ? 1 + Math.floor(Math.random() * 9) : -1, eclipseDone: false,
       h: START.h, temp: START.t, turn: 0, picks: [], order: [], payQueue: [],
@@ -416,6 +426,7 @@
     const newSky = turn > 0 && (G.times[turn] !== G.times[turn - 1] || G.weather[turn] !== G.weather[turn - 1]);
     cardWait();
     sayLine(() => '');
+    if (G.newDay[turn]) toast('sun', t('newDay'));
     scene.setTime(G.times[turn]);
     scene.setWeather(G.weather[turn]);
     if (G.weather[turn] === 'storm') Sound.play('storm');
