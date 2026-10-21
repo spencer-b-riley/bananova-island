@@ -101,14 +101,14 @@ const Scene = (() => {
       ${kelp(-30, 4, 46, (x % 7) * -0.3)}${coral(-14, 0, a, ca)}${coral(14, 2, b, cb, 0.9)}${coral(0, 4, c, cc, 0.75)}</g>`;
 
   // Critters
-  const butterfly = (x, y, col, d) => `<g transform="translate(${x} ${y})"><g class="flutter" style="animation-delay:${d}s"><g class="bfly">
+  const butterfly = (x, y, col, d) => `<g transform="translate(${x} ${y}) scale(.6)"><g class="flutter" style="animation-delay:${d}s"><g class="bfly">
       <ellipse class="bwing" cx="-5" cy="-3" rx="6" ry="4.5" fill="${col}"/><ellipse class="bwing" cx="5" cy="-3" rx="6" ry="4.5" fill="${col}"/>
       <ellipse class="bwing" cx="-4" cy="3" rx="4" ry="3" fill="${col}"/><ellipse class="bwing" cx="4" cy="3" rx="4" ry="3" fill="${col}"/>
       <rect x="-1" y="-6" width="2" height="11" rx="1" fill="#23313f"/></g></g></g>`;
-  const bee = (x, y, d) => `<g transform="translate(${x} ${y})"><g class="beefly" style="animation-delay:${d}s">
+  const bee = (x, y, d) => `<g transform="translate(${x} ${y}) scale(.55)"><g class="beefly" style="animation-delay:${d}s">
       <ellipse class="bwing" cx="-1" cy="-5" rx="3.5" ry="2.4" fill="#e8f7ff" opacity=".9"/>
       <ellipse cx="0" cy="0" rx="5.5" ry="3.8" fill="#ffd23f"/><path d="M-1.6 -3.6 v7.2 M1.8 -3.6 v7.2" stroke="#23313f" stroke-width="1.5"/><circle cx="5" cy="-0.5" r="1.4" fill="#23313f"/></g></g>`;
-  const crab = (x, y, d) => `<g transform="translate(${x} ${y})"><g class="scuttle" style="animation-delay:${d}s">
+  const crab = (x, y, d) => `<g transform="translate(${x} ${y}) scale(.55)"><g class="scuttle" style="animation-delay:${d}s">
       <path d="M-7 2 l-5 4 M-4 3 l-3 5 M7 2 l5 4 M4 3 l3 5" stroke="#e8573f" stroke-width="2" stroke-linecap="round"/>
       <ellipse cx="0" cy="0" rx="9" ry="5.5" fill="#ff6b4a"/><path d="M-4 -4 v-5 M4 -4 v-5" stroke="#e8573f" stroke-width="1.6"/><circle cx="-4" cy="-9" r="1.8" fill="#23313f"/><circle cx="4" cy="-9" r="1.8" fill="#23313f"/>
       <circle cx="-12" cy="-3" r="3.5" fill="#ff6b4a"/><circle cx="12" cy="-3" r="3.5" fill="#ff6b4a"/></g></g>`;
@@ -123,7 +123,7 @@ const Scene = (() => {
       <g class="hwing near"><path d="M2 -2 C-2 -12 -14 -21 -31 -23 L-35 -20 L-31 -19 L-34 -16 L-29.5 -16 L-31.5 -13 L-26.5 -13 C-16 -8.5 -6 -3.5 -3 2Z" fill="#8a5a33" stroke="#5a3a1e" stroke-width=".7"/>
         <path d="M-31 -23 L-35 -20 L-31 -19 L-34 -16 L-29.5 -16 L-31.5 -13 L-27 -14 L-28 -19Z" fill="#4a2e16"/><path d="M-6 -9 C-12 -11 -18 -14 -24 -15" stroke="#c49a6c" stroke-width="1.2" fill="none"/></g></g>`;
   // A pigeon on the pavement that pecks at the ground (faces left; feet at 0,0)
-  const pigeon = (x, y, flip, d) => `<g transform="translate(${x} ${y}) scale(${flip ? -1 : 1} 1)"><g class="pigeon-walk" style="animation-delay:${d}s"><g class="peck" style="animation-delay:${d * 0.7}s">
+  const pigeon = (x, y, flip, d) => `<g transform="translate(${x} ${y}) scale(${flip ? -0.6 : 0.6} .6)"><g class="pigeon-walk" style="animation-delay:${d}s"><g class="peck" style="animation-delay:${d * 0.7}s">
       <path d="M-1.5 -1 v1.6 M1.6 -1 v1.6" stroke="#e8573f" stroke-width="1"/>
       <path d="M-5 -6 Q-5 -10 0 -10 Q6 -10 9 -7 L11 -5 Q6 -1 0 -1 Q-4 -1 -5 -6Z" fill="#9aa5b1"/>
       <path d="M0 -9 Q6 -9 9 -6.5 L7 -4 Q3 -6 0 -6Z" fill="#7d8691"/><path d="M5 -8 l2 1 M6 -7 l2 1" stroke="#4a5563" stroke-width=".7"/>
@@ -135,7 +135,7 @@ const Scene = (() => {
       <g data-k="nestLife" class="fade"><g class="chick" style="animation-delay:-.3s"><circle cx="-3.5" cy="-1" r="2.6" fill="#ffd23f"/><path d="M-3.5 -2.4 l-1.3 -2 l2.6 0Z" fill="#ff8c42"/></g>
       <g class="chick"><circle cx="2.5" cy="-1.2" r="2.6" fill="#ffd23f"/><path d="M2.5 -2.6 l-1.3 -2 l2.6 0Z" fill="#ff8c42"/></g>
       <g transform="translate(11 -1) scale(.8)">MOM</g></g></g>`;
-  const songbird = (x, y, c, d) => `<g transform="translate(${x} ${y})"><g class="hop" style="animation-delay:${d}s">
+  const songbird = (x, y, c, d) => `<g transform="translate(${x} ${y}) scale(.7)"><g class="hop" style="animation-delay:${d}s">
       <ellipse cx="0" cy="-5" rx="6" ry="4.6" fill="${c}"/><circle cx="5" cy="-9" r="3.4" fill="${c}"/><path d="M8 -9.5 l3.5 1 l-3.5 1Z" fill="#ffb627"/>
       <circle cx="6" cy="-10" r=".9" fill="#23313f"/><path d="M-5 -6 l-6 -3 l1 5Z" fill="${c}"/><path d="M-1 -1 v2 M2 -1 v2" stroke="#8b5a2b" stroke-width="1"/></g></g>`;
   const cow = (x, y, flip) => `<g transform="translate(${x} ${y}) scale(${flip ? -1 : 1} 1)">
@@ -169,9 +169,8 @@ const Scene = (() => {
       <g data-k="vt3" class="fade">${vtree(28, -34, .8)}${vtree(-18, -42, .75)}${vtree(18, -44, .75)}${vtree(-84, -2)}${vtree(86, -1)}${vtree(-8, -6)}${vtree(10, -8)}</g>
       <g data-k="vAnimals" class="fade">${vgoat(-30, -14)}${vgoat(-22, -16, true)}${vgoat(34, -12, true)}</g>
       <g data-k="vBirds" class="fade"><g transform="translate(0 -84)">
-        <g class="orbit" style="animation-duration:9s"><path class="vwing" d="M22 0 q3 -3 6 0 q3 -3 6 0" stroke="#4a5563" stroke-width="1.3" fill="none"/></g>
-        <g class="orbit" style="animation-duration:12s;animation-delay:-5s"><path class="vwing" d="M-30 6 q2.5 -2.5 5 0 q2.5 -2.5 5 0" stroke="#4a5563" stroke-width="1.2" fill="none"/></g>
-        <g class="orbit back" style="animation-duration:15s;animation-delay:-2s"><path class="vwing" d="M14 -12 q2 -2 4 0 q2 -2 4 0" stroke="#4a5563" stroke-width="1.1" fill="none"/></g></g></g>
+        <g class="oval" style="animation-duration:11s"><path class="vwing" d="M-3 0 q1.5 -1.6 3 0 q1.5 -1.6 3 0" stroke="#4a5563" stroke-width="1" fill="none"/></g>
+        <g class="oval" style="animation-duration:14s;animation-delay:-6s"><path class="vwing" d="M-2.5 0 q1.25 -1.4 2.5 0 q1.25 -1.4 2.5 0" stroke="#4a5563" stroke-width=".9" fill="none"/></g></g></g>
       <ellipse cx="0" cy="-30" rx="96" ry="40" fill="#d8eefc" opacity=".18"/>
     </g>`;
 
@@ -301,9 +300,9 @@ const Scene = (() => {
   <g class="camera">
 
   <g data-k="skyClouds"></g>
-  ${gullFlight(1, 96, 1.3, 24, -4)}${gullFlight(2, 236, 0.6, 36, -20, true)}${gullFlight(3, 548, 1.5, 21, -11)}
+  ${gullFlight(1, 150, 0.5, 30, -4)}${gullFlight(2, 250, 0.28, 40, -20, true)}${gullFlight(3, 548, 0.6, 26, -11)}
   <!-- one hawk circling high above the city -->
-  <g data-k="hawk" class="fade"><g class="hawk-fly"><g transform="translate(0 150) scale(-1.25 1.25)"><g class="soar">${HAWK}</g></g></g></g>
+  <g data-k="hawk" class="fade"><g class="hawk-fly"><g transform="translate(0 130) scale(-0.55 0.55)"><g class="soar">${HAWK}</g></g></g></g>
 
   <g class="waves"><path d="M-260 320 q15 -8 30 0 q15 8 30 0 M900 318 q15 -8 30 0 q15 8 30 0 M-120 480 q15 -8 30 0 q15 8 30 0 M960 490 q15 -8 30 0 q15 8 30 0 M120 560 q15 -8 30 0 q15 8 30 0 M560 580 q15 -8 30 0 q15 8 30 0"/></g>
   <g data-k="seaFx"></g>
@@ -465,6 +464,8 @@ const Scene = (() => {
     `<g transform="translate(${x} 441)"><path d="M0 0 q-6 -8 -2 -14 M0 0 q6 -8 2 -14 M0 0 V-12" stroke="#3d9a2e" stroke-width="2.4" fill="none"/>${k % 2 ? '<circle cx="0" cy="-2" r="3" fill="#ff8c42"/>' : '<circle cx="0" cy="-6" r="5" fill="#7fe06a"/>'}</g>`).join('')}
       ${flower(704, 438, '#ff6fa8')}${bee(728, 416, 0)}${bee(760, 420, -1.4)}`)}
 
+  <!-- pigeons pecking on the pavement (behind the road, so the cars drive in front of them) -->
+  <g data-k="pigeons" class="fade">${pigeon(262, 435, false, 0)}${pigeon(596, 436, true, -1.1)}</g>
   <!-- the toy in front of Bobo's house -->
   ${item('toyBroken', 384, 436, `<g transform="rotate(-14)"><path d="M-14 -10 h28 v8 h-28Z" fill="#ff5b4a"/><circle cx="-8" cy="0" r="4" fill="#23313f"/></g><circle cx="12" cy="0" r="4" fill="#23313f"/><path d="M2 -14 l3 -4 l2 4" stroke="#23313f" stroke-width="1.5" fill="none"/>`)}
       ${item('toyFixed', 384, 436, `<path d="M-14 -10 h28 v8 h-28Z" fill="#ff5b4a"/><path d="M-6 -16 h12 v6 h-12Z" fill="#cfefff"/><circle cx="-8" cy="0" r="4" fill="#23313f"/><circle cx="8" cy="0" r="4" fill="#23313f"/><path d="M-2 -6 h4" stroke="#ffd23f" stroke-width="3"/>`)}
@@ -575,8 +576,6 @@ const Scene = (() => {
   <!-- animals and bugs (they come and go with the climate) -->
   <g data-k="butterflies" class="fade">${butterfly(660, 410, '#ff8ad8', 0)}${butterfly(588, 404, '#ffd23f', -5)}${butterfly(742, 414, '#8fd3ff', -9)}</g>
   <g data-k="songbirds" class="fade">${songbird(150, 390, '#ff5b4a', 0)}${songbird(350, 355, '#2f80ed', -1.2)}${songbird(704, 432, '#ffb627', -2.2)}</g>
-  <!-- pigeons pecking on the pavement -->
-  <g data-k="pigeons" class="fade">${pigeon(262, 456, false, 0)}${pigeon(596, 457, true, -1.1)}</g>
   <g data-k="bees" class="fade">${bee(712, 432, 0)}${bee(745, 428, -2.4)}</g>
   <g data-k="bugs1" class="fade hide">${flies(318, 438)}${flies(690, 428)}</g>
   <g data-k="bugs2" class="fade hide">${flies(150, 430)}${flies(505, 418)}${flies(420, 360)}${flies(760, 432)}</g>
@@ -956,7 +955,12 @@ const Scene = (() => {
       walker.style.transitionTimingFunction = ease;
       // switch layers at the start of a step (always in the side street, where nothing overlaps)
       const layer = layerFor(y);
-      if (wrap.parentNode !== layer) layer.appendChild(wrap);
+      if (wrap.parentNode !== layer) {
+        // moving to another layer would skip the slide (= a teleport), so settle where Bobo is first
+        layer.appendChild(wrap);
+        walker.style.transitionDuration = '0ms';
+        void walker.getBoundingClientRect();
+      }
       walkPos = [x, y];
       walker.style.transitionDuration = ms + 'ms';
       walker.style.transform = `translate(${x - 400}px, ${y - 400}px) scale(${depthK(y).toFixed(3)})`;
@@ -1115,8 +1119,13 @@ const Scene = (() => {
         const b = { g, pos: from };
         const set = (x, y, ms) => {
           const layer = y < BACK_Y ? q('backLayer') : q('buddies');
-          if (g.parentNode !== layer) layer.appendChild(g);
-          g.style.transition = ms ? `transform ${ms}ms linear` : 'none'; g.style.transform = `translate(${x}px, ${y}px) scale(${depthK(y).toFixed(3)})`;
+          if (g.parentNode !== layer) {
+            // (moving to another layer would skip the slide: settle where we are first)
+            layer.appendChild(g);
+            g.style.transition = 'none';
+            void g.getBoundingClientRect();
+          }
+          g.style.transition = ms ? `transform ${ms}ms linear, opacity .4s` : 'none'; g.style.transform = `translate(${x}px, ${y}px) scale(${depthK(y).toFixed(3)})`;
         };
         set(from[0], from[1], 0); void g.getBoundingClientRect();
         b.walk = (x, y) => {
