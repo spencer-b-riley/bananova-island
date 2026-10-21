@@ -26,7 +26,7 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
 - Bobo's outfits: backpack, bike, party hat, sweater, thrift jacket, plain jacket and a shopping bag
 - Energy you can see: electricity flows from the power plant along a wire; using more energy makes
   the plant puff more smoke, and solar panels and wind turbines make it cleaner
-- Rewards two turns later: a bike gang, solar panels, a sea turtle on a clean beach, a toy swap box,
+- Rewards two turns later: a bike group, solar panels, a sea turtle on a clean beach, a toy swap box,
   shady trees, wind turbines, a solar water heater, a recycling center, a clothes rack, an extra
   train and a veggie garden with bees
 - The climate changes the city step by step (no disasters, no game over):

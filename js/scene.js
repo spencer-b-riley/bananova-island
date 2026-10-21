@@ -62,10 +62,10 @@ const Scene = (() => {
 
   // Seagull with flapping wings (faces right)
   const gull = `<g class="gull">
-      <path class="wing far" d="M0 -1 Q-3 -11 -12 -15 Q-7 -7 0 -1Z" fill="#b9c2ca"/>
-      <ellipse cx="0" cy="0" rx="8" ry="3.4" fill="#fff"/><path d="M-7 -0.5 L-13 -2.5 L-12 2Z" fill="#dfe4e8"/>
-      <circle cx="7" cy="-1.6" r="2.8" fill="#fff"/><path d="M9.4 -1.8 L13.5 -0.8 L9.4 0Z" fill="#ffb627"/><circle cx="7.6" cy="-2.3" r=".8" fill="#23313f"/>
-      <path class="wing near" d="M1 -1 Q-1 -12 -9 -17 L-12 -15.5 Q-6 -8 -2 -1Z" fill="#eef1f4" stroke="#9aa3ad" stroke-width=".8"/></g>`;
+      <g class="wing far"><path d="M-2 -1 C-6 -9 -14 -15 -26 -17 C-18 -11 -10 -5 -4 1Z" fill="#b7c0c8"/><path d="M-26 -17 L-20 -13.6 L-18.6 -15.4Z" fill="#2b2f36"/></g>
+      <path d="M-15 1 C-11 -3 2 -4.5 9 -2 C13 -0.5 14 1.5 11 2.6 C3 4.8 -8 4.2 -15 2.6 L-21 2Z" fill="#fff"/><path d="M-15 1.4 L-21 2 L-15 2.8Z" fill="#9aa3ad"/>
+      <circle cx="10" cy="-2" r="3.4" fill="#fff"/><path d="M13 -2.4 L18.5 -1.2 L13 0Z" fill="#f2c94c"/><circle cx="17" cy="-1" r=".7" fill="#e63946"/><circle cx="11" cy="-2.8" r=".8" fill="#23313f"/>
+      <g class="wing near"><path d="M1 -1 C-2 -10 -12 -19 -28 -24 L-31 -21 C-20 -15 -10 -7 -4 1.5Z" fill="#e3e8ec" stroke="#aab3bb" stroke-width=".6"/><path d="M-28 -24 L-31 -21 L-26 -20.4 L-24 -22.4Z" fill="#2b2f36"/></g></g>`;
   const gullFlight = (k, y, sc, dur, delay) =>
     `<g data-k="birds${k}" class="fade"><g class="fly" style="animation-duration:${dur}s;animation-delay:${delay}s"><g transform="translate(0 ${y}) scale(${sc})"><g class="soar">${gull}</g></g></g></g>`;
 
@@ -137,15 +137,19 @@ const Scene = (() => {
   /* ── vehicles (side view, facing right; the origin is where the wheels touch the ground) ── */
   const exhaust = (x) => `<g class="exhaust"><circle cx="${x}" cy="-7" r="5"/><circle cx="${x - 8}" cy="-13" r="7" style="animation-delay:-.27s"/><circle cx="${x - 18}" cy="-19" r="9" style="animation-delay:-.54s"/></g>`;
   const wheel = (x, r = 7) => `<circle cx="${x}" cy="${-r + 2}" r="${r}" fill="#2b2f36"/><circle cx="${x}" cy="${-r + 2}" r="${r * 0.42}" fill="#b8c0c8"/>`;
-  const car = (c) => `${exhaust(-38)}
+  // a little monkey head looking out of a window (faces right)
+  const monkeyHead = (x, y, fur, cls = '') => `<g class="${cls}" transform="translate(${x} ${y})"><circle cx="-4.6" cy="-.5" r="2.4" fill="${fur}"/><circle r="5.2" fill="${fur}"/>
+      <ellipse cx="2.2" cy="1" rx="3.4" ry="3" fill="#e8c39e"/><circle cx="1.6" cy="-1.5" r=".95" fill="#23313f"/><path d="M1.2 2.4 q1.6 1.3 3.2 -.2" stroke="#5a2d0c" stroke-width=".8" fill="none"/></g>`;
+  const car = (c, fur = '#7a4a24') => `${exhaust(-38)}
       <path d="M-32 -8 Q-32 -19 -24 -19 L-16 -19 L-8 -31 L12 -31 L22 -19 L28 -19 Q34 -19 34 -11 L34 -6 L-32 -6Z" fill="${c}"/>
       <path d="M-5 -28 L3 -28 L3 -20 L-11 -20Z M7 -28 L11 -28 L18 -20 L7 -20Z" fill="#cfefff"/>
+      ${monkeyHead(11, -23, fur)}${monkeyHead(-3, -23, '#8b5a2b', 'passenger')}
       <rect x="27" y="-16" width="6" height="4" rx="1" fill="#fff3a8"/><rect x="-32" y="-16" width="4" height="4" fill="#ff5b4a"/>
       ${wheel(-17)}${wheel(17)}`;
   const truck = `${exhaust(-52)}
       <rect x="-48" y="-50" width="64" height="42" rx="3" fill="#f7f7f7" stroke="#c8cdd3" stroke-width="2"/>
       <path d="M-38 -36 h44 M-38 -26 h44" stroke="#ffb627" stroke-width="5"/>
-      <path d="M17 -38 L34 -38 L45 -23 L45 -8 L17 -8Z" fill="#2f80ed"/><path d="M22 -34 L32 -34 L40 -23 L22 -23Z" fill="#cfefff"/>
+      <path d="M17 -38 L34 -38 L45 -23 L45 -8 L17 -8Z" fill="#2f80ed"/><path d="M22 -34 L32 -34 L40 -23 L22 -23Z" fill="#cfefff"/>${monkeyHead(29, -28, '#a0673a')}
       ${wheel(-32, 8)}${wheel(-12, 8)}${wheel(30, 8)}`;
   const carriage = (x) => `<rect x="${x}" y="-40" width="62" height="34" rx="6" fill="#f4f6f8" stroke="#c8cdd3" stroke-width="1.5"/>
       <rect x="${x}" y="-17" width="62" height="5" fill="#2f80ed"/>
@@ -162,6 +166,17 @@ const Scene = (() => {
       <rect x="-48" y="-46" width="22" height="16" fill="#e63946"/><rect x="-24" y="-46" width="22" height="16" fill="#2f80ed"/><rect x="0" y="-46" width="22" height="16" fill="#ffb627"/>
       <rect x="38" y="-38" width="18" height="24" fill="#f4f6f8"/><rect x="-40" y="-60" width="8" height="14" fill="#555b63"/></g>`;
 
+  const sailboat = (c, fur) => `<g class="boat-rock"><path d="M-26 -6 H26 L18 6 H-20Z" fill="${c}"/><path d="M-26 -6 H26" stroke="#fff" stroke-width="2"/>
+      <path d="M-2 -6 V-52" stroke="#6b5a4a" stroke-width="2.5"/><path d="M0 -50 L22 -10 H0Z" fill="#fff"/><path d="M-4 -46 L-22 -10 H-4Z" fill="#f4f6f8"/><path d="M-2 -52 l10 3 l-10 3Z" fill="#ffd23f"/>
+      ${monkeyHead(12, -11, fur)}</g>`;
+  const WHALE = `<g class="whale-bob"><path d="M-34 0 L-50 -16 L-45 0 L-52 10Z" fill="#4a6fa5"/>
+      <path d="M-36 6 Q-32 -18 0 -20 Q30 -20 36 2 Q20 10 -36 6Z" fill="#4a6fa5"/><path d="M-26 4 Q0 10 32 2" stroke="#9cc0ea" stroke-width="3" fill="none"/>
+      <circle cx="20" cy="-7" r="2.3" fill="#23313f"/><circle cx="20.8" cy="-7.7" r=".8" fill="#fff"/><path d="M24 -1 q6 3 10 -1" stroke="#23313f" stroke-width="1.6" fill="none"/>
+      <circle cx="14" cy="-2" r="3" fill="#ff9aa2" opacity=".6"/>
+      <g class="spout"><path d="M6 -20 q-6 -14 -14 -16 M6 -20 v-20 M6 -20 q6 -14 14 -16" stroke="#dff4ff" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+        <circle cx="-9" cy="-37" r="3.2" fill="#dff4ff"/><circle cx="21" cy="-37" r="3.2" fill="#dff4ff"/><circle cx="6" cy="-44" r="3.2" fill="#dff4ff"/></g>
+      <ellipse cx="0" cy="8" rx="46" ry="4.5" fill="#e6f9ff" opacity=".75"/></g>`;
+
   // A friend monkey (different fur and shirt). hat = party hat.
   const buddy = (fur, shirt, hat) => `<g class="bd-bob">
       <path d="M16 12 C46 14 52 -18 34 -26 C26 -28 24 -18 32 -16" stroke="${fur}" stroke-width="6" fill="none" stroke-linecap="round"/>
@@ -175,21 +190,45 @@ const Scene = (() => {
         <circle cx="-8" cy="-4" r="9" fill="#f2d4b5"/><circle cx="8" cy="-4" r="9" fill="#f2d4b5"/>
         <circle cx="-7" cy="-4" r="3.6" fill="#23313f"/><circle cx="7" cy="-4" r="3.6" fill="#23313f"/><circle cx="-6" cy="-5.5" r="1.2" fill="#fff"/><circle cx="8" cy="-5.5" r="1.2" fill="#fff"/>
         <path d="M-9 10 Q0 21 9 10 Z" fill="#5a2d0c"/><circle cx="-15" cy="6" r="4" fill="#ff9aa2" opacity=".6"/><circle cx="15" cy="6" r="4" fill="#ff9aa2" opacity=".6"/>
+        ${SHADES}
         ${hat ? `<path d="M-15 -20 L5 -66 L17 -16Z" fill="${hat}"/><path d="M-9 -32 L13 -28 M-3 -46 L10 -43" stroke="#fff" stroke-width="3"/><circle cx="5" cy="-66" r="5" fill="#ffd23f"/>` : ''}
       </g></g>`;
-  // A bike under a monkey (monkey drawing units: body centre at 0, feet at +30)
-  const BIKE = `<circle cx="-28" cy="16" r="14" fill="none" stroke="#23313f" stroke-width="4"/><circle cx="28" cy="16" r="14" fill="none" stroke="#23313f" stroke-width="4"/>
-      <path d="M-28 16 L-6 16 L10 -2 L28 16 M-6 16 L-12 -2 M-19 -4 H-5 M10 -2 L14 -13 L23 -13" stroke="#ff5b4a" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+  // Eclipse glasses (dark lenses), shown only during a solar eclipse
+  const SHADES = `<g class="shades"><path d="M-18 -9 h14 v7 q-7 6 -14 0Z M4 -9 h14 v7 q-7 6 -14 0Z" fill="#14171c" stroke="#ffd23f" stroke-width="1.6"/>
+      <path d="M-4 -7 h8 M-18 -8 l-8 -3 M18 -8 l8 -3" stroke="#ffd23f" stroke-width="2"/></g>`;
   const MONKEY_FIT = 'translate(0 -18.6) scale(.62)';    // Bobo-sized, standing on the origin
-  const rider = (fur, shirt, d, dur) => `<g class="ride" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 466) scale(.93)"><g transform="${MONKEY_FIT}"><g class="pedal">${BIKE}${buddy(fur, shirt)}</g></g></g></g>`;
+  // A monkey riding a bike, seen from the side (faces right; the wheels touch the ground at y = 0).
+  // shirt = null: just fur with a light belly (Bobo). The legs pedal and the wheels turn.
+  const sideWheel = (x) => `<g transform="translate(${x} -15)"><circle r="15" fill="none" stroke="#23313f" stroke-width="4"/>
+      <g class="wheelspin"><path d="M-13 0 H13 M0 -13 V13 M-9 -9 L9 9 M9 -9 L-9 9" stroke="#9aa5b1" stroke-width="1.3"/></g><circle r="2.6" fill="#555b63"/></g>`;
+  const sideRider = (fur, shirt, pack = false) => `<g class="rider">
+      <path d="M-12 -50 C-30 -48 -36 -64 -28 -75" stroke="${fur}" stroke-width="5" fill="none" stroke-linecap="round"/>
+      ${pack ? '<rect x="-28" y="-77" width="15" height="25" rx="5" fill="#ff6b4a"/><rect x="-28" y="-62" width="6" height="7" rx="2" fill="#e04f30"/>' : ''}
+      <g transform="translate(-6 -44)"><g class="leg-b"><path d="M0 0 L12 12 L8 27" stroke="${fur}" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/><ellipse cx="10" cy="28" rx="5" ry="3" fill="${fur}" opacity=".75"/></g></g>
+      ${sideWheel(-27)}${sideWheel(27)}
+      <path d="M-27 -15 L0 -15 L-8 -38 Z M0 -15 L19 -38 L-8 -38 M27 -15 L19 -38 L17 -48 M12 -49 H23" stroke="#ff5b4a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M-15 -40 H-2" stroke="#23313f" stroke-width="4.5" stroke-linecap="round"/><circle cx="0" cy="-15" r="4" fill="#555b63"/>
+      <ellipse cx="-5" cy="-55" rx="11" ry="15" transform="rotate(22 -5 -55)" fill="${shirt || fur}"/>
+      ${shirt ? '' : '<ellipse cx="-1" cy="-54" rx="5.5" ry="10" transform="rotate(22 -1 -54)" fill="#e8c39e"/>'}
+      ${pack ? '<path d="M-14 -66 Q-6 -60 -2 -48" stroke="#e04f30" stroke-width="3.5" fill="none" stroke-linecap="round"/>' : ''}
+      <g transform="translate(-6 -44)"><g class="leg-a"><path d="M0 0 L12 12 L8 27" stroke="${fur}" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="10" cy="28" rx="5" ry="3" fill="${fur}"/></g></g>
+      <path d="M0 -63 Q10 -57 17 -48" stroke="${shirt || fur}" stroke-width="6" stroke-linecap="round" fill="none"/><circle cx="17" cy="-48" r="3.5" fill="${fur}"/>
+      <g transform="translate(6 -76)">
+        <circle cx="-9" cy="-2" r="6" fill="${fur}"/><circle cx="-9" cy="-2" r="3.5" fill="#e8c39e"/><circle r="13" fill="${fur}"/>
+        <ellipse cx="5" cy="1" rx="8" ry="8.5" fill="#e8c39e"/><ellipse cx="11" cy="5" rx="6" ry="4.5" fill="#e8c39e"/>
+        <circle cx="6" cy="-2" r="2.3" fill="#23313f"/><circle cx="6.8" cy="-2.8" r=".8" fill="#fff"/><circle cx="15.5" cy="3.6" r=".9" fill="#5a2d0c"/>
+        <path d="M9 8 q4 3 8 -1" stroke="#5a2d0c" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="2.5" cy="5" r="2.6" fill="#ff9aa2" opacity=".55"/>
+      </g></g>`;
+  const rider = (fur, shirt, d, dur) => `<g class="ride" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 466) scale(.62)">${sideRider(fur, shirt)}</g></g>`;
 
-  // cars looping along the road (lane A goes left, lane B goes right)
-  const laneCar = (lane, c, dur, d) => lane === 'A'
-    ? `<g class="driveL" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 448) scale(-.92 .92)">${car(c)}</g></g>`
-    : `<g class="driveR" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 457) scale(.96)">${car(c)}</g></g>`;
+  // cars looping along the road (lane A goes left, lane B goes right), each with a happy monkey driver
+  const LANE_A = 468, LANE_B = 477;
+  const laneCar = (lane, c, dur, d, fur) => lane === 'A'
+    ? `<g class="driveL" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 ${LANE_A - 20}) scale(-.92 .92)">${car(c, fur)}</g></g>`
+    : `<g class="driveR" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 ${LANE_B - 20}) scale(.96)">${car(c, fur)}</g></g>`;
 
   function buildSVG(u) {
-    const piers = (y, h) => [-660, -560, -460, -360, -260, -160, -60, 860, 960, 1060, 1160, 1260, 1360, 1460].map((x) =>
+    const piers = (y, h) => [-300, -200, -100, -10, 870, 960, 1060, 1160].map((x) =>
       `<rect x="${x}" y="${y}" width="12" height="${h}" fill="#9aa5b1"/>`).join('');
     return `
 <svg class="scene-main" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Bobo's City" xmlns="http://www.w3.org/2000/svg">
@@ -201,24 +240,24 @@ const Scene = (() => {
   <g data-k="skyClouds"></g>
   ${gullFlight(1, 110, 1.4, 19, -4)}${gullFlight(2, 78, 1.1, 25, -15)}${gullFlight(3, 150, 1.2, 22, -9)}
 
-  <g class="waves"><path d="M20 312 q15 -8 30 0 q15 8 30 0 M660 304 q15 -8 30 0 q15 8 30 0 M-260 320 q15 -8 30 0 q15 8 30 0 M-520 300 q15 -6 30 0 q15 6 30 0 M900 318 q15 -8 30 0 q15 8 30 0 M1160 300 q15 -6 30 0 q15 6 30 0 M-120 470 q15 -8 30 0 q15 8 30 0 M960 480 q15 -8 30 0 q15 8 30 0"/></g>
+  <g class="waves"><path d="M-260 320 q15 -8 30 0 q15 8 30 0 M900 318 q15 -8 30 0 q15 8 30 0 M-120 480 q15 -8 30 0 q15 8 30 0 M960 490 q15 -8 30 0 q15 8 30 0 M120 560 q15 -8 30 0 q15 8 30 0 M560 580 q15 -8 30 0 q15 8 30 0"/></g>
   <g data-k="seaFx"></g>
 
   <!-- offshore wind turbines (a reward) -->
   ${item('turbines', 0, 0, `${turbine(36, 300, 1, 0)}${turbine(82, 296, 0.85, -0.7)}${turbine(122, 293, 0.7, -1.3)}`, 'fade')}
 
-  <ellipse class="lagoon" cx="400" cy="420" rx="560" ry="132"/>
+  <ellipse class="lagoon" cx="400" cy="446" rx="560" ry="140"/>
   <g data-k="farFish" class="fade"><g class="swim" style="animation-duration:60s;animation-delay:-10s"><g transform="translate(0 312) scale(.3)">${fish('#ffd23f')}</g></g>
     <g class="swim" style="animation-duration:66s;animation-delay:-25s"><g transform="translate(0 326) scale(.34)">${fish('#7ad3ff')}</g></g></g>
 
   <!-- bridges: the train and the road go across the sea to the other towns -->
-  ${piers(320, 50)}${piers(458, 70)}
+  ${piers(320, 50)}${piers(478, 70)}
 
   <!-- the island -->
-  <path class="foam" d="M30 298 C160 284 640 284 770 298 C806 304 812 358 808 422 C804 476 782 490 744 490 L56 490 C18 490 -4 476 -8 422 C-12 358 -6 304 30 298Z" fill="none" stroke="#e6f9ff" stroke-width="5" opacity=".7"/>
-  <path d="M34 296 C160 282 640 282 766 296 C800 302 806 356 802 420 C798 472 778 486 744 486 L56 486 C22 486 2 472 -2 420 C-6 356 0 302 34 296Z" fill="#fbe3a2"/>
-  <path data-k="seaRise" class="sea-rise" d="M34 296 C160 282 640 282 766 296 C800 302 806 356 802 420 C798 472 778 486 744 486 L56 486 C22 486 2 472 -2 420 C-6 356 0 302 34 296Z" fill="none" stroke="url(#${u}sea)"/>
-  <path class="grass" d="M44 304 C170 292 630 292 756 304 C786 310 792 358 788 418 C785 460 768 470 738 470 L62 470 C32 470 15 460 12 418 C8 358 14 310 44 304Z"/>
+  <path class="foam" d="M30 298 C160 284 640 284 770 298 C808 304 814 360 812 432 C810 508 790 538 744 538 L56 538 C10 538 -10 508 -12 432 C-14 360 -6 304 30 298Z" fill="none" stroke="#e6f9ff" stroke-width="5" opacity=".7"/>
+  <path d="M34 296 C160 282 640 282 766 296 C800 302 808 360 806 430 C804 502 786 534 744 534 L56 534 C14 534 -4 502 -6 430 C-8 360 0 302 34 296Z" fill="#fbe3a2"/>
+  <path data-k="seaRise" class="sea-rise" d="M34 296 C160 282 640 282 766 296 C800 302 808 360 806 430 C804 502 786 534 744 534 L56 534 C14 534 -4 502 -6 430 C-8 360 0 302 34 296Z" fill="none" stroke="url(#${u}sea)"/>
+  <path class="grass" d="M44 304 C170 292 630 292 756 304 C786 310 792 360 790 430 C788 478 770 490 738 490 L62 490 C30 490 12 478 10 430 C8 360 14 310 44 304Z"/>
   <path class="grass light" d="M60 310 C180 300 620 300 740 310 C766 316 770 340 760 352 L40 352 C30 340 34 316 60 310Z"/>
 
   <!-- far back: skyscrapers and the power plant -->
@@ -252,7 +291,7 @@ const Scene = (() => {
   </g>
 
   <!-- the railway -->
-  <rect x="-900" y="316" width="2600" height="6" fill="#8b7a68"/><path d="M-900 316 H1700" stroke="#4a5563" stroke-width="2"/>
+  <rect x="-400" y="316" width="1600" height="6" fill="#8b7a68"/><path d="M-400 316 H1200" stroke="#4a5563" stroke-width="2"/>
   <g data-k="trains"><g class="trainrun" style="animation-duration:26s;animation-delay:-6s"><g transform="translate(0 316) scale(.95)">${TRAIN}</g></g>
     <g data-k="train2" class="fade hide"><g class="trainrun back" style="animation-duration:26s;animation-delay:-19s"><g transform="translate(0 316) scale(-.95 .95)">${TRAIN}</g></g></g></g>
   <g data-k="trainFx"></g>
@@ -264,7 +303,7 @@ const Scene = (() => {
 
   <!-- back row: school, thrift store, mall (and the paths in front of them) -->
   <rect x="26" y="362" width="610" height="9" rx="3" class="pave"/>
-  <rect x="218" y="326" width="28" height="112" class="pave"/>
+  <rect x="218" y="326" width="28" height="132" class="pave"/>
   <g class="school">
     <rect x="40" y="312" width="136" height="50" fill="#ffcf5a"/><rect x="36" y="306" width="144" height="7" rx="2" fill="#c98f4f"/>
     <path d="M90 306 V290 L108 276 L126 290 V306Z" fill="#ffcf5a" stroke="#c98f4f" stroke-width="3"/><circle cx="108" cy="292" r="7" fill="#fff" stroke="#23313f" stroke-width="1.5"/><path d="M108 292 V287 M108 292 h4" stroke="#23313f" stroke-width="1.5"/>
@@ -295,7 +334,8 @@ const Scene = (() => {
   <!-- Bobo walks here while in the back row (so the houses stay in front of Bobo) -->
   <g data-k="backLayer"></g>
 
-  <!-- front row: the houses, the garden, the park -->
+  <!-- front row: the houses, the garden, the park (drawn 20 lower than the numbers inside) -->
+  <g transform="translate(0 20)">
   <rect x="14" y="426" width="772" height="12" class="pave"/>
   ${item('cows', 0, 0, `<path d="M70 438 V420 M126 438 V420 M70 424 H126 M70 432 H126" stroke="#a0673a" stroke-width="2.5"/>${cow(86, 438, false)}${cow(112, 436, true)}
       <g class="cow-gas">${puffs(68, 420, 3, 6, '#a6b48a', 3)}</g>`)}
@@ -330,9 +370,9 @@ const Scene = (() => {
   ${item('shadeTrees', 0, 0, `${tree(272, 434, 0.95)}${tree(426, 434, 0.95)}`)}
   <g class="garden">
     <path d="M466 420 H544 M472 420 L466 434 M538 420 L544 434 M476 420 V434 M534 420 V434" stroke="#8b5a2b" stroke-width="3.5"/>
-    ${item('balloons', 0, 0, `<g class="balloon"><path d="M468 416 Q462 396 466 380" stroke="#fff" stroke-width="1.2" fill="none"/><ellipse cx="466" cy="372" rx="9" ry="11" fill="#ff5b4a"/></g>
-      <g class="balloon" style="animation-delay:-1s"><path d="M474 416 Q480 398 478 388" stroke="#fff" stroke-width="1.2" fill="none"/><ellipse cx="479" cy="380" rx="8" ry="10" fill="#ffd23f"/></g>
-      <g class="balloon" style="animation-delay:-2s"><path d="M542 416 Q548 396 544 380" stroke="#fff" stroke-width="1.2" fill="none"/><ellipse cx="544" cy="372" rx="9" ry="11" fill="#2f80ed"/></g>`)}
+    ${item('balloons', 0, 0, `<g class="balloon"><path d="M464 418 Q452 400 446 382" stroke="#fff" stroke-width="1.2" fill="none"/><ellipse cx="445" cy="373" rx="9" ry="11" fill="#ff5b4a"/></g>
+      <g class="balloon" style="animation-delay:-1s"><path d="M464 418 Q444 406 432 394" stroke="#fff" stroke-width="1.2" fill="none"/><ellipse cx="430" cy="386" rx="8" ry="10" fill="#ffd23f"/></g>
+      <g class="balloon" style="animation-delay:-2s"><path d="M546 418 Q560 400 566 382" stroke="#fff" stroke-width="1.2" fill="none"/><ellipse cx="567" cy="373" rx="9" ry="11" fill="#2f80ed"/></g>`)}
     ${item('sortBins', 0, 0, `<rect x="560" y="420" width="10" height="14" rx="1.5" fill="#2fb35a"/><rect x="573" y="420" width="10" height="14" rx="1.5" fill="#2f80ed"/><rect x="586" y="420" width="10" height="14" rx="1.5" fill="#ffd23f"/>
       <path d="M559 420 h12 M572 420 h12 M585 420 h12" stroke="#23313f" stroke-width="2"/>`)}
     ${item('trashBag', 572, 436, `<path d="M-10 0 Q-14 -14 -4 -18 L-2 -22 L4 -22 L5 -18 Q14 -14 10 0Z" fill="#3a3f47"/><path d="M-2 -22 l-3 -4 M4 -22 l3 -4" stroke="#3a3f47" stroke-width="2"/>`)}
@@ -356,13 +396,13 @@ const Scene = (() => {
   ${item('toyBroken', 384, 436, `<g transform="rotate(-14)"><path d="M-14 -10 h28 v8 h-28Z" fill="#ff5b4a"/><circle cx="-8" cy="0" r="4" fill="#23313f"/></g><circle cx="12" cy="0" r="4" fill="#23313f"/><path d="M2 -14 l3 -4 l2 4" stroke="#23313f" stroke-width="1.5" fill="none"/>`)}
       ${item('toyFixed', 384, 436, `<path d="M-14 -10 h28 v8 h-28Z" fill="#ff5b4a"/><path d="M-6 -16 h12 v6 h-12Z" fill="#cfefff"/><circle cx="-8" cy="0" r="4" fill="#23313f"/><circle cx="8" cy="0" r="4" fill="#23313f"/><path d="M-2 -6 h4" stroke="#ffd23f" stroke-width="3"/>`)}
       ${item('toyNew', 384, 436, `<path d="M-14 -10 h28 v8 h-28Z" fill="#2f80ed"/><path d="M-6 -16 h12 v6 h-12Z" fill="#cfefff"/><circle cx="-8" cy="0" r="4" fill="#23313f"/><circle cx="8" cy="0" r="4" fill="#23313f"/>`)}
+  </g>
 
   <!-- Bobo -->
   <g data-k="midLayer"><g data-k="walkerWrap" transform="translate(400 400)"><g class="walker"><g transform="${MONKEY_FIT}"><g data-k="monkey"><g class="mjump"><g class="bob">
     <path d="M16 12 C46 14 52 -18 34 -26 C26 -28 24 -18 32 -16" stroke="#7a4a24" stroke-width="6" fill="none" stroke-linecap="round"/>
     <g data-k="mPack" class="fade hide"><rect x="-29" y="-20" width="58" height="38" rx="10" fill="#ff6b4a"/><rect x="-29" y="2" width="10" height="10" rx="2" fill="#e04f30"/><rect x="19" y="2" width="10" height="10" rx="2" fill="#e04f30"/></g>
     <ellipse cx="-11" cy="24" rx="9" ry="6" fill="#7a4a24"/><ellipse cx="11" cy="24" rx="9" ry="6" fill="#7a4a24"/>
-    <g data-k="mBike" class="fade hide">${BIKE}</g>
     <ellipse cx="0" cy="0" rx="22" ry="26" fill="#8b5a2b"/>
     <ellipse cx="0" cy="6" rx="13" ry="16" fill="#e8c39e"/>
     <g data-k="mMud" class="fade hide"><circle cx="-8" cy="8" r="5" fill="#6b4423"/><circle cx="7" cy="-6" r="4" fill="#6b4423"/><circle cx="4" cy="16" r="3.5" fill="#6b4423"/><circle cx="-14" cy="-10" r="3" fill="#6b4423"/></g>
@@ -387,6 +427,7 @@ const Scene = (() => {
       <circle cx="-8" cy="-4" r="9" fill="#e8c39e"/><circle cx="8" cy="-4" r="9" fill="#e8c39e"/>
       <g class="eyes"><circle cx="-7" cy="-4" r="3.6" fill="#23313f"/><circle cx="7" cy="-4" r="3.6" fill="#23313f"/>
       <circle cx="-6" cy="-5.5" r="1.2" fill="#fff"/><circle cx="8" cy="-5.5" r="1.2" fill="#fff"/></g>
+      ${SHADES}
       <circle cx="-2.5" cy="5" r="1.4" fill="#5a2d0c"/><circle cx="2.5" cy="5" r="1.4" fill="#5a2d0c"/>
       <g data-k="mHappy" class="fade mood"><path d="M-9 10 Q0 21 9 10 Z" fill="#5a2d0c"/><path d="M-5 14 Q0 18 5 14" fill="#ff8fa3"/><circle cx="-15" cy="6" r="4" fill="#ff9aa2" opacity=".6"/><circle cx="15" cy="6" r="4" fill="#ff9aa2" opacity=".6"/></g>
       <g data-k="mMeh" class="fade hide mood"><path d="M-7 13 Q0 15 7 13" stroke="#5a2d0c" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
@@ -406,10 +447,12 @@ const Scene = (() => {
       <g class="r r-sad"><path d="M-8 16 Q0 8 8 16" stroke="#5a2d0c" stroke-width="2.5" fill="none" stroke-linecap="round"/><path class="drip" d="M-12 2 q-3 6 0 8 q3 -2 0 -8Z M12 2 q-3 6 0 8 q3 -2 0 -8Z" fill="#7cc9ef"/></g>
       <g class="r r-think"><circle cx="4" cy="13" r="2.8" fill="#5a2d0c"/><text x="28" y="-22" font-size="24" font-weight="900" fill="#2f80ed">?</text></g>
     </g>
-  </g></g></g></g></g></g></g>
+  </g></g></g></g>
+    <g data-k="mRide" class="fade hide"><g class="ride-dir" transform="scale(.66 .66)">${sideRider('#8b5a2b', null, true)}</g></g>
+  </g></g></g>
   <g data-k="buddies"></g>
   <!-- the table top and what's on it are drawn in front of Bobo (Bobo stands behind the table) -->
-  <g class="garden-top"><rect x="462" y="416" width="86" height="5" rx="2" fill="#c98f4f"/>
+  <g class="garden-top" transform="translate(0 20)"><rect x="462" y="416" width="86" height="5" rx="2" fill="#c98f4f"/>
     ${item('partyCloth', 0, 0, `<path d="M460 414 H550 V424 q-6 5 -11 0 q-6 5 -11 0 q-6 5 -12 0 q-6 5 -11 0 q-6 5 -12 0 q-6 5 -11 0 q-6 5 -11 0 q-6 5 -11 0Z" fill="#ff8ad8"/>`, 'fade')}
     ${item('cake', 505, 414, `<rect x="-11" y="-12" width="22" height="12" rx="2" fill="#fff0f5" stroke="#ff8ad8" stroke-width="1.5"/><path d="M-11 -7 q4 3 7 0 q4 3 7 0 q4 3 8 0" stroke="#ff8ad8" stroke-width="1.5" fill="none"/>
       <path d="M-4 -12 v-6 M4 -12 v-6" stroke="#2f80ed" stroke-width="2"/><g class="flicker"><circle cx="-4" cy="-20" r="2" fill="#ffb627"/></g><g class="flicker"><circle cx="4" cy="-20" r="2" fill="#ffb627"/></g>`)}
@@ -423,45 +466,45 @@ const Scene = (() => {
   </g>
 
   <!-- the road + bike lane in front (they go over the bridges to the other towns) -->
-  <rect x="-900" y="438" width="2600" height="21" class="road"/><path d="M-900 448.5 H1700" stroke="#fff" stroke-width="2" stroke-dasharray="14 12" opacity=".8"/>
-  <path d="M-900 437.5 H1700 M-900 459.5 H1700" stroke="#c8cdd3" stroke-width="2"/>
+  <g transform="translate(0 20)">
+  <rect x="-400" y="438" width="1600" height="21" class="road"/><path d="M-400 448.5 H1200" stroke="#fff" stroke-width="2" stroke-dasharray="14 12" opacity=".8"/>
+  <path d="M-400 437.5 H1200 M-400 459.5 H1200" stroke="#c8cdd3" stroke-width="2"/>
   <rect x="16" y="460" width="768" height="8" rx="3" fill="#3fae5a"/>
   ${[100, 300, 500, 700].map((x) => `<g transform="translate(${x} 464) scale(.16)" opacity=".6"><circle cx="-28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><circle cx="28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><path d="M-28 0 L-6 0 L10 -18 L28 0" stroke="#fff" stroke-width="7" fill="none"/></g>`).join('')}
-  <g data-k="traffic">${laneCar('A', '#ff6fa8', 15, -2)}${laneCar('B', '#2f80ed', 13, -7)}</g>
-  <g data-k="traffic2" class="fade hide">${laneCar('A', '#ffb627', 15, -9.5)}${laneCar('B', '#9aa5b1', 13, -1)}</g>
-  <g data-k="traffic3" class="fade hide">${laneCar('A', '#7d5fff', 15, -6)}${laneCar('B', '#2fb35a', 13, -10.5)}${laneCar('A', '#e63946', 15, -13)}</g>
+  <g data-k="traffic">${laneCar('A', '#ff6fa8', 15, -2, '#a0673a')}${laneCar('B', '#2f80ed', 13, -7, '#5c3a1e')}</g>
+  <g data-k="traffic2" class="fade hide">${laneCar('A', '#ffb627', 15, -9.5, '#7a4a24')}${laneCar('B', '#9aa5b1', 13, -1, '#c08850')}</g>
+  <g data-k="traffic3" class="fade hide">${laneCar('A', '#7d5fff', 15, -6, '#5c3a1e')}${laneCar('B', '#2fb35a', 13, -10.5, '#a0673a')}${laneCar('A', '#e63946', 15, -13, '#7a4a24')}</g>
   <g data-k="cyclists" class="fade hide">${rider('#a0673a', '#ffd23f', -3, 16)}${rider('#6b3f1e', '#ff6fa8', -11, 16)}</g>
+  </g>
   <g data-k="roadFx"></g>
 
   <!-- the beach + the sea in front -->
+  <g transform="translate(0 24)">
   ${item('beachTrash', 0, 0, `${bottle(612, 482, 80, 1.1)}${bottle(640, 480, -60, 1.1)}<path d="M582 482 l10 -3 l2 5Z" fill="#ff6fa8"/>`, 'fade')}
   ${item('beachTurtle', 700, 480, `<g class="float">${turtle(0, 0, 0.8)}</g>`)}
-  <g data-k="crabs" class="fade">${crab(150, 480, 0)}${crab(520, 482, -1.5)}</g>
-  <g data-k="reef" class="reef">
-    ${reef(60, 520, 0.9, 'staghorn', 'brain', 'anemone', 'a', 'd', 'b')}${reef(220, 524, 0.85, 'fan', 'tube', 'brain', 'c', 'b', 'e')}
-    ${reef(400, 522, 0.8, 'brain', 'staghorn', 'anemone', 'e', 'a', 'c')}${reef(600, 524, 0.85, 'staghorn', 'fan', 'tube', 'b', 'c', 'a')}
-    ${reef(770, 520, 0.9, 'tube', 'brain', 'anemone', 'd', 'a', 'e')}${reef(-140, 528, 1.1, 'fan', 'staghorn', 'brain', 'a', 'e', 'b')}
-    ${reef(960, 528, 1.1, 'staghorn', 'brain', 'tube', 'c', 'b', 'd')}
-    ${reef(120, 640, 1.4, 'brain', 'fan', 'staghorn', 'b', 'a', 'e')}${reef(460, 660, 1.5, 'staghorn', 'tube', 'fan', 'a', 'd', 'c')}
-    ${reef(760, 630, 1.4, 'fan', 'brain', 'anemone', 'c', 'e', 'b')}${reef(300, 780, 1.6, 'tube', 'staghorn', 'brain', 'd', 'b', 'a')}
+  <g data-k="crabs" class="fade">${crab(150, 482, 0)}${crab(520, 484, -1.5)}</g>
   </g>
+  <g data-k="reef" class="reef">${reef(110, 604, 0.7, 'staghorn', 'brain', 'anemone', 'a', 'd', 'b')}${reef(700, 610, 0.65, 'fan', 'tube', 'brain', 'c', 'b', 'e')}</g>
   <g data-k="fish">
-    <g class="swim" style="animation-duration:34s"><g transform="translate(0 500) scale(.6)">${fish()}</g></g>
-    <g class="swim" style="animation-delay:-14s;animation-duration:40s"><g transform="translate(0 492) scale(.45)">${fish('#ffd23f')}</g></g>
-    <g class="swim" style="animation-delay:-24s;animation-duration:30s"><g transform="translate(0 512) scale(.52)">${fish('#ff6fa8')}</g></g>
-    <g class="swim" style="animation-duration:46s;animation-delay:-5s"><g transform="translate(0 580) scale(.85)">${fish('#4fa3e0')}</g></g>
-    <g class="swim" style="animation-duration:58s;animation-delay:-18s"><g transform="translate(0 690) scale(1.05)">${fish('#ff8c42')}</g></g>
+    <g class="swim" style="animation-duration:34s"><g transform="translate(0 562) scale(.6)">${fish()}</g></g>
+    <g class="swim" style="animation-delay:-14s;animation-duration:40s"><g transform="translate(0 574) scale(.45)">${fish('#ffd23f')}</g></g>
+    <g class="swim" style="animation-delay:-24s;animation-duration:30s"><g transform="translate(0 616) scale(.55)">${fish('#ff6fa8')}</g></g>
   </g>
-  <g data-k="seaTurtle" class="fade"><g class="swim" style="animation-duration:75s;animation-delay:-50s"><g transform="translate(0 560) scale(1.1)"><g class="float">${turtle(0, 0, 1)}</g></g></g></g>
-  ${item('seaBottles', 0, 0, [[52, 498, 80], [735, 506, -60], [300, 520, 100], [560, 510, 30]].map(([x, y, r], k) =>
+  <g data-k="seaTurtle" class="fade"><g class="swim" style="animation-duration:75s;animation-delay:-50s"><g transform="translate(0 600) scale(1.1)"><g class="float">${turtle(0, 0, 1)}</g></g></g></g>
+  ${item('seaBottles', 0, 0, [[52, 548, 80], [735, 556, -60], [300, 570, 100], [560, 560, 30]].map(([x, y, r], k) =>
     `<g class="wander" style="--wx:${k % 2 ? -1 : 1};animation-duration:${34 + k * 6}s;animation-delay:${-k * 9}s"><g class="float" style="animation-delay:-${k}s">${bottle(x, y, r, 1.3)}</g></g>`).join(''), 'fade')}
+  <g data-k="boats" class="fade">
+    <g class="sail" style="animation-duration:90s;animation-delay:-30s"><g transform="translate(0 566) scale(.8)">${sailboat('#2f80ed', '#a0673a')}</g></g>
+    <g class="sail" style="animation-duration:120s;animation-delay:-85s"><g transform="translate(0 598)">${sailboat('#ff5b4a', '#7a4a24')}</g></g>
+  </g>
+  ${item('whale', 600, 584, WHALE)}
 
   <!-- animals and bugs (they come and go with the climate) -->
-  <g data-k="butterflies" class="fade">${butterfly(250, 400, '#ff8ad8', 0)}${butterfly(600, 396, '#ffd23f', -2)}${butterfly(730, 404, '#8fd3ff', -4)}</g>
-  <g data-k="songbirds" class="fade">${songbird(160, 357, '#ff5b4a', 0)}${songbird(352, 335, '#2f80ed', -1.2)}${songbird(704, 412, '#ffb627', -2.2)}</g>
-  <g data-k="bees" class="fade">${bee(254, 410, 0)}${bee(735, 418, -1.2)}</g>
-  <g data-k="bugs1" class="fade hide">${flies(318, 418)}${flies(690, 408)}</g>
-  <g data-k="bugs2" class="fade hide">${flies(150, 410)}${flies(505, 398)}${flies(420, 360)}${flies(760, 412)}</g>
+  <g data-k="butterflies" class="fade">${butterfly(250, 420, '#ff8ad8', 0)}${butterfly(600, 416, '#ffd23f', -2)}${butterfly(730, 424, '#8fd3ff', -4)}</g>
+  <g data-k="songbirds" class="fade">${songbird(166, 377, '#ff5b4a', 0)}${songbird(350, 355, '#2f80ed', -1.2)}${songbird(704, 432, '#ffb627', -2.2)}</g>
+  <g data-k="bees" class="fade">${bee(254, 430, 0)}${bee(735, 438, -1.2)}</g>
+  <g data-k="bugs1" class="fade hide">${flies(318, 438)}${flies(690, 428)}</g>
+  <g data-k="bugs2" class="fade hide">${flies(150, 430)}${flies(505, 418)}${flies(420, 360)}${flies(760, 432)}</g>
   ${item('heatHaze', 0, 0, `<g class="heat-lines"><path d="M120 300 q10 -15 0 -30 q-10 -15 0 -30 M300 290 q10 -15 0 -30 q-10 -15 0 -30 M520 300 q10 -15 0 -30 q-10 -15 0 -30 M700 290 q10 -15 0 -30 q-10 -15 0 -30"/></g>`, 'fade')}
 
   <g data-k="fx"></g>
@@ -478,26 +521,29 @@ const Scene = (() => {
 <svg class="scene-top" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
   <defs><radialGradient id="${u}glow"><stop offset="0" stop-color="#fff2a8" stop-opacity=".95"/><stop offset=".35" stop-color="#ffcf5a" stop-opacity=".55"/><stop offset="1" stop-color="#ffb03a" stop-opacity="0"/></radialGradient></defs>
   <g class="glows">
-    <circle data-glow="lamps" cx="199" cy="378" r="20" fill="url(#${u}glow)"/>
-    <circle data-glow="lamps" cx="464" cy="378" r="20" fill="url(#${u}glow)"/>
-    <circle data-glow="lamps" cx="591" cy="378" r="20" fill="url(#${u}glow)"/>
-    <circle data-glow="houseLit" cx="314" cy="396" r="24" fill="url(#${u}glow)"/>
-    <circle data-glow="houseLit" cx="386" cy="396" r="24" fill="url(#${u}glow)"/>
+    <circle data-glow="lamps" cx="199" cy="398" r="20" fill="url(#${u}glow)"/>
+    <circle data-glow="lamps" cx="464" cy="398" r="20" fill="url(#${u}glow)"/>
+    <circle data-glow="lamps" cx="591" cy="398" r="20" fill="url(#${u}glow)"/>
+    <circle data-glow="houseLit" cx="314" cy="416" r="24" fill="url(#${u}glow)"/>
+    <circle data-glow="houseLit" cx="386" cy="416" r="24" fill="url(#${u}glow)"/>
     <circle data-glow="lamps" cx="704" cy="294" r="14" fill="url(#${u}glow)"/>
   </g>
+  <!-- lightning (only during storms, in time with the white flash) -->
+  <g class="bolts"><path class="bolt" d="M560 0 L536 74 L556 74 L526 158 L582 58 L560 58 L582 0Z" fill="#fff36b" stroke="#fff" stroke-width="2"/>
+    <path class="bolt b2" d="M180 6 L164 60 L180 60 L158 122 L200 50 L184 50 L200 6Z" fill="#fff9c4" stroke="#fff" stroke-width="2"/></g>
   <g data-k="bubble" class="bubble hide"><g class="bubble-in">
-    <rect data-k="bubbleBox" x="-60" y="-46" width="120" height="40" rx="15" fill="#fff" stroke="#23313f" stroke-width="2.6"/>
-    <path d="M-9 -7.3 L0 8 L9 -7.3" fill="#fff" stroke="#23313f" stroke-width="3" stroke-linejoin="round"/>
-    <text data-k="bubbleText" x="0" y="-19" text-anchor="middle" font-size="21" font-weight="800" fill="#23313f"></text>
+    <rect data-k="bubbleBox" x="-60" y="-37" width="120" height="31" rx="12" fill="#fff" stroke="#23313f" stroke-width="2.2"/>
+    <path d="M-7 -6.6 L0 6 L7 -6.6" fill="#fff" stroke="#23313f" stroke-width="2.4" stroke-linejoin="round"/>
+    <text data-k="bubbleText" x="0" y="-16" text-anchor="middle" font-size="16.5" font-weight="800" fill="#23313f"></text>
   </g></g>
 </svg>`;
   }
 
   // Full-screen layers drawn with plain HTML (the GPU fades and moves these cheaply)
   const BACKDROP = `<div class="backdrop" aria-hidden="true">
-      <div class="bd bd-morning"></div><div class="bd bd-day"></div><div class="bd bd-evening"></div><div class="bd bd-night"><div class="bd-stars">${STARS}</div></div>
+      <div class="bd bd-morning"></div><div class="bd bd-day"></div><div class="bd bd-evening"></div><div class="bd bd-night"><div class="bd-stars">${STARS}</div></div><div class="bd bd-eclipse"><div class="bd-stars">${STARS}</div></div>
       <div class="moon-html"><div class="moon-halo"></div><div class="moon-disc"></div><div class="moon-cut"></div></div>
-      <div class="sun-html"><div data-k="heatGlow" class="sun-heat fade hide"></div><div class="sun-halo"></div><div class="sun-disc"></div><div class="sun-tint"></div></div>
+      <div class="sun-html"><div data-k="heatGlow" class="sun-heat fade hide"></div><div class="sun-halo"></div><div class="sun-disc"></div><div class="sun-tint"></div><div class="corona"></div><div class="eclipse-moon"></div></div>
       <div class="bd-haze"></div><div class="bd-gloom"></div>
       <div class="bd-cover bd-rain"></div><div class="bd-cover bd-storm"></div>
     </div>`;
@@ -507,12 +553,12 @@ const Scene = (() => {
 
   /* Where things are (x, y = where Bobo's feet are) */
   const P = {
-    home: [350, 434], door: [350, 430], friend: [166, 434], garden: [505, 434], vend: [650, 438], fountain: [676, 438],
+    home: [350, 454], door: [350, 450], friend: [166, 454], garden: [505, 454], vend: [650, 458], fountain: [676, 458],
     school: [108, 368], shops: [517, 368], thrift: [462, 368], mall: [574, 368], station: [232, 326],
-    curbA: [350, 438], gapF: [232, 434], gapB: [232, 368], lane: [350, 464],
+    curb: [350, 458], gapF: [232, 454], gapB: [232, 368], lane: [350, 484],
   };
   const BACK_Y = 400;   // above this line = the back row
-  const ROAD_Y = 445;   // below this line = in front of the cars
+  const ROAD_Y = 465;   // below this line = in front of the cars
 
   const DROP = '<path d="M0 -6 q-5 6 0 9 q5 -3 0 -9Z" fill="#7cc9ef"/>';
   const BOX = '<rect x="-10" y="-8" width="20" height="16" fill="#c98f4f" stroke="#8b5a2b" stroke-width="1.5"/>';
@@ -520,6 +566,10 @@ const Scene = (() => {
   const BALL = '<circle r="5" fill="#ffd23f" stroke="#ff8c42" stroke-width="2"/>';
   const CUP = '<path d="M-3 -4 h6 l-1 8 h-4Z" fill="#fff" stroke="#2fb35a" stroke-width="1.2"/>';
   const PLASTIC = '<path d="M-3 -4 h6 l-1 8 h-4Z" fill="#ff5b4a"/>';
+  // A traffic jam across the whole city: a queue of cars in both lanes
+  const QUEUE_A = [280, 208, 136, 64, -8, -80];               // lane A (going left), in front of Bobo's car
+  const QUEUE_B = [412, 484, 556, 628, 700, 772, 844];         // lane B (going right)
+  const JAM_SPEED = 0.2;   // city units per millisecond; every car in a jam moves at this speed
 
   /* What each choice shows. ev = Bobo goes to where it happens. good/bad = what the choice does:
      play() is the animation, apply() leaves lasting changes in the city (it runs at the end, or
@@ -529,32 +579,36 @@ const Scene = (() => {
       async ev(s) { s.wear('pack'); await s.go(P.home); },
       good: {
         async play(s) {
-          s.wear('bike'); await s.go(P.lane);
-          s.speed = 2.6; await s.go([232, 464]); await s.go(P.gapF); await s.go(P.gapB); await s.go(P.school); s.speed = 1;
-          s.wear('bike', false); s.sparkle(108, 330); s.jump(); await s.w(500);
+          await s.go(P.lane);                 // to the bike lane, hop on the bike
+          s.wear('bike'); await s.w(350);
+          s.speed = 2.4;
+          await s.go([232, 484]); await s.go(P.gapF); await s.go(P.gapB); await s.go([128, 368]);
+          s.speed = 1; s.wear('bike', false); await s.go(P.school);
+          s.sparkle(108, 330); s.jump(); await s.w(700);
         },
       },
       bad: {
         async play(s) {
-          await s.go(P.curbA);
-          const jam = [300, 248, 196].map((x, k) => s.vehicle('roadFx', car(['#ffb627', '#9aa5b1', '#7d5fff'][k]), x, 448, -1));
-          const ride = s.vehicle('roadFx', car('#e63946'), 900, 448, -1);
-          await ride.move(352, 448, 1500, 'ease-out');
-          s.inside(true);
-          ride.cam = true;   // the camera rides along with Bobo
-          [ride, ...jam].forEach((v) => v.puff(true));
-          sfx('honk');
-          await s.w(1800);   // stuck in the traffic jam, puffing smoke
-          jam.forEach((v, k) => v.move(-260 - k * 60, 448, 2600, 'ease-in'));
-          await ride.move(244, 448, 1300, 'ease-in-out');
-          ride.cam = false;
-          s.place(P.gapF); s.inside(false);
-          ride.move(-300, 448, 1800, 'ease-in');
-          await s.go(P.gapB); await s.go(P.school);
+          await s.go(P.curb);
+          const ride = s.vehicle('roadFx', car('#e63946'), 900, LANE_A, -1);
+          await ride.move(352, LANE_A, 1500, 'ease-out');
+          s.inside(true); ride.carry(true); ride.cam = true;
+          // the whole city is stuck in a traffic jam, puffing smoke
+          const jam = s.jamStart(QUEUE_A, QUEUE_B);
+          sfx('honk'); await s.w(1200); sfx('honk'); await s.w(1200);
+          s.jamGo(jam);
+          await ride.move(232, LANE_A, 120 / JAM_SPEED, 'linear');
+          await ride.move(232, 396, 1300, 'ease-out');         // up the little street, to the school
+          ride.cam = false; ride.carry(false);
+          s.place([232, 374]); s.inside(false);
+          const leave = (async () => { await ride.move(232, LANE_A, 1100); await ride.move(-420, LANE_A, 2400, 'ease-in'); ride.remove(); })();
+          await s.go(P.school);
+          await leave;
+          s.jamEnd();
         },
-        apply(s) { s.traffic++; },
+        apply(s) { s.traffic++; s.jamEnd(); },
       },
-      pay(s) { s.show('cyclists'); s.look(400); s.sparkle(300, 450); s.sparkle(560, 450); },
+      pay(s) { s.show('cyclists'); s.look(400); s.sparkle(300, 470); s.sparkle(560, 470); },
     },
     lights: {
       async ev(s) { await s.go(P.home); s.houseLights(true); },
@@ -569,49 +623,49 @@ const Scene = (() => {
         async play(s) { await s.go(P.fountain); s.energy('fast'); s.burst(); await s.w(2200); },
         apply(s) { s.energyBad++; s.houseLights(true); },
       },
-      pay(s) { s.show('solarRoof'); s.show('solarSchool'); s.renew++; s.updatePlant(); s.look(260); s.sparkle(350, 350); s.sparkle(70, 296); },
+      pay(s) { s.show('solarRoof'); s.show('solarSchool'); s.renew++; s.updatePlant(); s.look(260); s.sparkle(350, 370); s.sparkle(70, 296); },
     },
     bottle: {
       async ev(s) { await s.go(P.fountain); },
       good: {
         async play(s) {
           s.wear('bottle');
-          [0, 1, 2].forEach((k) => setTimeout(() => s.toss(694, 404, 690, 418, DROP, 420), k * 160));
-          await s.w(900); s.sparkle(694, 400); s.jump(); await s.w(500);
+          [0, 1, 2].forEach((k) => setTimeout(() => s.toss(694, 424, 690, 438, DROP, 420), k * 160));
+          await s.w(900); s.sparkle(694, 420); s.jump(); await s.w(600);
         },
       },
       bad: {
         async play(s) {
           await s.go(P.vend); s.chop(); await s.w(600);
-          s.toss(630, 420, 660, 422, bottle(0, 0, 0, 1), 500, () => s.wear('plastic')); await s.w(1100);
+          s.toss(630, 440, 660, 442, bottle(0, 0, 0, 1), 500, () => s.wear('plastic')); await s.w(1100);
           s.wear('plastic', false);
-          s.toss(660, 418, 612, 482, bottle(0, 0, 0, 1.1), 900); await s.w(1000);
+          s.toss(660, 438, 612, 504, bottle(0, 0, 0, 1.1), 900); await s.w(1100);
         },
         apply(s) { s.show('beachTrash'); s.show('seaBottles'); s.seaHurt = true; },
       },
-      pay(s) { s.hide('beachTrash'); s.show('beachTurtle'); s.look(700); s.sparkle(700, 466); },
+      pay(s) { s.hide('beachTrash'); s.show('beachTurtle'); s.look(700); s.sparkle(700, 490); },
     },
     toy: {
       async ev(s) { await s.go(P.home); s.show('toyBroken'); },
       good: {
         async play(s) {
           const f = s.buddy('#a0673a', '#ffd23f', P.friend);
-          await f.walk(386, 436);
+          await f.walk(398, 456);
           s.chop(); f.chop(); await s.w(1100);
-          s.hide('toyBroken'); s.show('toyFixed'); s.sparkle(372, 420);
-          s.toss(386, 410, 350, 412, BALL, 600); await s.w(300);
-          s.toss(350, 410, 386, 412, TOY, 600); await s.w(800);
+          s.hide('toyBroken'); s.show('toyFixed'); s.sparkle(380, 440);
+          s.toss(398, 430, 350, 432, BALL, 600); await s.w(300);
+          s.toss(350, 430, 398, 432, TOY, 600); await s.w(800);
           await f.walk(...P.friend); f.remove();
         },
       },
       bad: {
         async play(s) {
-          const t = s.vehicle('roadFx', truck, -260, 457, 1);
+          const t = s.vehicle('roadFx', truck, -260, LANE_B, 1);
           t.puff(true);
-          await t.move(330, 457, 2200, 'ease-out');
-          s.toss(330, 410, 304, 430, BOX, 700, () => s.show('boxPile')); await s.w(500);
-          s.hide('toyBroken'); s.show('toyNew'); s.sparkle(372, 420); await s.w(600);
-          await t.move(1100, 457, 2000, 'ease-in'); t.remove();
+          await t.move(330, LANE_B, 2200, 'ease-out');
+          s.toss(330, 430, 304, 456, BOX, 700, () => s.show('boxPile')); await s.w(500);
+          s.hide('toyBroken'); s.show('toyNew'); s.sparkle(380, 440); await s.w(600);
+          await t.move(1150, LANE_B, 2400, 'ease-in'); t.remove();
         },
         apply(s) { s.show('boxPile'); },
       },
@@ -620,18 +674,18 @@ const Scene = (() => {
     hot: {
       async ev(s) { s.show('heatGlow'); await s.go(P.home); },
       good: {
-        async play(s) { s.show('fan'); s.q('boboHouse').classList.add('win-open'); await s.w(700); s.wear('glass'); s.sparkle(384, 400); await s.w(1000); },
+        async play(s) { s.show('fan'); s.q('boboHouse').classList.add('win-open'); await s.w(700); s.wear('glass'); s.sparkle(384, 420); await s.w(1000); },
       },
       bad: {
         async play(s) { s.show('acUnit'); s.show('acAir'); await s.w(500); s.energy('fast'); s.burst(); await s.w(2000); },
         apply(s) { s.show('acUnit'); s.energyBad++; },
       },
-      pay(s) { s.show('shadeTrees'); s.look(350); s.sparkle(272, 390); s.sparkle(426, 390); },
+      pay(s) { s.show('shadeTrees'); s.look(350); s.sparkle(272, 410); s.sparkle(426, 410); },
     },
     cold: {
       async ev(s) { await s.go(P.home); },
       good: {
-        async play(s) { await s.go(P.door); s.inside(true); await s.w(700); s.wear('sweater'); s.inside(false); await s.go(P.home); s.sparkle(350, 400); await s.w(600); },
+        async play(s) { await s.go(P.door); s.inside(true); await s.w(700); s.wear('sweater'); s.inside(false); await s.go(P.home); s.sparkle(350, 420); await s.w(600); },
       },
       bad: {
         async play(s) { await s.go(P.door); s.inside(true); await s.w(500); s.show('houseSmoke'); s.energy('fast'); await s.w(1600); s.inside(false); await s.go(P.home); },
@@ -642,51 +696,53 @@ const Scene = (() => {
     shower: {
       async ev(s) { s.wear('mud'); await s.go(P.home); },
       good: {
-        async play(s) { await s.go(P.door); s.inside(true); await s.w(300); s.flash('steam', 1300); await s.w(1300); s.wear('mud', false); s.inside(false); s.sparkle(350, 400); await s.w(500); },
+        async play(s) { await s.go(P.door); s.inside(true); await s.w(300); s.flash('steam', 1300); await s.w(1300); s.wear('mud', false); s.inside(false); s.sparkle(350, 420); await s.w(500); },
       },
       bad: {
         async play(s) { await s.go(P.door); s.inside(true); await s.w(300); s.show('bathBubbles'); s.energy('fast'); s.burst(); await s.w(2600); s.hide('bathBubbles'); s.wear('mud', false); s.inside(false); await s.w(300); },
         apply(s) { s.energyBad++; },
       },
-      pay(s) { s.show('solarHeater'); s.renew++; s.updatePlant(); s.look(200); s.sparkle(178, 368); },
+      pay(s) { s.show('solarHeater'); s.renew++; s.updatePlant(); s.look(200); s.sparkle(178, 388); },
     },
     party: {
       async ev(s) {
         s.wear('hat'); s.show('partyCloth'); s.show('balloons'); s.show('cake');
-        const a = s.buddy('#a0673a', '#ffd23f', P.friend, '#2f80ed'), b = s.buddy('#6b3f1e', '#2fb35a', [860, 440], '#ffd23f');
-        a.walk(470, 432); b.walk(542, 432);
+        const a = s.buddy('#a0673a', '#ffd23f', P.friend, '#2f80ed'), b = s.buddy('#6b3f1e', '#2fb35a', [900, 460], '#ffd23f');
+        a.walk(470, 452); b.walk(542, 452);
         await s.go(P.garden);
+        await Promise.all([a.walk(470, 452), b.walk(542, 452)]);
       },
       good: {
         async play(s) {
           s.show('platesReal'); await s.w(900);
           s.show('sortBins');
-          [CUP, BALL, CUP].forEach((it, k) => setTimeout(() => s.toss(505 - 20 + k * 20, 410, 565 + k * 13, 420, it, 600), k * 260));
-          await s.w(1000); s.buddies.forEach((b) => b.jump()); s.sparkle(578, 410); await s.w(500);
+          [CUP, BALL, CUP].forEach((it, k) => setTimeout(() => s.toss(485 + k * 20, 430, 565 + k * 13, 440, it, 600), k * 260));
+          await s.w(1000); s.buddies.forEach((b) => b.jump()); s.sparkle(578, 430); await s.w(600);
         },
       },
       bad: {
         async play(s) {
           s.show('platesPlastic'); await s.w(900);
           s.show('trashBag');
-          [PLASTIC, PLASTIC, PLASTIC].forEach((it, k) => setTimeout(() => s.toss(485 + k * 20, 410, 572, 420, it, 600), k * 220));
-          await s.w(1200);
+          [PLASTIC, PLASTIC, PLASTIC].forEach((it, k) => setTimeout(() => s.toss(485 + k * 20, 430, 572, 440, it, 600), k * 220));
+          await s.w(1300);
         },
         apply(s) { s.show('trashPile'); },
       },
-      pay(s) { s.show('recycling'); s.look(44); s.sparkle(44, 400); },
+      pay(s) { s.show('recycling'); s.look(44); s.sparkle(44, 420); },
     },
     jacket: {
       async ev(s) { await s.go(P.shops); },
       good: {
-        async play(s) { await s.go(P.thrift); s.inside(true); await s.w(1100); s.wear('cool'); s.inside(false); s.sparkle(462, 330); s.jump(); await s.w(600); },
+        async play(s) { await s.go(P.thrift); s.inside(true); await s.w(1100); s.wear('cool'); s.inside(false); s.sparkle(462, 330); s.jump(); await s.w(700); },
       },
       bad: {
         async play(s) {
           // a big cargo ship brings the new clothes from a faraway factory
-          const ship = s.vehicle('fx', SHIP, 900, 520, 1, 1.1);
-          ship.move(-300, 520, 7000, 'linear');
-          await s.go(P.mall); s.inside(true); await s.w(1300); s.wear('plain'); s.wear('bag'); s.inside(false); await s.w(900);
+          const ship = s.vehicle('fx', SHIP, 950, 578, 1, 1.1);
+          const sail = ship.move(-380, 578, 7500, 'linear');
+          await s.go(P.mall); s.inside(true); await s.w(1300); s.wear('plain'); s.wear('bag'); s.inside(false);
+          await sail; ship.remove();
         },
       },
       pay(s) { s.show('clothesRack'); s.look(505); s.sparkle(505, 340); },
@@ -697,45 +753,45 @@ const Scene = (() => {
         async play(s) {
           await s.go(P.station);
           s.hide('trains');
-          const tr = s.vehicle('trainFx', TRAIN, -260, 316, 1, 0.95);
+          const tr = s.vehicle('trainFx', TRAIN, -280, 316, 1, 0.95);
           sfx('choo');
-          await tr.move(330, 316, 2600, 'ease-out');
+          await tr.move(325, 316, 2600, 'ease-out');
           s.inside(true); await s.w(900);
-          await tr.move(1500, 316, 3000, 'ease-in'); tr.remove(); s.show('trains');
-          s.away = P.station;    // back from Grandma's by train next time
+          await tr.move(1250, 316, 2600, 'ease-in'); tr.remove(); s.show('trains');
+          s.away = 'train';    // back from Grandma's by train next time
         },
       },
       bad: {
         async play(s) {
-          await s.go(P.curbA);
-          const ride = s.vehicle('roadFx', car('#e63946'), -200, 457, 1);
-          await ride.move(340, 457, 1500, 'ease-out');
-          s.inside(true);
-          const jam = [430, 482, 534].map((x, k) => s.vehicle('roadFx', car(['#9aa5b1', '#ffb627', '#2fb35a'][k]), x, 457, 1));
-          [ride, ...jam].forEach((v) => v.puff(true));
-          await ride.move(378, 457, 700); sfx('honk'); await s.w(1500);
-          jam.forEach((v, k) => v.move(1150 + k * 60, 457, 2600, 'ease-in'));
-          await ride.move(1100, 457, 2700, 'ease-in'); ride.remove();
-          s.away = P.home;
+          await s.go(P.curb);
+          const ride = s.vehicle('roadFx', car('#e63946'), -220, LANE_B, 1);
+          await ride.move(340, LANE_B, 1500, 'ease-out');
+          s.inside(true); ride.carry(true);
+          const jam = s.jamStart(QUEUE_A, QUEUE_B);
+          sfx('honk'); await s.w(1200); sfx('honk'); await s.w(1200);
+          s.jamGo(jam);
+          await ride.move(1250, LANE_B, 910 / JAM_SPEED, 'linear'); ride.remove();
+          s.jamEnd();
+          s.away = 'car';
         },
-        apply(s) { s.traffic++; },
+        apply(s) { s.traffic++; s.jamEnd(); },
       },
       pay(s) { s.show('train2'); s.look(400); s.sparkle(400, 300); },
     },
     food: {
       async ev(s) { await s.go(P.garden); },
       good: {
-        async play(s) { s.show('tacos'); s.sparkle(505, 400); await s.w(800); s.jump(); await s.w(700); },
+        async play(s) { s.show('tacos'); s.sparkle(505, 420); await s.w(800); s.jump(); await s.w(700); },
       },
       bad: {
-        async play(s) { s.show('burger'); await s.w(900); s.look(98); s.show('cows'); s.sparkle(98, 410); await s.w(1600); },
+        async play(s) { s.show('burger'); await s.w(900); s.look(98); s.show('cows'); s.sparkle(98, 430); await s.w(1600); },
         apply(s) { s.show('cows'); },
       },
-      pay(s) { s.show('veggieGarden'); s.look(746); s.sparkle(746, 420); },
+      pay(s) { s.show('veggieGarden'); s.look(746); s.sparkle(746, 440); },
     },
   };
 
-  const TIMES = ['morning', 'day', 'evening', 'night'];
+  const TIMES = ['morning', 'day', 'evening', 'night', 'eclipse'];
 
   function create(container) {
     const u = 's' + ++uid + '-';
@@ -748,7 +804,7 @@ const Scene = (() => {
       const y = 40 + Math.random() * 110, sc = 0.6 + Math.random() * 0.7, dur = 90 + Math.random() * 70;
       return `<g class="drift" style="animation-duration:${dur.toFixed(0)}s;animation-delay:${(-Math.random() * dur).toFixed(0)}s"><g transform="translate(0 ${y.toFixed(0)}) scale(${sc.toFixed(2)})"><g class="cloud"><circle cx="0" cy="0" r="22"/><circle cx="24" cy="-8" r="26"/><circle cx="50" cy="2" r="20"/><rect x="0" y="0" width="50" height="20"/></g></g></g>`;
     }).join('');
-    const wrap = q('walkerWrap'), walker = svg.querySelector('.walker'), monkey = q('monkey');
+    const wrap = q('walkerWrap'), walker = svg.querySelector('.walker'), monkey = q('monkey'), rideDir = svg.querySelector('.ride-dir');
     let mood = '';
     let time = 'day';
     let reactTimer = 0, bubbleTimer = 0, walkTimer = 0, walkEnd = 0;
@@ -760,27 +816,31 @@ const Scene = (() => {
     const vehicles = [];
     const buddies = [];
 
-    /* Camera: on narrow portrait screens (phones) the city is zoomed in and the view slides
-       sideways to follow Bobo. Sliding moves the pictures with the GPU, so it stays smooth. */
+    /* Camera. Phones (narrow, portrait): zoomed in, and the view slides sideways to follow Bobo.
+       Laptops and tablets: the whole width, but with less empty sky so the city is closer.
+       Sliding moves the pictures with the GPU, so it stays smooth. */
     const svgs = container.querySelectorAll('svg.scene-main, svg.scene-top');
-    const CAM_W = 540;
-    let camW = 800, camFocus = 400;
+    let vb = [0, 0, 800, 500], camFocus = 400;
     function camTo(x, ms = 0) {
       camFocus = x;
-      if (camW === 800) { container.style.setProperty('--camx', '0px'); return; }
+      if (vb[2] === 800) { container.style.setProperty('--camx', '0px'); return; }
       const r = container.getBoundingClientRect();
-      const u = Math.min(r.width / camW, r.height / 500);
-      const base = (800 - camW) / 2, cx = clamp(x - camW / 2, 0, 800 - camW);
+      const u = Math.min(r.width / vb[2], r.height / vb[3]);
+      const cx = clamp(x - vb[2] / 2, 0, 800 - vb[2]);
       container.style.setProperty('--camt', Math.round(ms) + 'ms');
-      container.style.setProperty('--camx', (-(cx - base) * u).toFixed(1) + 'px');
+      container.style.setProperty('--camx', (-(cx - vb[0]) * u).toFixed(1) + 'px');
     }
     function applyZoom() {
       const r = container.getBoundingClientRect();
-      const want = container.classList.contains('scene-wrap') && r.height > 0 && r.width / r.height < 1.1 && r.width < 760 ? CAM_W : 800;
-      if (want !== camW) {
-        camW = want;
-        container.classList.toggle('zoomed', camW !== 800);
-        svgs.forEach((el) => el.setAttribute('viewBox', `${(800 - camW) / 2} 0 ${camW} 500`));
+      if (!r.height) return;
+      const game = container.classList.contains('scene-wrap');
+      const phone = game && r.width / r.height < 1.1 && r.width < 760;
+      const want = !game ? [0, 0, 800, 500] : phone ? [150, 0, 500, 500] : [0, 90, 800, 410];
+      if (want.join() !== vb.join()) {
+        vb = want;
+        container.classList.toggle('zoomed', phone);
+        container.classList.toggle('cropped', game && !phone);
+        svgs.forEach((el) => el.setAttribute('viewBox', vb.join(' ')));
         container.dispatchEvent(new Event('scenezoom', { bubbles: true }));
       }
       camTo(camFocus, 0);   // (the card below changes size a lot: keep looking at the same spot)
@@ -791,7 +851,7 @@ const Scene = (() => {
 
     const visible = (el) => el && !el.classList.contains('hide');
     function updateGlows() {
-      const dark = time === 'night' || time === 'evening';
+      const dark = time === 'night' || time === 'evening' || time === 'eclipse';
       container.querySelectorAll('[data-glow]').forEach((g) => {
         g.classList.toggle('on', dark && (g.dataset.glow === 'lamps' || visible(q(g.dataset.glow))));
       });
@@ -814,8 +874,10 @@ const Scene = (() => {
       camTo(x, ms);
       placeBubble(ms);
       monkey.classList.toggle('walking', dist > 4);
+      walker.classList.toggle('pedaling', dist > 4);
+      if (Math.abs(x - cx) > 2) rideDir.setAttribute('transform', `scale(${x < cx ? -0.66 : 0.66} .66)`);
       clearTimeout(walkTimer);
-      return new Promise((done) => { walkTimer = setTimeout(() => { monkey.classList.remove('walking'); done(); }, ms); });
+      return new Promise((done) => { walkTimer = setTimeout(() => { monkey.classList.remove('walking'); walker.classList.remove('pedaling'); done(); }, ms); });
     }
     // Plan a route: between the back and front rows Bobo always goes through the side street
     function route(from, to) {
@@ -834,7 +896,7 @@ const Scene = (() => {
       camTo(x, 0);
     }
 
-    const WEAR = { pack: ['mPack', 'mStraps'], bike: ['mBike'], hat: ['mHat'], sweater: ['mSweater'], cool: ['mJacketCool'], plain: ['mJacketPlain'],
+    const WEAR = { pack: ['mPack', 'mStraps'], bike: ['mRide'], hat: ['mHat'], sweater: ['mSweater'], cool: ['mJacketCool'], plain: ['mJacketPlain'],
       mud: ['mMud', 'mMudFace'], bottle: ['mBottle'], plastic: ['mPlastic'], glass: ['mGlass'], bag: ['mBag'] };
 
     const s = {
@@ -849,7 +911,10 @@ const Scene = (() => {
       show(k) { const el = q(k); if (el) el.classList.remove('hide'); updateGlows(); },
       hide(k) { const el = q(k); if (el) el.classList.add('hide'); updateGlows(); },
       flash(k, ms) { s.show(k); setTimeout(() => s.hide(k), ms); },
-      wear(what, on = true) { WEAR[what].forEach((k) => q(k).classList.toggle('hide', !on)); },
+      wear(what, on = true) {
+        WEAR[what].forEach((k) => q(k).classList.toggle('hide', !on));
+        if (what === 'bike') walker.classList.toggle('riding', on);   // the side view on the bike replaces the front view
+      },
       inside(on) { walker.classList.toggle('inside', on); if (on) q('bubble').classList.add('hide'); },
       place,
       look(x) { camTo(x, 900); },
@@ -868,6 +933,41 @@ const Scene = (() => {
         s.energyTimer = setTimeout(() => e.classList.remove('fast', 'slow'), 3500);
       },
       burst() { s.flash('plantBurst', 2600); },
+      // A traffic jam across the whole city: the normal traffic stops and queues of cars fill both lanes
+      jamStart(qa, qb) {
+        container.classList.add('jammed');
+        const kinds = ['#ffb627', '#9aa5b1', '#7d5fff', '#2fb35a', '#ff6fa8', '#2f80ed', '#e8a33d'], furs = ['#7a4a24', '#a0673a', '#5c3a1e', '#c08850'];
+        const a = qa.map((x, k) => s.vehicle('roadFx', car(kinds[k % 7], furs[k % 4]), x, LANE_A, -1).fadeIn());
+        const b = qb.map((x, k) => s.vehicle('roadFx', car(kinds[(k + 3) % 7], furs[(k + 1) % 4]), x, LANE_B, 1).fadeIn());
+        [...a, ...b].forEach((v) => v.puff(true));
+        return { a, b };
+      },
+      // everybody drives on again, all at the same speed (so nobody bumps into anybody)
+      jamGo({ a, b }) {
+        a.forEach((v) => v.move(v.x - 1000, LANE_A, 1000 / JAM_SPEED, 'linear'));
+        b.forEach((v) => v.move(v.x + 1000, LANE_B, 1000 / JAM_SPEED, 'linear'));
+      },
+      jamEnd() { container.classList.remove('jammed'); },
+      // Bobo comes back from Grandma's (by train or by car) before the next situation
+      async arrive() {
+        const how = s.away;
+        s.away = null;
+        if (how === 'train') {
+          place(P.station); s.inside(true); s.hide('trains');
+          const tr = s.vehicle('trainFx', TRAIN, 1250, 316, -1, 0.95);
+          sfx('choo');
+          await tr.move(139, 316, 2600, 'ease-out');
+          s.inside(false); await s.w(700);
+          await tr.move(-480, 316, 2600, 'ease-in'); tr.remove(); s.show('trains');
+        } else if (how === 'car') {
+          place(P.curb); s.inside(true);
+          const c = s.vehicle('roadFx', car('#e63946'), 950, LANE_A, -1);
+          c.carry(true);
+          await c.move(352, LANE_A, 1800, 'ease-out');
+          c.carry(false); s.inside(false); await s.w(400);
+          await c.move(-420, LANE_A, 2200, 'ease-in'); c.remove();
+        }
+      },
       updatePlant() {
         // how much smoke the power plant makes: more energy used = more smoke; sun + wind power = less
         const lvl = clamp(1 + s.energyBad - s.renew, 0, 4);
@@ -886,11 +986,13 @@ const Scene = (() => {
         v.move = (x2, y2, ms, ease = 'ease-in-out') => {
           v.x = x2; v.y = y2;
           if (v.cam) camTo(x2, ms);
-          g.style.transition = `transform ${ms}ms ${ease}`; set();
+          g.style.transition = `transform ${ms}ms ${ease}, opacity .6s`; set();
           const p = s.w(ms); p.catch(() => {});   // (fine to not wait for it)
           return p;
         };
         v.puff = (on) => g.classList.toggle('puffing', on);
+        v.carry = (on) => g.classList.toggle('with-bobo', on);
+        v.fadeIn = () => { g.style.opacity = '0'; void g.getBoundingClientRect(); g.style.transition = 'opacity .6s'; g.style.opacity = '1'; return v; };
         v.remove = () => g.remove();
         vehicles.push(v);
         return v;
@@ -971,7 +1073,7 @@ const Scene = (() => {
       Object.keys(WEAR).forEach((w) => s.wear(w, false));
       s.inside(false);
       s.speed = 1;
-      if (s.away) { place(s.away); s.away = null; }
+      container.classList.remove('jammed');
       updateTraffic();
     }
     function updateTraffic() {
@@ -980,13 +1082,28 @@ const Scene = (() => {
     }
 
     /* ── time of day + weather ── */
-    function setTime(t) {
+    function setTime(t, fromEclipse = false) {
       if (!TIMES.includes(t)) t = 'day';
+      if (!fromEclipse) endEclipse();
       time = t;
       document.documentElement.dataset.time = t;
       container.classList.toggle('heat-day', level >= 2 && (t === 'day'));
       q('heatHaze').classList.toggle('hide', !(level >= 2 && t === 'day'));
       updateGlows();
+    }
+    /* Super rare: a solar eclipse. The moon slides in front of the sun, it gets dark for a moment,
+       and everybody puts on their (special!) eclipse glasses. */
+    let eclipseTimer = 0, beforeEclipse = 'day';
+    function eclipse() {
+      if (container.classList.contains('eclipse-on')) return;
+      beforeEclipse = time;
+      container.classList.add('eclipse-on');
+      setTime('eclipse', true);
+      eclipseTimer = setTimeout(() => { const t = beforeEclipse; endEclipse(); setTime(t, true); }, 7200);
+    }
+    function endEclipse() {
+      clearTimeout(eclipseTimer);
+      container.classList.remove('eclipse-on');
     }
     function setWeather(w) {
       const wet = w === 'rain' || w === 'storm';
@@ -1007,7 +1124,11 @@ const Scene = (() => {
     const headTop = () => [walkPos[0], walkPos[1] - 62 * depthK(walkPos[1])];
     let bubbleW = 120;
     const bubbleScale = (feetY) => clamp(depthK(feetY) * 1.05, 0.72, 1.1);
-    const bubbleXY = (hx, hy) => [Math.max(bubbleW / 2 + 6, Math.min(800 - bubbleW / 2 - 6, hx)), Math.max(62, hy - 8)];
+    // keep the bubble inside the part of the city that's on screen (phones see only a slice of it)
+    const bubbleXY = (hx, hy) => {
+      const left = vb[2] === 800 ? 0 : clamp(camFocus - vb[2] / 2, 0, 800 - vb[2]), right = left + vb[2];
+      return [Math.max(left + bubbleW / 2 + 6, Math.min(right - bubbleW / 2 - 6, hx)), Math.max(vb[1] + 40, hy - 8)];
+    };
     const bubbleTransform = (x, y, sc) => `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${sc.toFixed(3)})`;
     function placeBubble(ms = 0) {
       const b = q('bubble'), [hx, hy] = headTop();
@@ -1035,7 +1156,7 @@ const Scene = (() => {
       clearTimeout(bubbleTimer);
       if (!text || walker.classList.contains('inside')) { b.classList.add('hide'); return; }
       txt.textContent = text;
-      bubbleW = Math.min(480, txt.getComputedTextLength() + 28);
+      bubbleW = Math.min(420, txt.getComputedTextLength() + 22);
       box.setAttribute('x', -bubbleW / 2);
       box.setAttribute('width', bubbleW);
       placeBubbleWhileWalking();
@@ -1047,11 +1168,12 @@ const Scene = (() => {
     function reset() {
       gen++; pending = null;
       svg.querySelectorAll('.pop[data-k], .fade[data-k]').forEach((el) => {
-        const visibleAtStart = ['birds1', 'birds2', 'birds3', 'mHappy', 'ps1', 'farFish', 'crabs', 'butterflies', 'songbirds', 'bees', 'seaTurtle'];
+        const visibleAtStart = ['birds1', 'birds2', 'birds3', 'mHappy', 'ps1', 'farFish', 'crabs', 'butterflies', 'songbirds', 'bees', 'seaTurtle', 'boats'];
         el.classList.toggle('hide', !visibleAtStart.includes(el.dataset.k));
       });
       q('fx').innerHTML = ''; q('fxTop').innerHTML = '';
       Object.assign(s, { traffic: 0, energyBad: 0, renew: 0, seaHurt: false, away: null, speed: 1 });
+      endEclipse();
       begin();
       place(P.home);
       mood = '';
@@ -1103,7 +1225,7 @@ const Scene = (() => {
       event(id) {
         begin();
         const g = gen;
-        return ACTIONS[id].ev(s).catch((e) => { if (e !== CANCEL) throw e; }).then(() => g === gen);
+        return s.arrive().then(() => ACTIONS[id].ev(s)).catch((e) => { if (e !== CANCEL) throw e; }).then(() => g === gen);
       },
       /* Plays what the choice does. Resolves when the animation is finished. */
       outcome(id, good) {
@@ -1118,7 +1240,14 @@ const Scene = (() => {
         });
       },
       finishJobs: finishPending,
-      payoff(id) { begin(); ACTIONS[id].pay(s); },
+      /* A reward 2 turns later (if Bobo was away on a trip, Bobo comes back first) */
+      payoff(id) {
+        begin();
+        return s.arrive().catch((e) => { if (e !== CANCEL) throw e; }).then(() => ACTIONS[id].pay(s));
+      },
+      eclipse,
+      // the happy ending: a whale comes to say hello
+      whale() { s.hide('boats'); s.show('whale'); s.look(600); },
       /* the end of the game: everyone goes home */
       goHome() { begin(); return s.go(P.home).catch(() => {}); },
       // for the title screen: a happy, clean city

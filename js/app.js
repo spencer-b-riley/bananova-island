@@ -147,12 +147,12 @@
       modalResolve = resolve;
     });
   }
-  function toast(emoji, title, sub = '') {
+  function toast(emoji, title, sub = '', long = false) {
     const el = document.createElement('div');
-    el.className = 'toast';
+    el.className = 'toast' + (long ? ' long' : '');
     el.innerHTML = `<span class="emo">${emoji}</span><div>${title}${sub ? `<small>${sub}</small>` : ''}</div>`;
     $('#toasts').appendChild(el);
-    setTimeout(() => el.remove(), 3300);
+    setTimeout(() => el.remove(), long ? 7300 : 3300);
   }
 
   /* ── achievements ── */
@@ -277,6 +277,8 @@
     const times = seq.map((ci) => { const ok = CHOICES[ci].times; return ok[Math.floor(Math.random() * ok.length)]; });
     G = {
       seq, made: [], times, weather: [],
+      // Super rare: a solar eclipse (about 1 game in 15), on a clear day from this turn on
+      eclipseTurn: Math.random() < 1 / 15 ? 1 + Math.floor(Math.random() * 9) : -1, eclipseDone: false,
       h: START.h, temp: START.t, turn: 0, picks: [], order: [], payQueue: [],
       next: null, cardView: null, busy: false,
       ending: null, newAch: [], recapIdx: 0, langs: new Set([lang]),
@@ -415,7 +417,7 @@
       if (G !== game) return;
     }
     // …then Bobo goes to where the new situation happens…
-    await Promise.race([scene.event(ch.id), wait(6000)]);
+    await Promise.race([scene.event(ch.id), wait(11000)]);
     if (G !== game) return;
     // …and only then the question appears
     scene.react(REACT[ch.id], 0);
@@ -423,6 +425,15 @@
       sayLine((sy) => sy.hello);
       setTimeout(() => { if (G === game && G.turn === 0 && !G.made.length) sayLine((sy) => sy.choices[0][0]); }, 2200);
     } else sayLine((sy) => sy.choices[idx][0]);
+    if (!G.eclipseDone && G.eclipseTurn >= 0 && turn >= G.eclipseTurn && G.times[turn] === 'day' && G.weather[turn] === 'clear') {
+      G.eclipseDone = true;
+      setTimeout(() => {
+        if (G !== game || G.turn !== turn) return;
+        scene.eclipse();
+        sayLine((sy) => sy.eclipse);
+        toast('🌑', t('eclipseTitle'), t('eclipseTip'), true);
+      }, 1600);
+    }
     updateHud();
     cardShow(() => {
       const opts = [
@@ -449,7 +460,7 @@
     react0();
     Sound.play(good ? 'good' : 'bad');
     // 2. Bobo does it (bikes to school, takes the train, goes to the thrift store…)
-    await Promise.race([scene.outcome(ch.id, good), wait(10000)]);
+    await Promise.race([scene.outcome(ch.id, good), wait(15000)]);
     if (G !== game) return;   // the player left the game meanwhile
     // 3. then the result: reaction, speech bubble, meters and the text card
     scene.react(good ? 'yay' : 'sad');
@@ -472,7 +483,8 @@
     const game = G, ch = CHOICES[idx];
     cardWait();
     sayLine(() => '');
-    scene.payoff(ch.id);
+    await Promise.race([scene.payoff(ch.id), wait(8000)]);   // (Bobo may come back from a trip first)
+    if (G !== game) return;
     Sound.play('payoff');
     await wait(1400);          // let the reward appear in the city first
     if (G !== game) return;
@@ -491,8 +503,29 @@
 
   /* ═════════════════════ ENDING ═════════════════════ */
 
-  function finish() {
+  async function finish() {
     const ending = G.temp <= 1.4 ? 'warrior' : G.temp <= 2.2 ? 'warming' : 'hot';
+    if (ending === 'warrior' && !G.sawWhale) {
+      // the sea is healthy, so a whale comes to say hello (the card waits so everyone can see it)
+      const game = G;
+      G.sawWhale = true;
+      G.next = null;
+      cardWait();
+      sayLine(() => '');
+      scene.setTime('day');
+      scene.setWeather('clear');
+      await wait(600);
+      if (G !== game) return;
+      scene.whale();
+      Sound.play('payoff');
+      await wait(1200);
+      if (G !== game) return;
+      scene.react('yay');
+      sayLine((sy) => sy.whale);
+      await wait(2800);
+      if (G !== game) return;
+      $('#card').classList.remove('card-wait');
+    }
     G.ending = ending;
     const greens = G.picks.filter(Boolean).length;
     store.games.push({ d: Date.now(), e: ending, h: G.h, t: G.temp, g: greens, c: G.made.length });
@@ -513,11 +546,13 @@
     scene.setTime('day');
     scene.setWeather(ending === 'hot' ? 'storm' : 'clear');
     sayLine(() => '');
-    scene.goHome().then(() => {
-      if (!G || G.ending !== ending) return;
-      scene.react({ warrior: 'yay', warming: 'think', hot: 'hot' }[ending], 0);
-      sayLine((sy) => (ending === 'warrior' ? sy.warrior : ending === 'hot' ? sy.heat : ''));
-    });
+    if (ending !== 'warrior') {
+      scene.goHome().then(() => {
+        if (!G || G.ending !== ending) return;
+        scene.react({ warming: 'think', hot: 'hot' }[ending], 0);
+        sayLine((sy) => (ending === 'hot' ? sy.heat : ''));
+      });
+    } else scene.react('yay', 0);
     G.next = null;
     G.cardView = endingView;
     endingView();

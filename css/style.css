@@ -18,8 +18,9 @@
 .bd-day     { background: linear-gradient(#5ec8f5 var(--sky-top, 0%), #c4f0ff var(--horizon, 58%), #2bb3e0 var(--horizon, 58%), #1279b8 var(--deep, 80%), #0b3a66 var(--abyss, 100%)); }
 .bd-evening { background: linear-gradient(#5b5fb0 var(--sky-top, 0%), #ffae80 var(--horizon, 58%), #3f86b8 var(--horizon, 58%), #1b4f86 var(--deep, 80%), #0c2a52 var(--abyss, 100%)); }
 .bd-night   { background: linear-gradient(#142a5e var(--sky-top, 0%), #3e5aa6 var(--horizon, 58%), #2a5f95 var(--horizon, 58%), #133a6c var(--deep, 80%), #071a36 var(--abyss, 100%)); }
+.bd-eclipse { background: linear-gradient(#1c2850 var(--sky-top, 0%), #4a5590 var(--horizon, 58%), #2a5480 var(--horizon, 58%), #133a6c var(--deep, 80%), #071a36 var(--abyss, 100%)); }
 :root[data-time="morning"] .bd-morning, :root[data-time="day"] .bd-day, :root:not([data-time]) .bd-day,
-:root[data-time="evening"] .bd-evening, :root[data-time="night"] .bd-night { opacity: 1; }
+:root[data-time="evening"] .bd-evening, :root[data-time="night"] .bd-night, :root[data-time="eclipse"] .bd-eclipse { opacity: 1; }
 .bd-stars { position: absolute; left: 0; right: 0; top: 0; height: var(--horizon, 58%); }
 .bd-stars svg { display: block; }
 .bd-haze { background: linear-gradient(#9c8f86 var(--sky-top, 0%), #e9b98a var(--horizon, 58%), transparent var(--horizon, 58%)); }
@@ -73,6 +74,16 @@
 .moon-halo { --r: 30; background: #fff7d6; opacity: 0.25; }
 .moon-disc { --r: 22; background: #fff4c2; }
 .moon-cut { --r: 19; background: #142a5e; margin-left: calc(9 * var(--u, 1px)); margin-top: calc(-6 * var(--u, 1px)); }
+/* solar eclipse: the moon slides in front of the sun */
+.corona { --r: 50; border: calc(7 * var(--u, 1px)) solid #fff6c8; box-sizing: border-box; opacity: 0; }
+.eclipse-moon { --r: 44; background: #151a2b; opacity: 0; }
+.eclipse-on .eclipse-moon { animation: moonPassHtml 7s ease-in-out forwards; }
+.eclipse-on .corona { animation: corona 7s ease-in-out forwards; }
+@keyframes moonPassHtml { 0% { transform: translateX(calc(-120 * var(--u, 1px))); opacity: 1; } 40%, 62% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(calc(120 * var(--u, 1px))); opacity: 1; } }
+@keyframes corona { 0%, 33% { opacity: 0; } 42%, 60% { opacity: 1; } 70%, 100% { opacity: 0; } }
+:root[data-time="eclipse"] .bd-stars { opacity: 0.8; }
+/* laptops: the view is closer to the city, so the sun and moon sit a little lower to stay in view */
+.cropped .sun-html, .cropped .moon-html { top: calc(var(--oy, 0px) + 125 * var(--u, 1px)); }
 
 /* night tint + storm flashes, on top of the island (but under the lights and speech bubble) */
 .fx-html { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
@@ -81,6 +92,7 @@
 :root[data-time="morning"] .fxh-tint { background: #ffb070; opacity: 0.08; }
 :root[data-time="evening"] .fxh-tint { background: #5a2a5a; opacity: 0.2; }
 :root[data-time="night"] .fxh-tint { background: #071230; opacity: 0.58; }
+:root[data-time="eclipse"] .fxh-tint { background: #0b1430; opacity: 0.45; }
 .fxh-heat { background: #ff7a2e; transition: opacity 2s; }
 .fxh-dark { background: #1d2533; }
 .fx-storm .fxh-dark { animation: dark 3.4s ease forwards; }
@@ -108,6 +120,7 @@
 @keyframes rainMove { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, 180px, 0); } }
 :root[data-time="morning"] { --sky-top-c: #7cc8ef; --sky-bot-c: #ffe3c4; --sea-top-c: #45b4dc; --sea-bot-c: #1a7fb6; --cloud-c: #fff6ec; --sea-deep-c: #0e406e; }
 :root[data-time="evening"] { --sky-top-c: #5b5fb0; --sky-bot-c: #ffae80; --sea-top-c: #3f86b8; --sea-bot-c: #1b4f86; --cloud-c: #ffd9c7; --sea-deep-c: #0c2a52; }
+:root[data-time="eclipse"] { --sky-top-c: #1c2850; --sky-bot-c: #4a5590; --sea-top-c: #2a5480; --sea-bot-c: #133a6c; --cloud-c: #7480a0; --sea-deep-c: #071a36; }
 :root[data-time="night"]   { --sky-top-c: #142a5e; --sky-bot-c: #3e5aa6; --sea-top-c: #2a5f95; --sea-bot-c: #133a6c; --cloud-c: #8a96b6; --sea-deep-c: #071a36; }
 
 :root {
@@ -391,6 +404,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 }
 .toast .emo { font-size: 28px; }
 .toast small { display: block; color: var(--ink2); font-size: 12px; }
+.toast.long { animation-duration: 7.2s; width: min(92vw, 420px); }
+.toast.long small { font-size: 13px; line-height: 1.3; }
 @keyframes toastIn { 0% { transform: translateY(-20px); opacity: 0; } 10%, 85% { transform: none; opacity: 1; } 100% { transform: translateY(-10px); opacity: 0; } }
 @keyframes fadeIn { from { opacity: 0; } }
 
@@ -509,14 +524,37 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 /* moving things */
 .driveL { animation: driveL 15s linear infinite; }
 .driveR { animation: driveR 13s linear infinite; }
-@keyframes driveL { from { transform: translateX(1300px); } to { transform: translateX(-500px); } }
-@keyframes driveR { from { transform: translateX(-500px); } to { transform: translateX(1300px); } }
+@keyframes driveL { from { transform: translateX(1150px); } to { transform: translateX(-350px); } }
+@keyframes driveR { from { transform: translateX(-350px); } to { transform: translateX(1150px); } }
 .ride { animation: driveR 16s linear infinite; }
-.pedal { animation: bob 0.5s ease-in-out infinite; }
+/* bike riders seen from the side: legs pedal, wheels turn */
+.leg-a { animation: pedal 0.5s ease-in-out infinite alternate; }
+.leg-b { animation: pedal 0.5s ease-in-out infinite alternate-reverse; }
+@keyframes pedal { from { transform: rotate(-20deg); } to { transform: rotate(16deg); } }
+.wheelspin { transform-box: fill-box; transform-origin: center; animation: spin 0.6s linear infinite; }
+.walker:not(.pedaling) .leg-a, .walker:not(.pedaling) .leg-b, .walker:not(.pedaling) .wheelspin { animation-play-state: paused; }
+.walker.riding [data-k="monkey"] { opacity: 0; }
+/* monkeys in the cars: Bobo only sits in the car while riding along */
+.passenger { opacity: 0; }
+.with-bobo .passenger { opacity: 1; }
+/* a city-wide traffic jam: the normal traffic makes room for the queues */
+[data-k^="traffic"] { transition: opacity 0.6s; }
+.jammed [data-k^="traffic"] { opacity: 0; }
+/* boats and the whale */
+.sail { animation: driveR 100s linear infinite; }
+.boat-rock { transform-box: fill-box; transform-origin: 50% 100%; animation: boatRock 3.2s ease-in-out infinite alternate; }
+@keyframes boatRock { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+.whale-bob { animation: whale 4s ease-in-out infinite; }
+@keyframes whale { 50% { transform: translateY(4px); } }
+.spout { transform-box: fill-box; transform-origin: 50% 100%; animation: spout 4s ease-out infinite; }
+@keyframes spout { 0%, 55% { transform: scale(0.2); opacity: 0; } 65% { transform: scale(1.1); opacity: 1; } 90% { transform: scale(1); opacity: 0.8; } 100% { opacity: 0; } }
+/* eclipse glasses */
+.shades { opacity: 0; transition: opacity 0.4s; }
+.eclipse-on .shades { opacity: 1; }
 .trainrun { animation: train 26s linear infinite; }
 .trainrun.back { animation-name: trainBack; }
-@keyframes train { 0% { transform: translateX(-900px); } 55%, 100% { transform: translateX(1700px); } }
-@keyframes trainBack { 0% { transform: translateX(1900px); } 55%, 100% { transform: translateX(-700px); } }
+@keyframes train { 0% { transform: translateX(-350px); } 55%, 100% { transform: translateX(1250px); } }
+@keyframes trainBack { 0% { transform: translateX(1150px); } 55%, 100% { transform: translateX(-450px); } }
 .vehicle, .buddy { transform-box: view-box; }
 .spin { transform-box: fill-box; transform-origin: center; animation: spin 3.2s linear infinite; }
 .fast-spin { animation-duration: 0.4s; }
@@ -561,11 +599,11 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 /* seagulls, butterflies, bees, birds, crabs */
 .fly { animation: fly 20s linear infinite; }
 .soar { animation: soar 3s ease-in-out infinite; }
-.wing { animation: flap 0.42s ease-in-out infinite alternate; }
-.wing.far { animation-delay: -0.08s; }
-@keyframes fly { from { transform: translateX(-600px); } to { transform: translateX(1500px); } }
-@keyframes soar { 50% { transform: translateY(-14px); } }
-@keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(-0.75); } }
+.wing { animation: flap 2.4s ease-in-out infinite; }
+.wing.far { animation-delay: -0.06s; }
+@keyframes fly { from { transform: translateX(-350px); } to { transform: translateX(1150px); } }
+@keyframes soar { 50% { transform: translateY(-10px); } }
+@keyframes flap { 0%, 44%, 100% { transform: scaleY(1); } 8%, 24% { transform: scaleY(-0.45); } 16%, 32% { transform: scaleY(0.9); } }
 .flutter { animation: flutter 7s ease-in-out infinite; }
 .bfly .bwing { transform-box: fill-box; transform-origin: center; }
 .bfly { animation: wingbeat 0.25s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
@@ -603,8 +641,13 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .storming .crown { transform-box: fill-box; transform-origin: 50% 100%; animation: sway 0.9s ease-in-out infinite alternate; }
 .fx-storm .fxh-dark { animation: dark 3.4s ease forwards; }
 .fx-storm .fxh-flash { animation: flash 6s linear infinite; }
+.bolt { opacity: 0; }
+.storming .bolt { animation: boltA 6s linear infinite; }
+.storming .bolt.b2 { animation-name: boltB; }
+@keyframes boltA { 0%, 40.5% { opacity: 0; } 41%, 42.5% { opacity: 1; } 43%, 44.5% { opacity: 0; } 45%, 46% { opacity: 0.9; } 47%, 100% { opacity: 0; } }
+@keyframes boltB { 0%, 75.5% { opacity: 0; } 76%, 78% { opacity: 1; } 79%, 100% { opacity: 0; } }
 @keyframes dark { to { opacity: 0.35; } }
-@keyframes flash { 0%, 40% { opacity: 0; } 41% { opacity: 0.7; } 43% { opacity: 0; } 45% { opacity: 0.5; } 48%, 100% { opacity: 0; } }
+@keyframes flash { 0%, 40% { opacity: 0; } 41% { opacity: 0.7; } 43% { opacity: 0; } 45% { opacity: 0.5; } 48%, 75% { opacity: 0; } 76% { opacity: 0.6; } 79%, 100% { opacity: 0; } }
 .heat-lines path { stroke: #fff2c4; stroke-width: 3; fill: none; opacity: 0.8; animation: rise 1.2s linear infinite; }
 @keyframes rise { from { transform: translateY(20px); opacity: 0; } 50% { opacity: 0.8; } to { transform: translateY(-30px); opacity: 0; } }
 
@@ -622,11 +665,11 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .mjump.jump { animation: jump 0.7s ease; }
 .mjump.droop { animation: droop 0.9s ease; transform-box: fill-box; transform-origin: 50% 100%; }
 
-@keyframes swim { from { transform: translateX(-700px); } to { transform: translateX(1500px); } }
+@keyframes swim { from { transform: translateX(-350px); } to { transform: translateX(1150px); } }
 @keyframes bob { 50% { transform: translateY(-4px); } }
 @keyframes floaty { 50% { transform: translateY(3px) rotate(5deg); } }
 @keyframes flicker { to { transform: scale(1.08, 1.2); } }
-@keyframes drift { from { transform: translateX(-900px); } to { transform: translateX(1700px); } }
+@keyframes drift { from { transform: translateX(-400px); } to { transform: translateX(1200px); } }
 @keyframes buzz { 25% { transform: translate(4px, -3px); } 50% { transform: translate(0, -6px); } 75% { transform: translate(-4px, -3px); } }
 @keyframes spark { from { transform: scale(0.2) rotate(0); opacity: 1; } to { transform: scale(1.6) rotate(60deg); opacity: 0; } }
 @keyframes jump { 30% { transform: translateY(-24px); } 60% { transform: translateY(0); } 78% { transform: translateY(-7px); } }
