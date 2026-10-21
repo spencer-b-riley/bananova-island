@@ -435,7 +435,7 @@
       if (G !== game) return;
     }
     // …then Bobo goes to where the new situation happens…
-    await Promise.race([scene.event(ch.id), wait(11000)]);
+    await Promise.race([scene.event(ch.id), wait(30000)]);
     if (G !== game) return;
     // …and only then the question appears
     scene.react(REACT[ch.id], 0);
@@ -478,8 +478,10 @@
     react0();
     Sound.play(good ? 'good' : 'bad');
     // 2. Bobo does it (bikes to school, takes the train, goes to the thrift store…)
-    await Promise.race([scene.outcome(ch.id, good), wait(15000)]);
+    await Promise.race([scene.outcome(ch.id, good), wait(25000)]);
     if (G !== game) return;   // the player left the game meanwhile
+    // the first choice decides how Bobo gets around town for the rest of the game
+    if (ch.id === 'school') scene.setMode(good ? 'bike' : 'car');
     // 3. then the result: reaction, speech bubble, meters and the text card
     scene.react(good ? 'yay' : 'sad');
     sayLine((sy) => sy.choices[idx][good ? 1 : 2]);
@@ -501,7 +503,7 @@
     const game = G, ch = CHOICES[idx];
     cardWait();
     sayLine(() => '');
-    await Promise.race([scene.payoff(ch.id), wait(8000)]);   // (Bobo may come back from a trip first)
+    await Promise.race([scene.payoff(ch.id), wait(25000)]);   // (Bobo may come back from a trip first)
     if (G !== game) return;
     Sound.play('payoff');
     await wait(1400);          // let the reward appear in the city first

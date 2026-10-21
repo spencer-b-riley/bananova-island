@@ -327,6 +327,21 @@ const Scene = (() => {
       <rect x="-7" y="-71" width="20" height="25" rx="6" fill="#ff6b4a"/><rect x="-4" y="-58" width="14" height="9" rx="2.5" fill="#e04f30"/><path d="M-4 -64 H10" stroke="#ffd23f" stroke-width="1.6"/>
       <circle cx="-10" cy="-82" r="5" fill="${fur}"/><circle cx="-10" cy="-82" r="2.8" fill="#e8c39e"/><circle cx="16" cy="-82" r="5" fill="${fur}"/><circle cx="16" cy="-82" r="2.8" fill="#e8c39e"/>
       <circle cx="3" cy="-82" r="13" fill="${fur}"/><path d="M-2 -91 Q3 -95 8 -91" stroke="#6b4423" stroke-width="2" fill="none" stroke-linecap="round"/></g>`;
+  const frontRider = (fur, shirt, pack = false) => `<g class="rider front-rider">
+      <g class="pedal-l"><path d="M-6 -40 Q-12 -29 -8 -19" stroke="${fur}" stroke-width="6.5" fill="none" stroke-linecap="round"/><ellipse cx="-8" cy="-17" rx="4" ry="2.6" fill="${fur}"/></g>
+      <g class="pedal-r"><path d="M6 -40 Q12 -29 8 -19" stroke="${fur}" stroke-width="6.5" fill="none" stroke-linecap="round"/><ellipse cx="8" cy="-17" rx="4" ry="2.6" fill="${fur}"/></g>
+      <ellipse cx="0" cy="-14" rx="6.5" ry="14" fill="none" stroke="#23313f" stroke-width="4"/><ellipse cx="0" cy="-14" rx="2" ry="4" fill="#555b63"/>
+      <path d="M0 -14 V-40 M-15 -45 H15" stroke="#ff5b4a" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <ellipse cx="0" cy="-55" rx="13" ry="16" fill="${shirt || fur}"/>${shirt ? '' : '<ellipse cx="0" cy="-52" rx="7.5" ry="10" fill="#e8c39e"/>'}
+      ${pack ? '<path d="M-9 -68 V-50 M9 -68 V-50" stroke="#e04f30" stroke-width="3.4" stroke-linecap="round"/>' : ''}
+      <path d="M-10 -63 Q-16 -54 -14 -45 M10 -63 Q16 -54 14 -45" stroke="${shirt || fur}" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+      <g transform="translate(0 -82)"><circle cx="-13" cy="0" r="5" fill="${fur}"/><circle cx="-13" cy="0" r="2.8" fill="#e8c39e"/><circle cx="13" cy="0" r="5" fill="${fur}"/><circle cx="13" cy="0" r="2.8" fill="#e8c39e"/>
+        <circle r="13" fill="${fur}"/><ellipse cx="0" cy="4" rx="9" ry="7" fill="#e8c39e"/><circle cx="-4" cy="-2" r="4.4" fill="#e8c39e"/><circle cx="4" cy="-2" r="4.4" fill="#e8c39e"/>
+        <circle cx="-3.6" cy="-2" r="1.8" fill="#23313f"/><circle cx="3.6" cy="-2" r="1.8" fill="#23313f"/><path d="M-4.5 5 Q0 9.5 4.5 5" stroke="#5a2d0c" stroke-width="1.6" fill="none" stroke-linecap="round"/></g></g>`;
+  // a small parked bike (side view) for the bike racks
+  const PARKED_BIKE = '<g transform="scale(.36)"><circle cx="-26" cy="-14" r="14" fill="none" stroke="#23313f" stroke-width="4"/><circle cx="26" cy="-14" r="14" fill="none" stroke="#23313f" stroke-width="4"/><path d="M-26 -14 L0 -14 L-8 -36 Z M0 -14 L18 -36 L-8 -36 M26 -14 L18 -36 L16 -44 M11 -45 H22 M-14 -38 H-2" stroke="#ff5b4a" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>';
+  const rack = (x, y, k) => `<g transform="translate(${x} ${y})"><path d="M0 0 v-7 q0 -4 4 -4 q4 0 4 4 v7 M10 0 v-7 q0 -4 4 -4 q4 0 4 4 v7 M20 0 v-7 q0 -4 4 -4 q4 0 4 4 v7" stroke="#8a939d" stroke-width="1.6" fill="none"/>
+      <g data-k="bikes_${k}" class="fade hide"><g transform="translate(7 0)">${PARKED_BIKE}</g><g data-k="bikes2_${k}" class="fade hide" transform="translate(17 0)">${PARKED_BIKE}</g><g data-k="bikes3_${k}" class="fade hide" transform="translate(27 0)">${PARKED_BIKE}</g></g></g>`;
   const rider = (fur, shirt, d, dur) => `<g class="ride" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 466.5) scale(.38)">${sideRider(fur, shirt)}</g></g>`;
 
   // cars looping along the road (lane A goes left, lane B goes right), each with a happy monkey driver
@@ -423,6 +438,10 @@ const Scene = (() => {
   <rect x="26" y="362" width="612" height="4" class="pave"/>
   <rect x="26" y="366" width="612" height="11" class="road"/><path d="M30 371.5 H214 M250 371.5 H634" stroke="#fff" stroke-width="1.1" stroke-dasharray="8 7" opacity=".8"/>
   <rect x="218" y="324" width="28" height="134" class="road"/><path d="M232 328 V364 M232 380 V440" stroke="#fff" stroke-width="1.1" stroke-dasharray="7 6" opacity=".8"/>
+  <!-- parking bays on the street (school, station, shops) and bike racks -->
+  <g class="bays" stroke="#fff" stroke-width="1.2" opacity=".85"><path d="M138 373.5 v4 M200 373.5 v4 M262 373.5 v4 M318 373.5 v4 M568 373.5 v4 M632 373.5 v4"/></g>
+  <g fill="#fff" opacity=".8" font-size="6" font-weight="900" font-family="Arial, sans-serif"><text x="166" y="377">P</text><text x="287" y="377">P</text><text x="597" y="377">P</text></g>
+  ${rack(126, 362, 'school')}${rack(252, 340, 'station')}${rack(596, 365, 'mall')}
   <!-- road signs: school crossing, which way to the station, parking at the mall -->
   <g class="signs">
     <path d="M196 362 V340" stroke="#6b7280" stroke-width="1.8"/><path d="M196 330 L204 338 L196 346 L188 338Z" fill="#ffd23f" stroke="#23313f" stroke-width="1"/><circle cx="194" cy="335.5" r="1.4" fill="#23313f"/><circle cx="198.5" cy="336.5" r="1.2" fill="#23313f"/><path d="M194 337 v4 M198.5 338 v3.4" stroke="#23313f" stroke-width="1.4"/>
@@ -440,7 +459,7 @@ const Scene = (() => {
     <text x="108" y="328" text-anchor="middle" font-size="9" font-weight="900" fill="#c0392b">A B C</text>
     <path d="M108 276 V264" stroke="#9aa5b1" stroke-width="2"/><path d="M109 264 l12 4 l-12 4Z" fill="#ff6fa8" class="flag"/>
     ${item('solarSchool', 46, 296, solar(10, 3), 'fade')}
-    ${item('swapBox', 150, 362, `<rect x="-12" y="-14" width="24" height="14" rx="2" fill="#c98f4f" stroke="#8b5a2b" stroke-width="1.5"/><circle cx="-5" cy="-17" r="4" fill="#ff5b4a"/><rect x="0" y="-22" width="8" height="8" fill="#2f80ed"/><path d="M-9 -7 h18" stroke="#fff" stroke-width="2"/>`)}
+    ${item('swapBox', 74, 362, `<rect x="-12" y="-14" width="24" height="14" rx="2" fill="#c98f4f" stroke="#8b5a2b" stroke-width="1.5"/><circle cx="-5" cy="-17" r="4" fill="#ff5b4a"/><rect x="0" y="-22" width="8" height="8" fill="#2f80ed"/><path d="M-9 -7 h18" stroke="#fff" stroke-width="2"/>`)}
   </g>
   <g class="thrift">
     <rect x="424" y="324" width="76" height="38" fill="#b388ff"/><rect x="420" y="308" width="84" height="15" rx="3" fill="#7e57c2"/>
@@ -535,6 +554,7 @@ const Scene = (() => {
     `<g transform="translate(${x} 441)"><path d="M0 0 q-6 -8 -2 -14 M0 0 q6 -8 2 -14 M0 0 V-12" stroke="#3d9a2e" stroke-width="2.4" fill="none"/>${k % 2 ? '<circle cx="0" cy="-2" r="3" fill="#ff8c42"/>' : '<circle cx="0" cy="-6" r="5" fill="#7fe06a"/>'}</g>`).join('')}
       ${flower(704, 438, '#ff6fa8')}${bee(728, 416, 0)}${bee(760, 420, -1.4)}`)}
 
+  ${rack(288, 426, 'home')}
   <!-- pigeons pecking on the pavement (behind the road, so the cars drive in front of them) -->
   <g data-k="pigeons" class="fade">${pigeon(234, 435, false, 0)}${pigeon(596, 436, true, -1.1)}</g>
   <!-- the toy in front of Bobo's house -->
@@ -595,7 +615,7 @@ const Scene = (() => {
       <g class="r r-think"><circle cx="4" cy="13" r="2.8" fill="#5a2d0c"/><text x="28" y="-22" font-size="24" font-weight="900" fill="#2f80ed">?</text></g>
     </g>
   </g></g></g></g>
-    <g data-k="mRide" class="fade hide"><g class="ride-dir" transform="scale(.42 .42)">${backRider('#8b5a2b')}</g></g>
+    <g data-k="mRide" class="fade hide"><g class="ride-dir" transform="scale(.42 .42)"><g class="rv-back">${backRider('#8b5a2b')}</g><g class="rv-front" style="display:none">${frontRider('#8b5a2b', null, true)}</g></g></g>
   </g></g></g>
   <g data-k="buddies"></g>
   <!-- the table top and what's on it are drawn in front of Bobo (Bobo stands behind the table) -->
@@ -728,16 +748,17 @@ const Scene = (() => {
      right away if the player moves on before the animation is done). pay = reward 2 turns later. */
   const ACTIONS = {
     school: {
-      async ev(s) { s.wear('pack'); await s.go(P.home); },
+      async ev(s) { s.wear('pack'); await s.travel(P.home); },
       good: {
         async play(s) {
           // there's a traffic jam on the roads… and Bobo just bikes right past it
           const jam = s.jamStart(QUEUE_A, QUEUE_B, false);
-          await s.go(P.lane);
-          s.wear('bike'); await s.w(150);
-          await s.ride([232, 487]);            // along the bike lane, past all the cars…
-          await s.ride([232, 370], 0.09);      // …and up the little street to the school (seen from behind)
-          s.wear('bike', false); await s.w(150);
+          await s.go([300, 456]);              // Bobo's bike is in the rack by the house
+          s.hide('bikes_home'); s.wear('bike'); await s.w(150);
+          // along the bike lane past all the cars, up the little street (seen from behind) to the bike rack at school
+          await s.ridePath([[300, 487], [232, 487], [232, 374], [137, 370]]);
+          s.wear('bike', false); s.show('bikes_school'); await s.w(150);
+          s.remote = { bikes: 'school', people: [] };
           s.jamGo(jam);
           await s.go(P.school);
           s.sparkle(108, 330); s.jump(); await s.w(900);
@@ -787,7 +808,7 @@ const Scene = (() => {
       pay(s) { s.show('cyclists'); s.reveal('bikeFriends', 330, 360); },
     },
     lights: {
-      async ev(s) { await s.go(P.home); s.houseLights(true); },
+      async ev(s) { await s.travel(P.home); s.houseLights(true); },
       good: {
         async play(s) {
           await s.go(P.door); s.chop(); await s.w(500);
@@ -802,7 +823,7 @@ const Scene = (() => {
       pay(s) { s.reveal(['solarRoof', 'solarSchool'], 350, 360); s.renew++; s.updatePlant(); },
     },
     bottle: {
-      async ev(s) { await s.go(P.fountain); },
+      async ev(s) { await s.travel(P.fountain); },
       good: {
         async play(s) {
           s.wear('bottle');
@@ -822,7 +843,7 @@ const Scene = (() => {
       pay(s) { s.hide('beachTrash'); s.reveal('beachTurtle', 652, 498); },
     },
     toy: {
-      async ev(s) { await s.go(P.home); s.show('toyBroken'); },
+      async ev(s) { await s.travel(P.home); s.show('toyBroken'); },
       good: {
         async play(s) {
           const f = s.buddy('golden', '#ffd23f', P.friend);
@@ -852,10 +873,10 @@ const Scene = (() => {
         },
         apply(s) { s.hide('boxClosed'); s.show('boxPile'); },
       },
-      pay(s) { s.reveal('swapBox', 150, 345); },
+      pay(s) { s.reveal('swapBox', 74, 345); },
     },
     hot: {
-      async ev(s) { s.show('heatGlow'); await s.go(P.home); },
+      async ev(s) { s.show('heatGlow'); await s.travel(P.home); },
       good: {
         // open the windows, then cool down in the shade of the park tree with a cold drink (no electricity)
         async play(s) {
@@ -870,7 +891,7 @@ const Scene = (() => {
       pay(s) { s.reveal('shadeTrees', 350, 410); },
     },
     cold: {
-      async ev(s) { await s.go(P.home); },
+      async ev(s) { await s.travel(P.home); },
       good: {
         async play(s) { await s.go(P.door); s.inside(true); await s.w(700); s.wear('sweater'); s.inside(false); await s.go(P.home); s.sparkle(350, 420); await s.w(600); },
       },
@@ -882,7 +903,7 @@ const Scene = (() => {
     },
     shower: {
       // it's night: Bobo is already home (no playing outside in the dark)
-      async ev(s) { s.wear('mud'); if (s.time() === 'night') s.place(P.home); else await s.go(P.home); },
+      async ev(s) { s.wear('mud'); if (s.time() === 'night' && !s.remote && s.pos()[1] >= BACK_Y) s.place(P.home); else await s.travel(P.home); },
       good: {
         async play(s) { await s.go(P.door); s.inside(true); await s.w(300); s.flash('steam', 1300); await s.w(1300); s.wear('mud', false); s.inside(false); s.sparkle(350, 420); await s.w(500); },
       },
@@ -894,13 +915,19 @@ const Scene = (() => {
     },
     party: {
       async ev(s) {
+        if (s.pos()[1] < BACK_Y) await s.travel(P.home);   // (home first, the same way Bobo always gets around)
         s.wear('hat'); s.show('partyCloth'); s.show('balloons'); s.show('cake');
         const a = s.buddy('golden', '#ffd23f', P.friend, '#2f80ed'), b = s.buddy('red', '#2fb35a', P.friend2, '#ffd23f');
         a.appear(); b.appear();
         const ga = a.go([470, 452]), gb = b.go([542, 452]);
         ga.catch(() => {}); gb.catch(() => {});
-        await s.go(P.garden);
-        await Promise.all([ga, gb]);
+        // Bobo's family comes to the party too
+        const fam = s.family(P.door, ['dad', 'mom', 'sister']);
+        fam.forEach((m, k) => { m.kind = ['dad', 'mom', 'sister'][k]; m.appear(); });
+        const gf = fam.map(async (m, k) => { await s.w(300 * k); await m.go([[402, 456], [580, 456], [598, 458]][k]); });
+        gf.forEach((g) => g.catch(() => {}));
+        await s.travel(P.garden);
+        await Promise.all([ga, gb, ...gf]);
       },
       good: {
         async play(s) {
@@ -908,6 +935,7 @@ const Scene = (() => {
           s.show('sortBins');
           [CUP, BALL, CUP].forEach((it, k) => setTimeout(() => s.toss(485 + k * 20, 430, 565 + k * 13, 440, it, 600), k * 260));
           await s.w(1000); s.buddies.forEach((b) => b.jump()); s.sparkle(578, 430); await s.w(600);
+          s.partyOver();
         },
       },
       bad: {
@@ -916,16 +944,25 @@ const Scene = (() => {
           s.show('trashBag');
           [PLASTIC, PLASTIC, PLASTIC].forEach((it, k) => setTimeout(() => s.toss(485 + k * 20, 430, 572, 440, it, 600), k * 220));
           await s.w(1300);
+          s.partyOver();
         },
         apply(s) { s.show('trashPile'); },
       },
-      pay(s) { s.reveal('recycling', 44, 420); },
+      pay(s) { s.reveal('recycling', 322, 330); },
     },
     jacket: {
-      async ev(s) { await s.go(P.shops); },
+      async ev(s) {
+        // (still at school? school's over: home first.) Then to the shops, with a grown-up
+        if (s.pos()[1] < BACK_Y && !(s.remote && s.remote.people.length)) await s.travel(P.home);
+        await s.travel(P.shops, s.mode === 'car' ? ['dad'] : ['mom']);
+      },
       good: {
         // a cool jacket from the thrift store (it's sunny, so Bobo carries it home)
-        async play(s) { await s.go(P.thrift); s.inside(true); await s.w(1100); s.wear('carry'); s.inside(false); s.sparkle(462, 330); s.jump(); await s.w(700); },
+        async play(s) {
+          const grownUps = s.remote ? s.remote.people : [];
+          await s.withMe(P.thrift, grownUps); s.inside(true); grownUps.forEach((m) => m.fade(false)); await s.w(1100);
+          s.wear('carry'); s.inside(false); grownUps.forEach((m) => m.fade(true)); s.sparkle(462, 330); s.jump(); await s.w(700);
+        },
       },
       bad: {
         async play(s) {
@@ -939,7 +976,9 @@ const Scene = (() => {
             await ship.move(1100, 578, 2400, 'ease-in'); ship.remove(); s.show('boats');
           })();
           delivery.catch(() => {});
-          await s.go(P.mall); s.inside(true); await s.w(1300); s.wear('bag'); s.inside(false);
+          const grownUps = s.remote ? s.remote.people : [];
+          await s.withMe(P.mall, grownUps); s.inside(true); grownUps.forEach((m) => m.fade(false)); await s.w(1300);
+          s.wear('bag'); s.inside(false); grownUps.forEach((m) => m.fade(true));
           await delivery;
         },
       },
@@ -947,7 +986,7 @@ const Scene = (() => {
     },
     trip: {
       async ev(s) {
-        s.wear('pack'); await s.go(P.home);
+        s.wear('pack'); await s.travel(P.home);
         // the whole family comes out of the house for the trip
         const fam = s.family(P.door);
         fam.forEach((m) => m.appear());
@@ -955,19 +994,20 @@ const Scene = (() => {
       },
       good: {
         async play(s) {
-          // everybody walks to the station together, one after the other
-          const fam = s.buddies.slice(), spots = [204, 220, 258];
-          const walks = fam.map(async (m, k) => { await s.w(250 * (k + 1)); await m.go([spots[k], 326]); });
-          walks.forEach((w) => w.catch(() => {}));
-          await s.go([240, 326]);
-          await Promise.all(walks);
+          // everybody goes to the station together (by bike or by car, like they always do)
+          const fam = s.buddies.slice();
+          fam.forEach((m, k) => { m.kind = ['dad', 'mom', 'sister'][k]; });
+          await s.travel([240, 326], ['dad', 'mom', 'sister'], fam);
+          const people = s.remote ? s.remote.people : fam;
+          await Promise.all(people.map((m, k) => m.go([[204, 326], [220, 326], [258, 326]][k])));
           s.hide('trains');
           const tr = s.vehicle('trainFx', TRAIN, -700, 316, 1, 0.95);
           sfx('choo');
           await tr.move(325, 316, 3200, 'ease-out');
-          fam.forEach((m) => m.fade(false)); s.inside(true); await s.w(900);   // all aboard!
+          people.forEach((m) => m.fade(false)); s.inside(true); await s.w(900);   // all aboard!
           await tr.move(1700, 316, 3400, 'ease-in'); tr.remove(); s.show('trains');
-          fam.forEach((m) => m.remove());
+          people.forEach((m) => m.remove());
+          if (s.remote) s.remote.people = [];
           s.away = 'train';    // back from Grandma's by train next time
         },
       },
@@ -991,7 +1031,7 @@ const Scene = (() => {
       pay(s) { s.reveal('train2', 400, 300); },
     },
     food: {
-      async ev(s) { await s.go(P.garden); },
+      async ev(s) { await s.travel(P.garden); },
       good: {
         async play(s) { s.show('tacos'); s.sparkle(505, 420); await s.w(800); s.jump(); await s.w(700); },
       },
@@ -1096,6 +1136,9 @@ const Scene = (() => {
       monkey.classList.toggle('walking', dist > 4);
       walker.classList.toggle('pedaling', dist > 4);
       if (Math.abs(x - cx) > 2) rideDir.setAttribute('transform', `scale(${x < cx ? -0.42 : 0.42} .42)`);
+      const towardsUs = y - cy > Math.abs(x - cx);
+      rideDir.querySelector('.rv-front').style.display = towardsUs ? '' : 'none';
+      rideDir.querySelector('.rv-back').style.display = towardsUs ? 'none' : '';
       clearTimeout(walkTimer);
       return new Promise((done) => { walkTimer = setTimeout(() => { monkey.classList.remove('walking'); walker.classList.remove('pedaling'); done(); }, ms); });
     }
@@ -1121,6 +1164,7 @@ const Scene = (() => {
 
     const s = {
       q,
+      pos: () => walkPos,
       speed: 1,
       traffic: 0,
       energyBad: 0,
@@ -1178,10 +1222,10 @@ const Scene = (() => {
       },
       // …and comes back along the street (from the right) and drives up into the driveway
       async carPark(v, heads = headBack(-5, '#6b4423')) {
-        if (v.y !== LANE_A) await v.move(v.x, LANE_A, 600);
-        await v.move(434, LANE_A, Math.max(600, Math.abs(v.x - 434) * 2.2), 'ease-out');
+        const lane = v.y;
+        await v.move(434, lane, Math.max(600, Math.abs(v.x - 434) * 2.2), 'ease-out');
         v.remove();
-        const r = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', heads)}</g>`, 434, 468, 1);
+        const r = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', heads)}</g>`, 434, lane, 1);
         r.carry(true);
         await r.move(434, 442, 1000, 'ease-in-out');
         s.show('parkedCar'); r.remove();
@@ -1189,6 +1233,11 @@ const Scene = (() => {
       // dad comes out of the house to drive, or goes back in after parking
       async dadOut() { const d = s.family(P.door, ['dad'])[0]; d.appear(); await d.walk(412, 452); await d.enter(); },
       dadIn() { const d = s.family([412, 452], ['dad'])[0]; d.appear(); (async () => { await d.go(P.door); await d.enter(); })().catch(() => {}); },
+      // after the party: the friends walk home to their own houses, Bobo's family goes inside
+      partyOver() {
+        const homes = { golden: P.friend, red: P.friend2 };
+        s.buddies.slice().forEach((m, k) => (async () => { await s.w(300 * k); await m.go(homes[m.kind] || P.door); await m.enter(); })().catch(() => {}));
+      },
       // a reward appears: it pops in, a glowing ring pulses around it and stars burst out (so it's easy to notice)
       reveal(keys, x, y) {
         [].concat(keys).forEach((k) => { const el = q(k); s.show(k); if (el) restartAnim(el, 'reveal'); });
@@ -1200,6 +1249,178 @@ const Scene = (() => {
         setTimeout(() => g.remove(), 2400);
         [[0, 0], [-26, -10], [26, -12], [-12, 18], [14, 16]].forEach(([dx, dy], k) => setTimeout(() => s.sparkle(x + dx, y + dy), k * 160));
       },
+      /* ── getting around ──
+         The first choice of the game (bike or car to school) decides how Bobo gets around town.
+         Bike: Bobo (and whoever comes along) rides, and leaves the bikes at a bike rack.
+         Car: dad drives from the driveway, parks in a parking bay and walks along. */
+      mode: 'walk',
+      remote: null,   // where the family car or the bikes are while Bobo is across town
+      // a grown-up or the sister riding a bike (side view; from behind going away; from the front coming towards us)
+      cyclist(kind, at) {
+        const look = { dad: '#2f80ed', mom: '#ff6fa8', sister: '#ffd23f' }, [fur] = FRIENDS[kind];
+        const size = kind === 'sister' ? 0.32 : 0.42;
+        const g = document.createElementNS(NS, 'g');
+        g.innerHTML = `<g class="cv-side">${sideRider(fur, look[kind])}</g><g class="cv-back" style="display:none">${backRider(fur)}</g><g class="cv-front" style="display:none">${frontRider(fur, look[kind])}</g>`;
+        const c = { g, x: at[0], y: at[1], dir: 1 };
+        const set = (ms, ease) => {
+          const layer = c.y < BACK_Y ? q('backFx') : q('roadFx');
+          if (g.parentNode !== layer) { layer.appendChild(g); g.style.transition = 'none'; void g.getBoundingClientRect(); }
+          g.style.transition = ms ? `transform ${ms}ms ${ease}, opacity .4s` : 'none';
+          g.style.transform = `translate(${c.x}px, ${c.y}px) scale(${(depthK(c.y) * size * c.dir).toFixed(3)}, ${(depthK(c.y) * size).toFixed(3)})`;
+        };
+        set(0);
+        c.move = (x, y, ms, ease = 'linear') => {
+          const dx = x - c.x, dy = y - c.y;
+          const view = Math.abs(dy) > Math.abs(dx) ? (dy > 0 ? 'front' : 'back') : 'side';
+          if (Math.abs(dx) > 2) c.dir = dx < 0 ? -1 : 1;
+          ['side', 'back', 'front'].forEach((v) => { g.querySelector('.cv-' + v).style.display = v === view ? '' : 'none'; });
+          c.x = x; c.y = y; set(ms, ease);
+          g.classList.add('walker', 'pedaling');
+          const p = s.w(ms); p.catch(() => {}); return p;
+        };
+        c.remove = () => g.remove();
+        return c;
+      },
+      // Bobo rides along a path; the others follow in a line just behind
+      async ridePath(points, others = [], speed = 0.13) {
+        const legs = [];
+        let prev = walkPos.slice();
+        points.forEach((p) => { legs.push([p, Math.max(450, Math.hypot(p[0] - prev[0], p[1] - prev[1]) / speed)]); prev = p; });
+        const last = legs.length - 1, from = legs.length > 1 ? legs[last - 1][0] : walkPos;
+        const along = [Math.sign(legs[last][0][0] - from[0]), Math.sign(legs[last][0][1] - from[1])];
+        const follow = others.map((r, k) => (async () => {
+          await sleep(420 * (k + 1));
+          for (let n = 0; n < legs.length; n++) {
+            const [p, ms] = legs[n], back = n === last ? 20 * (k + 1) : 0;
+            await r.move(p[0] - along[0] * back, p[1] - along[1] * back, ms, n === last ? 'ease-out' : 'linear');
+          }
+        })().catch(() => {}));
+        for (let n = 0; n < legs.length; n++) {
+          const g = gen;
+          await walkTo(legs[n][0][0], legs[n][0][1], legs[n][1], n === 0 ? 'ease-in' : n === last ? 'ease-out' : 'linear');
+          guard(g);
+        }
+        await Promise.all(follow);
+      },
+      // grown-ups walking with Bobo (parental supervision) follow a step behind
+      async withMe(to, people) {
+        await Promise.all([s.go(to), ...people.map(async (m, k) => { await s.w(200 * (k + 1)); await m.go([to[0] + 18 * (k + 1), to[1] + 1]); })]);
+      },
+      // turn walking people into riders where they stand (and back)
+      toBikes(people) { return people.map((m) => { const c = s.cyclist(m.kind, m.pos); m.remove(); return c; }); },
+      toWalkers(riders, kinds) { return riders.map((r, k) => { const m = s.buddy(kinds[k], { dad: '#2f80ed', mom: '#ff6fa8', sister: '#ffd23f' }[kinds[k]], [r.x, r.y], null, kinds[k] === 'dad' ? 'tie' : 'bow', { dad: 1.1, mom: 1.04, sister: 0.76 }[kinds[k]]); m.kind = kinds[k]; r.remove(); return m; }); },
+      // go somewhere: walk on the same side of town; across town by bike or by car (see s.mode)
+      async travel(to, kinds = [], existing = null) {
+        const there = to[1] < BACK_Y, here = walkPos[1] < BACK_Y;
+        const people = s.remote ? s.remote.people : [];
+        if (there === here || s.mode === 'walk') { await s.withMe(to, people); return; }
+        if (there) await (s.mode === 'bike' ? s.bikeThere(to, kinds, existing) : s.driveThere(to, kinds, existing));
+        else await (s.mode === 'bike' ? s.bikeHome(to) : s.driveHome(to));
+      },
+      rackFor(to) { return to[1] < 345 ? ['station', [256, 342]] : to[0] < 300 ? ['school', [137, 368]] : ['mall', [606, 370]]; },
+      bayFor(to) { return to[1] < 345 ? 290 : to[0] < 300 ? 168 : 600; },
+      async bikeThere(to, kinds, existing) {
+        const [rk, rp] = s.rackFor(to);
+        // everyone takes their bike from the rack at home and rides off together
+        let people = existing || s.family(P.door, kinds);
+        people.forEach((m, k) => { m.kind = kinds[k]; if (!existing) m.appear(); });
+        await Promise.all([s.go([300, 456]), ...people.map((m, k) => m.walk(318 + 16 * k, 456))]);
+        s.hide('bikes_home'); s.wear('bike');
+        const riders = s.toBikes(people);
+        await s.ridePath([[300, 487], [232, 487], [232, rp[1] > 360 ? 374 : rp[1]], rp], riders);
+        // lock the bikes at the rack by the destination
+        s.wear('bike', false); s.show('bikes_' + rk); if (riders.length) s.show('bikes2_' + rk); if (riders.length > 1) s.show('bikes3_' + rk);
+        people = s.toWalkers(riders, kinds);
+        people.forEach((m) => { m.keep = true; });
+        s.remote = { bikes: rk, people };
+        await s.withMe(to, people);
+      },
+      async bikeHome(to) {
+        const r = s.remote || { bikes: s.rackFor(walkPos)[0], people: [] };
+        const [rk, rp] = s.rackFor(walkPos[1] < 345 ? [0, 330] : walkPos[0] < 300 ? [100, 365] : [600, 365]);
+        await Promise.all([s.go(rp), ...r.people.map((m, k) => m.go([rp[0] + 14 * (k + 1), rp[1]]))]);
+        ['bikes_', 'bikes2_', 'bikes3_'].forEach((b) => s.hide(b + rk));
+        s.wear('bike');
+        const kinds = r.people.map((m) => m.kind);
+        const riders = s.toBikes(r.people);
+        s.remote = null;
+        await s.ridePath([[232, rp[1] > 360 ? 374 : rp[1]], [232, 487], [300, 487]], riders);
+        s.wear('bike', false); s.show('bikes_home');
+        const people = s.toWalkers(riders, kinds);
+        await Promise.all([s.go(to), ...people.map(async (m, k) => { await s.w(200 * k); await m.go(P.door); await m.enter(); })]);
+      },
+      // by car: dad drives; whoever comes along rides in the back
+      async driveThere(to, kinds, existing) {
+        const bay = s.bayFor(to), riders = kinds.filter((k) => k !== 'dad');
+        await s.go([444, 456]);
+        const fam = existing || s.family(P.door, ['dad', ...riders]);
+        if (!existing) fam.forEach((m) => m.appear());
+        await Promise.all(fam.map(async (m, k) => { await s.w(180 * k); await m.walk(408 + 14 * k, 452); await m.enter(); }));
+        s.inside(true);
+        const back = [monkeyHead(-3, -23, '#8b5a2b')].concat(riders.map((k, n) => `<g transform="translate(${-9 + n * 9} -22.5) scale(.55)">${monkeyHead(0, 0, FRIENDS[k][0])}</g>`)).join('');
+        const v = await s.carOut(back);
+        v.cam = true;
+        await v.move(232, LANE_A, 1200, 'ease-in-out');
+        v.remove();
+        const up = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', headBack(-5, '#6b4423') + headBack(5, '#8b5a2b', .85))}</g>`, 232, LANE_A, 1);
+        up.carry(true); up.cam = true;
+        await up.move(232, 384, 1500, 'ease-in-out');
+        up.remove();
+        const side = s.vehicle('backFx', car('#e63946', '#6b4423', back), 232, 378, bay < 232 ? -1 : 1);
+        side.carry(true); side.cam = true;
+        await side.move(bay, 378, Math.max(500, Math.abs(bay - 232) * 6), 'ease-out');
+        side.cam = false; side.carry(false); side.keep = true;
+        // everybody gets out and walks with Bobo
+        s.place([bay + 10, 367]); s.inside(false);
+        const people = s.family([[bay - 10, 367]].concat(riders.map((_, n) => [bay + 26 + n * 14, 367])), ['dad', ...riders]);
+        people.forEach((m, k) => { m.kind = ['dad', ...riders][k]; m.keep = true; m.appear(); });
+        s.remote = { car: side, bay, people };
+        await s.withMe(to, people);
+      },
+      async driveHome(to) {
+        let r = s.remote;
+        if (!r || !r.car) {
+          // dad comes to pick Bobo up
+          const bay = s.bayFor(walkPos);
+          const fam = s.family(P.door, ['dad']); fam[0].appear();
+          await fam[0].walk(408, 452); await fam[0].enter();
+          const v = await s.carOut('');
+          v.cam = true;
+          await v.move(232, LANE_A, 1200, 'ease-in-out'); v.remove();
+          const up = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', headBack(-5, '#6b4423'))}</g>`, 232, LANE_A, 1);
+          up.carry(true); up.cam = true;
+          await up.move(232, 384, 1500, 'ease-in-out'); up.remove();
+          const side = s.vehicle('backFx', car('#e63946', '#6b4423', ''), 232, 378, bay < 232 ? -1 : 1);
+          side.cam = true;
+          await side.move(bay, 378, Math.max(500, Math.abs(bay - 232) * 6), 'ease-out');
+          side.cam = false;
+          r = { car: side, bay, people: [] };
+        }
+        // everybody walks to the car and gets in
+        await Promise.all([s.go([r.bay + 10, 367]), ...r.people.map((m, k) => m.go([r.bay - 10 + 14 * k, 367]))]);
+        await Promise.all(r.people.map((m) => m.enter()));
+        s.inside(true);
+        const kinds = r.people.map((m) => m.kind).filter((k) => k !== 'dad');
+        const back = [monkeyHead(-3, -23, '#8b5a2b')].concat(kinds.map((k, n) => `<g transform="translate(${-9 + n * 9} -22.5) scale(.55)">${monkeyHead(0, 0, FRIENDS[k][0])}</g>`)).join('');
+        r.car.remove();
+        s.remote = null;
+        // back along the street, down the little street (coming towards us), along the main road and up the driveway
+        const side = s.vehicle('backFx', car('#e63946', '#6b4423', back), r.bay, 378, r.bay < 232 ? 1 : -1);
+        side.carry(true); side.cam = true;
+        await side.move(232, 378, Math.max(500, Math.abs(r.bay - 232) * 6), 'ease-in-out'); side.remove();
+        const down = s.vehicle('roadFx', `<g transform="scale(.94)">${carFront('#e63946', '#6b4423')}</g>`, 232, 384, 1);
+        down.cam = true;
+        await down.move(232, LANE_B - 2, 1500, 'ease-in-out'); down.remove();
+        const home = s.vehicle('roadFx', familyCar('#e63946', back), 232, LANE_B, 1);
+        home.carry(true); home.cam = true;
+        await s.carPark(home, headBack(-5, '#6b4423') + headBack(5, '#8b5a2b', .85));
+        // everybody gets out; the grown-ups (and the sister) go inside
+        place([444, 456]); s.inside(false);
+        const people = s.family([[410, 452]].concat(kinds.map((_, n) => [424 + n * 16, 454])), ['dad', ...kinds]);
+        people.forEach((m) => m.appear());
+        await Promise.all([s.go(to), ...people.map(async (m, k) => { await s.w(220 * k); await m.go(P.door); await m.enter(); })]);
+      },
+      setMode(m) { s.mode = m; },
       // A traffic jam across the whole city: the normal traffic stops and queues of cars fill both lanes
       jamStart(qa, qb, little = true) {
         container.classList.add('jammed');
@@ -1255,11 +1476,15 @@ const Scene = (() => {
           // everybody gets off…
           s.inside(false);
           const fam = s.family([[206, 326], [222, 326], [258, 326]]);
-          fam.forEach((m) => m.appear());
+          fam.forEach((m, k) => { m.kind = ['dad', 'mom', 'sister'][k]; m.keep = true; m.appear(); });
           await s.w(600);
           const leave = tr.move(-700, 316, 3200, 'ease-in');
-          // …and they all walk home together; the family goes inside
-          await Promise.all([s.go(P.home), ...fam.map(async (m, k) => { await s.w(220 * k); await m.go(P.door); await m.enter(); })]);
+          // …and they all go home together (the same way they came: by bike or by car)
+          if (s.remote) s.remote.people = fam; else s.remote = { people: fam };
+          if (s.mode === 'walk' || (!s.remote.car && !s.remote.bikes)) {
+            s.remote = null;
+            await Promise.all([s.go(P.home), ...fam.map(async (m, k) => { await s.w(220 * k); await m.go(P.door); await m.enter(); })]);
+          } else await s.travel(P.home);
           await leave; tr.remove(); s.show('trains');
         } else if (how === 'car') {
           s.hide('parkedCar'); place(P.home); s.inside(true, true);
@@ -1312,10 +1537,11 @@ const Scene = (() => {
       buddy(kind, shirt, from, hat, extra = '', size = 1) {
         const [fur, face] = FRIENDS[kind];
         const g = document.createElementNS(NS, 'g');
+        // (b.kind below: who this is, so they know which house is theirs)
         g.innerHTML = `<g class="mjump"><g transform="scale(${size}) ${MONKEY_FIT}">${buddy(fur, shirt, hat, face, extra)}</g></g>`;
         g.classList.add('buddy');
         q('buddies').appendChild(g);
-        const b = { g, pos: from };
+        const b = { g, pos: from, kind };
         const set = (x, y, ms) => {
           const layer = y < BACK_Y ? q('backLayer') : q('buddies');
           if (g.parentNode !== layer) {
@@ -1389,10 +1615,9 @@ const Scene = (() => {
     // A new situation: clear away the last one's props, friends and vehicles
     function begin() {
       finishPending();
-      vehicles.splice(0).forEach((v) => v.remove());
-      q('backFx').innerHTML = '';
-      if (s.away !== 'car') s.show('parkedCar');   // (the family car is home, unless it's away on the trip)
-      buddies.slice().forEach((b) => b.remove());
+      vehicles.splice(0).forEach((v) => { if (v.keep) vehicles.push(v); else v.remove(); });
+      if (s.away !== 'car' && !(s.remote && s.remote.car)) s.show('parkedCar');   // (the family car is home, unless it's out)
+      buddies.slice().forEach((b) => { if (!b.keep) b.remove(); });
       q('seaFx').innerHTML = ''; q('trainFx').innerHTML = '';
       s.show('trains');
       ['partyCloth', 'balloons', 'cake', 'platesReal', 'platesPlastic', 'sortBins', 'trashBag', 'tacos', 'burger', 'fan', 'acAir', 'steam', 'bathBubbles',
@@ -1497,7 +1722,7 @@ const Scene = (() => {
     function reset() {
       gen++; pending = null;
       svg.querySelectorAll('.pop[data-k], .fade[data-k]').forEach((el) => {
-        const visibleAtStart = ['parkedCar', 'birds1', 'birds2', 'birds3', 'mHappy', 'ps1', 'farFish', 'crabs', 'butterflies', 'songbirds', 'bees', 'seaTurtle', 'boats', 'vt1', 'vt2', 'vt3', 'vAnimals', 'vBirds', 'hawk', 'pigeons', 'nestLife'];
+        const visibleAtStart = ['parkedCar', 'bikes_home', 'birds1', 'birds2', 'birds3', 'mHappy', 'ps1', 'farFish', 'crabs', 'butterflies', 'songbirds', 'bees', 'seaTurtle', 'boats', 'vt1', 'vt2', 'vt3', 'vAnimals', 'vBirds', 'hawk', 'pigeons', 'nestLife'];
         el.classList.toggle('hide', !visibleAtStart.includes(el.dataset.k));
       });
       q('fx').innerHTML = ''; q('fxTop').innerHTML = '';
@@ -1576,6 +1801,7 @@ const Scene = (() => {
         });
       },
       finishJobs: finishPending,
+      setMode: (m) => { s.mode = m; },   // 'bike' or 'car': how Bobo gets around town
       /* A reward 2 turns later (if Bobo was away on a trip, Bobo comes back first) */
       payoff(id) {
         begin();
@@ -1585,7 +1811,7 @@ const Scene = (() => {
       // the happy ending: a whale comes to say hello
       whale() { s.hide('boats'); s.show('whale'); s.look(600); },
       /* the end of the game: everyone goes home */
-      goHome() { begin(); return s.go(P.home).catch(() => {}); },
+      goHome() { begin(); return s.travel(P.home).catch(() => {}); },
       // for the title screen: a happy, clean city
       calm() { container.classList.add('calm'); },
       showcase() { ['solarRoof', 'solarSchool', 'turbines', 'cyclists', 'bikeFriends', 'shadeTrees', 'veggieGarden'].forEach(s.show); s.renew = 3; s.updatePlant(); },
