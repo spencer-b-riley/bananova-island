@@ -112,6 +112,26 @@ const Scene = (() => {
       <path d="M-7 2 l-5 4 M-4 3 l-3 5 M7 2 l5 4 M4 3 l3 5" stroke="#e8573f" stroke-width="2" stroke-linecap="round"/>
       <ellipse cx="0" cy="0" rx="9" ry="5.5" fill="#ff6b4a"/><path d="M-4 -4 v-5 M4 -4 v-5" stroke="#e8573f" stroke-width="1.6"/><circle cx="-4" cy="-9" r="1.8" fill="#23313f"/><circle cx="4" cy="-9" r="1.8" fill="#23313f"/>
       <circle cx="-12" cy="-3" r="3.5" fill="#ff6b4a"/><circle cx="12" cy="-3" r="3.5" fill="#ff6b4a"/></g></g>`;
+  // A hawk soaring high in circles (seen from below: wide brown wings with "finger" tips, banded tail)
+  const HAWK = `<g class="hawk">
+      <path d="M0 -3 C-8 -6 -16 -7 -24 -4 L-28 -1 L-25 0 L-27 2 L-23 2 L-24 4 L-14 3 C-8 3 -4 2 0 2Z" fill="#8a5a33"/>
+      <path d="M0 -3 C8 -6 16 -7 24 -4 L28 -1 L25 0 L27 2 L23 2 L24 4 L14 3 C8 3 4 2 0 2Z" fill="#8a5a33"/>
+      <path d="M-20 -2 C-12 -3 -6 -2 -2 0 M20 -2 C12 -3 6 -2 2 0" stroke="#d9b38c" stroke-width="1.4" fill="none"/>
+      <ellipse cx="0" cy="0" rx="3.2" ry="8" fill="#a8774a"/><circle cx="0" cy="-8" r="2.6" fill="#6b4423"/><path d="M0 -10.6 l1 -1.8 l-2 0Z" fill="#f2c94c"/>
+      <path d="M-3 7 L-5 14 H5 L3 7Z" fill="#c0703a"/><path d="M-4.4 10.5 H4.4 M-4.8 12.6 H4.8" stroke="#6b4423" stroke-width="1"/></g>`;
+  // A pigeon on the pavement that pecks at the ground (faces left; feet at 0,0)
+  const pigeon = (x, y, flip, d) => `<g transform="translate(${x} ${y}) scale(${flip ? -1 : 1} 1)"><g class="pigeon-walk" style="animation-delay:${d}s"><g class="peck" style="animation-delay:${d * 0.7}s">
+      <path d="M-1.5 -1 v1.6 M1.6 -1 v1.6" stroke="#e8573f" stroke-width="1"/>
+      <path d="M-5 -6 Q-5 -10 0 -10 Q6 -10 9 -7 L11 -5 Q6 -1 0 -1 Q-4 -1 -5 -6Z" fill="#9aa5b1"/>
+      <path d="M0 -9 Q6 -9 9 -6.5 L7 -4 Q3 -6 0 -6Z" fill="#7d8691"/><path d="M5 -8 l2 1 M6 -7 l2 1" stroke="#4a5563" stroke-width=".7"/>
+      <path d="M-3 -7 Q-6 -12 -4 -13.5 Q-1 -12 -1 -8Z" fill="#6aa58f"/><circle cx="-4.5" cy="-13" r="2.6" fill="#8a93a0"/>
+      <path d="M-7 -13 l-2 .7 l2 .5Z" fill="#4a5563"/><circle cx="-5" cy="-13.4" r=".55" fill="#ff8c42"/></g></g></g>`;
+  // A nest in a tree with two hungry chicks (and mom bringing food)
+  const NEST = `<g class="nest">
+      <path d="M-9 0 Q-9 6 0 6 Q9 6 9 0Z" fill="#8b5a2b"/><path d="M-9 0 Q0 3 9 0 M-8 2 L7 4 M-6 4 L8 1" stroke="#c98f4f" stroke-width="1" fill="none"/>
+      <g data-k="nestLife" class="fade"><g class="chick" style="animation-delay:-.3s"><circle cx="-3.5" cy="-1" r="2.6" fill="#ffd23f"/><path d="M-3.5 -2.4 l-1.3 -2 l2.6 0Z" fill="#ff8c42"/></g>
+      <g class="chick"><circle cx="2.5" cy="-1.2" r="2.6" fill="#ffd23f"/><path d="M2.5 -2.6 l-1.3 -2 l2.6 0Z" fill="#ff8c42"/></g>
+      <g transform="translate(11 -1) scale(.8)">MOM</g></g></g>`;
   const songbird = (x, y, c, d) => `<g transform="translate(${x} ${y})"><g class="hop" style="animation-delay:${d}s">
       <ellipse cx="0" cy="-5" rx="6" ry="4.6" fill="${c}"/><circle cx="5" cy="-9" r="3.4" fill="${c}"/><path d="M8 -9.5 l3.5 1 l-3.5 1Z" fill="#ffb627"/>
       <circle cx="6" cy="-10" r=".9" fill="#23313f"/><path d="M-5 -6 l-6 -3 l1 5Z" fill="${c}"/><path d="M-1 -1 v2 M2 -1 v2" stroke="#8b5a2b" stroke-width="1"/></g></g>`;
@@ -145,7 +165,10 @@ const Scene = (() => {
       <g data-k="vt2" class="fade">${vtree(-36, -24, .9)}${vtree(40, -20, .9)}${vtree(52, -12)}${vtree(-54, -12)}${vtree(-26, -34, .8)}</g>
       <g data-k="vt3" class="fade">${vtree(28, -34, .8)}${vtree(-18, -42, .75)}${vtree(18, -44, .75)}${vtree(-84, -2)}${vtree(86, -1)}${vtree(-8, -6)}${vtree(10, -8)}</g>
       <g data-k="vAnimals" class="fade">${vgoat(-30, -14)}${vgoat(-22, -16, true)}${vgoat(34, -12, true)}</g>
-      <g data-k="vBirds" class="fade"><g class="soar"><path d="M-30 -84 q3 -3 6 0 q3 -3 6 0 M14 -92 q2.5 -2.5 5 0 q2.5 -2.5 5 0" stroke="#4a5563" stroke-width="1.3" fill="none"/></g></g>
+      <g data-k="vBirds" class="fade"><g transform="translate(0 -84)">
+        <g class="orbit" style="animation-duration:9s"><path class="vwing" d="M22 0 q3 -3 6 0 q3 -3 6 0" stroke="#4a5563" stroke-width="1.3" fill="none"/></g>
+        <g class="orbit" style="animation-duration:12s;animation-delay:-5s"><path class="vwing" d="M-30 6 q2.5 -2.5 5 0 q2.5 -2.5 5 0" stroke="#4a5563" stroke-width="1.2" fill="none"/></g>
+        <g class="orbit back" style="animation-duration:15s;animation-delay:-2s"><path class="vwing" d="M14 -12 q2 -2 4 0 q2 -2 4 0" stroke="#4a5563" stroke-width="1.1" fill="none"/></g></g></g>
       <ellipse cx="0" cy="-30" rx="96" ry="40" fill="#d8eefc" opacity=".18"/>
     </g>`;
 
@@ -256,6 +279,8 @@ const Scene = (() => {
 
   <g data-k="skyClouds"></g>
   ${gullFlight(1, 110, 1.4, 19, -4)}${gullFlight(2, 78, 1.1, 25, -15)}${gullFlight(3, 150, 1.2, 22, -9)}
+  <!-- one hawk circling high above the city -->
+  <g data-k="hawk" class="fade"><g transform="translate(250 120)"><g class="orbit" style="animation-duration:26s"><g transform="translate(64 0) rotate(180) scale(1.15)">${HAWK}</g></g></g></g>
 
   <g class="waves"><path d="M-260 320 q15 -8 30 0 q15 8 30 0 M900 318 q15 -8 30 0 q15 8 30 0 M-120 480 q15 -8 30 0 q15 8 30 0 M960 490 q15 -8 30 0 q15 8 30 0 M120 560 q15 -8 30 0 q15 8 30 0 M560 580 q15 -8 30 0 q15 8 30 0"/></g>
   <g data-k="seaFx"></g>
@@ -350,6 +375,8 @@ const Scene = (() => {
     <text x="609" y="355" font-size="9" font-weight="900" fill="#fff">SALE</text>
   </g>
   ${tree(640, 340, 0.75)}
+  <!-- a nest at the top of the tree; the chicks are gone when it gets too hot -->
+  <g transform="translate(636 296)">${NEST.replace('MOM', songbird(0, 0, '#ff5b4a', 0))}</g>
   ${item('cows', 0, 0, `<path d="M652 362 V348 M752 362 V348 M652 351 H752 M652 357 H752" stroke="#a0673a" stroke-width="2"/>
       <g transform="translate(676 362) scale(.8)">${cow(0, 0, false)}</g><g transform="translate(718 360) scale(.8)">${cow(0, 0, true)}</g>
       <g class="cow-gas">${puffs(660, 340, 3, 5, '#a6b48a', 3)}</g>`)}
@@ -525,6 +552,8 @@ const Scene = (() => {
   <!-- animals and bugs (they come and go with the climate) -->
   <g data-k="butterflies" class="fade">${butterfly(250, 420, '#ff8ad8', 0)}${butterfly(600, 416, '#ffd23f', -2)}${butterfly(730, 424, '#8fd3ff', -4)}</g>
   <g data-k="songbirds" class="fade">${songbird(150, 390, '#ff5b4a', 0)}${songbird(350, 355, '#2f80ed', -1.2)}${songbird(704, 432, '#ffb627', -2.2)}</g>
+  <!-- pigeons pecking on the pavement -->
+  <g data-k="pigeons" class="fade">${pigeon(258, 456, false, 0)}${pigeon(268, 457, true, -1.1)}${pigeon(592, 456, false, -0.6)}${pigeon(420, 457, true, -1.7)}</g>
   <g data-k="bees" class="fade">${bee(254, 430, 0)}${bee(735, 438, -1.2)}</g>
   <g data-k="bugs1" class="fade hide">${flies(318, 438)}${flies(690, 428)}</g>
   <g data-k="bugs2" class="fade hide">${flies(150, 430)}${flies(505, 418)}${flies(420, 360)}${flies(760, 432)}</g>
@@ -1199,7 +1228,7 @@ const Scene = (() => {
     function reset() {
       gen++; pending = null;
       svg.querySelectorAll('.pop[data-k], .fade[data-k]').forEach((el) => {
-        const visibleAtStart = ['birds1', 'birds2', 'birds3', 'mHappy', 'ps1', 'farFish', 'crabs', 'butterflies', 'songbirds', 'bees', 'seaTurtle', 'boats', 'vt1', 'vt2', 'vt3', 'vAnimals', 'vBirds'];
+        const visibleAtStart = ['birds1', 'birds2', 'birds3', 'mHappy', 'ps1', 'farFish', 'crabs', 'butterflies', 'songbirds', 'bees', 'seaTurtle', 'boats', 'vt1', 'vt2', 'vt3', 'vAnimals', 'vBirds', 'hawk', 'pigeons', 'nestLife'];
         el.classList.toggle('hide', !visibleAtStart.includes(el.dataset.k));
       });
       q('fx').innerHTML = ''; q('fxTop').innerHTML = '';
@@ -1236,6 +1265,8 @@ const Scene = (() => {
       q('vt2').classList.toggle('hide', level >= 2);
       q('vt1').classList.toggle('hide', level >= 3);
       q('vAnimals').classList.toggle('hide', level >= 2);
+      q('hawk').classList.toggle('hide', level >= 2);
+      q('nestLife').classList.toggle('hide', level >= 2);
       q('vBirds').classList.toggle('hide', level >= 2);
       q('bugs1').classList.toggle('hide', level < 2);
       q('bugs2').classList.toggle('hide', level < 3);

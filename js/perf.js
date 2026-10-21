@@ -2,11 +2,10 @@
    'high' = everything, 'mid' = fewer little extras, 'low' = only what the story needs.
    1. A first guess from the device (CPU cores, memory, graphics chip, screen, iPhone size).
    2. Then it watches the real frame rate while playing: if the device keeps struggling,
-      it steps down a level (and remembers that for next time, on this device only).
+      it steps down a level. (It checks fresh every visit, so one slow moment never sticks.)
    The level is set as <html data-perf="…">, and style.css turns animations off per level. */
 
 const Perf = (() => {
-  const KEY = 'bobosCity.perf';
   const ORDER = ['low', 'mid', 'high'];
   const root = document.documentElement;
   let tier = 'high';
@@ -51,13 +50,6 @@ const Perf = (() => {
     root.dataset.perf = t;
   }
 
-  function remembered() {
-    try { return localStorage.getItem(KEY); } catch (e) { return null; }
-  }
-  function remember(t) {
-    try { localStorage.setItem(KEY, t); } catch (e) { /* storage blocked: fine */ }
-  }
-
   // Watch the frame rate. About 3 seconds of slow frames in a row = step down one level.
   function watch() {
     let last = performance.now(), frames = 0, sum = 0, slowWindows = 0;
@@ -72,7 +64,6 @@ const Perf = (() => {
           slowWindows = avg > 30 ? slowWindows + 1 : 0;
           if (slowWindows >= 3 && tier !== 'low') {
             set(ORDER[ORDER.indexOf(tier) - 1]);
-            remember(tier);
             slowWindows = 0;
           }
           frames = 0;
@@ -84,8 +75,7 @@ const Perf = (() => {
     requestAnimationFrame(loop);
   }
 
-  const saved = remembered();
-  set(ORDER.includes(saved) ? saved : guess());
+  set(guess());
   watch();
 
   return { get tier() { return tier; } };

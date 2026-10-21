@@ -711,3 +711,18 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .clim-2 .v-land { fill: #c8c07a; } .clim-2 .vleaf { fill: #8fae4a; }
 .clim-3 .v-land { fill: #cfae76; } .clim-3 .vleaf { fill: #b0863a; }
 :root[data-perf="low"] .sun-html, :root[data-perf="low"] .moon-html { transition-duration: 1.2s; }
+
+/* birds: things that circle (the hawk, the birds around the volcano), pecking pigeons, hungry chicks */
+.orbit { animation: orbit 24s linear infinite; }
+.orbit.back { animation-direction: reverse; }
+@keyframes orbit { to { transform: rotate(360deg); } }
+.hawk { transform-box: fill-box; transform-origin: center; animation: hawkTilt 6s ease-in-out infinite alternate; }
+@keyframes hawkTilt { from { transform: scale(1, 0.96); } to { transform: scale(0.94, 1); } }
+.peck { transform-box: fill-box; transform-origin: 70% 100%; animation: peck 2.6s ease-in-out infinite; }
+@keyframes peck { 0%, 30%, 60%, 100% { transform: rotate(0); } 40%, 50% { transform: rotate(-32deg); } 70%, 76% { transform: rotate(-30deg); } }
+.pigeon-walk { animation: pigeonWalk 9s ease-in-out infinite; }
+@keyframes pigeonWalk { 0%, 100% { transform: translateX(0); } 45%, 55% { transform: translateX(-12px); } }
+.chick { transform-box: fill-box; transform-origin: 50% 100%; animation: chick 0.7s ease-in-out infinite alternate; }
+@keyframes chick { to { transform: translateY(-1.6px) scale(1.05); } }
+:root[data-perf="mid"] :is(.pigeon-walk, .hawk, .chick) { animation: none !important; }
+:root[data-perf="low"] :is(.orbit, .peck, .pigeon-walk, .hawk, .chick) { animation: none !important; }
