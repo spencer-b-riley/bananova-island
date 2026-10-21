@@ -236,7 +236,7 @@ const Scene = (() => {
       </g></g>`;
   // Friends come in different shades: golden, dark brown, red-brown, grey…
   const FRIENDS = { golden: ['#d4a24c', '#f6e2c4'], dark: ['#4a3426', '#d9b38c'], red: ['#b0602e', '#f2d4b5'], grey: ['#8d8f94', '#ece2d6'], tan: ['#c98a5a', '#f6dcc0'] };
-  const rider = (fur, shirt, d, dur) => `<g class="ride" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 466) scale(.62)">${sideRider(fur, shirt)}</g></g>`;
+  const rider = (fur, shirt, d, dur) => `<g class="ride" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 466.5) scale(.38)">${sideRider(fur, shirt)}</g></g>`;
 
   // cars looping along the road (lane A goes left, lane B goes right), each with a happy monkey driver
   const LANE_A = 468, LANE_B = 477;
@@ -471,7 +471,7 @@ const Scene = (() => {
       <g class="r r-think"><circle cx="4" cy="13" r="2.8" fill="#5a2d0c"/><text x="28" y="-22" font-size="24" font-weight="900" fill="#2f80ed">?</text></g>
     </g>
   </g></g></g></g>
-    <g data-k="mRide" class="fade hide"><g class="ride-dir" transform="scale(.66 .66)">${sideRider('#8b5a2b', null, true)}</g></g>
+    <g data-k="mRide" class="fade hide"><g class="ride-dir" transform="scale(.4 .4)">${sideRider('#8b5a2b', null, true)}</g></g>
   </g></g></g>
   <g data-k="buddies"></g>
   <!-- the table top and what's on it are drawn in front of Bobo (Bobo stands behind the table) -->
@@ -492,8 +492,8 @@ const Scene = (() => {
   <g transform="translate(0 20)">
   <rect x="-400" y="438" width="1600" height="21" class="road"/><path d="M-400 448.5 H1200" stroke="#fff" stroke-width="2" stroke-dasharray="14 12" opacity=".8"/>
   <path d="M-400 437.5 H1200 M-400 459.5 H1200" stroke="#c8cdd3" stroke-width="2"/>
-  <rect x="16" y="460" width="768" height="8" rx="3" fill="#3fae5a"/>
-  ${[100, 300, 500, 700].map((x) => `<g transform="translate(${x} 464) scale(.16)" opacity=".6"><circle cx="-28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><circle cx="28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><path d="M-28 0 L-6 0 L10 -18 L28 0" stroke="#fff" stroke-width="7" fill="none"/></g>`).join('')}
+  <rect x="-400" y="459" width="1600" height="9" fill="#4c9a6a"/><path d="M-400 459.5 H1200" stroke="#fff" stroke-width="1.6"/><path d="M-400 468 H1200" stroke="#c8cdd3" stroke-width="2"/>
+  ${[100, 300, 500, 700].map((x) => `<g transform="translate(${x} 465.5) scale(.12)" opacity=".6"><circle cx="-28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><circle cx="28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><path d="M-28 0 L-6 0 L10 -18 L28 0" stroke="#fff" stroke-width="7" fill="none"/></g>`).join('')}
   <g data-k="traffic">${laneCar('A', '#ff6fa8', 15, -2, '#a0673a')}${laneCar('B', '#2f80ed', 13, -7, '#5c3a1e')}</g>
   <g data-k="traffic2" class="fade hide">${laneCar('A', '#ffb627', 15, -9.5, '#7a4a24')}${laneCar('B', '#9aa5b1', 13, -1, '#c08850')}</g>
   <g data-k="traffic3" class="fade hide">${laneCar('A', '#7d5fff', 15, -6, '#5c3a1e')}${laneCar('B', '#2fb35a', 13, -10.5, '#a0673a')}${laneCar('A', '#e63946', 15, -13, '#7a4a24')}</g>
@@ -578,7 +578,7 @@ const Scene = (() => {
   const P = {
     home: [350, 454], door: [350, 450], friend: [94, 366], garden: [505, 454], vend: [650, 458], fountain: [676, 458],
     school: [113, 454], shops: [517, 368], thrift: [462, 368], mall: [574, 368], station: [232, 326],
-    curb: [350, 458], gapF: [232, 454], gapB: [232, 368], lane: [350, 484],
+    curb: [350, 458], gapF: [232, 454], gapB: [232, 368], lane: [350, 487],
   };
   const BACK_Y = 400;   // above this line = the back row
   const ROAD_Y = 465;   // below this line = in front of the cars
@@ -605,7 +605,7 @@ const Scene = (() => {
           await s.go(P.lane);                 // to the bike lane, hop on the bike
           s.wear('bike'); await s.w(350);
           s.speed = 2.4;
-          await s.go([118, 484]);              // ride along the street to the school
+          await s.go([118, 487]);              // ride along the street to the school
           s.speed = 1; s.wear('bike', false); await s.w(250);
           await s.go(P.school);
           s.sparkle(113, 400); s.jump(); await s.w(700);
@@ -899,7 +899,7 @@ const Scene = (() => {
       placeBubble(ms);
       monkey.classList.toggle('walking', dist > 4);
       walker.classList.toggle('pedaling', dist > 4);
-      if (Math.abs(x - cx) > 2) rideDir.setAttribute('transform', `scale(${x < cx ? -0.66 : 0.66} .66)`);
+      if (Math.abs(x - cx) > 2) rideDir.setAttribute('transform', `scale(${x < cx ? -0.4 : 0.4} .4)`);
       clearTimeout(walkTimer);
       return new Promise((done) => { walkTimer = setTimeout(() => { monkey.classList.remove('walking'); walker.classList.remove('pedaling'); done(); }, ms); });
     }
