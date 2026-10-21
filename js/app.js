@@ -194,6 +194,7 @@
     const s = Scene.create($('#titleScene'));
     s.setStats(100, START.t);
     s.showcase();
+    s.calm();          // a calm title screen: just a few birds
     watchScene($('#titleScene'));
   }
 

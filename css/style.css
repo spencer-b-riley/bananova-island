@@ -721,16 +721,14 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .orbit { animation: orbit 24s linear infinite; }
 .orbit.back { animation-direction: reverse; }
 @keyframes orbit { to { transform: rotate(360deg); } }
-.hawk { transform-box: fill-box; transform-origin: center; animation: hawkTilt 6s ease-in-out infinite alternate; }
-@keyframes hawkTilt { from { transform: scale(1, 0.96); } to { transform: scale(0.94, 1); } }
 .peck { transform-box: fill-box; transform-origin: 70% 100%; animation: peck 2.6s ease-in-out infinite; }
 @keyframes peck { 0%, 30%, 60%, 100% { transform: rotate(0); } 40%, 50% { transform: rotate(-32deg); } 70%, 76% { transform: rotate(-30deg); } }
 .pigeon-walk { animation: pigeonWalk 9s ease-in-out infinite; }
 @keyframes pigeonWalk { 0%, 100% { transform: translateX(0); } 45%, 55% { transform: translateX(-12px); } }
 .chick { transform-box: fill-box; transform-origin: 50% 100%; animation: chick 0.7s ease-in-out infinite alternate; }
 @keyframes chick { to { transform: translateY(-1.6px) scale(1.05); } }
-:root[data-perf="mid"] :is(.pigeon-walk, .hawk, .chick) { animation: none !important; }
-:root[data-perf="low"] :is(.orbit, .peck, .pigeon-walk, .hawk, .chick) { animation: none !important; }
+:root[data-perf="mid"] :is(.pigeon-walk, .chick) { animation: none !important; }
+:root[data-perf="low"] :is(.orbit, .peck, .pigeon-walk, .chick) { animation: none !important; }
 
 /* Bobo on the bike from behind: the legs go up and down */
 .pedal-l { animation: pedalUp 0.45s ease-in-out infinite alternate; }
@@ -739,3 +737,14 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .walker:not(.pedaling) .pedal-l, .walker:not(.pedaling) .pedal-r { animation-play-state: paused; }
 .walker [data-k="mRide"] { transition: opacity 0.15s; }
 .walker.riding [data-k="monkey"] { transition: opacity 0.15s; }
+
+/* seagulls flying right-to-left; the hawk glides slowly across, flapping now and then */
+.fly.left { animation-name: flyLeft; }
+@keyframes flyLeft { from { transform: translateX(1150px); } to { transform: translateX(-350px); } }
+.hawk-fly { animation: flyLeft 48s linear infinite; animation-delay: -12s; }
+.hwing { animation: hawkFlap 5s ease-in-out infinite; }
+.hwing.far { animation-delay: -0.08s; }
+@keyframes hawkFlap { 0%, 60%, 100% { transform: scaleY(1); } 68%, 84% { transform: scaleY(-0.3); } 76%, 92% { transform: scaleY(0.95); } }
+:root[data-perf="low"] :is(.hawk-fly, .hwing) { animation: none !important; }
+/* the title screen: calm, just a few birds */
+.calm :is([data-k="butterflies"], [data-k="bees"], [data-k="songbirds"], [data-k="crabs"], [data-k="fish"], [data-k="seaTurtle"], [data-k="farFish"], [data-k="hawk"], [data-k="vBirds"], [data-k="vAnimals"], [data-k="cyclists"], .nest) { display: none; }

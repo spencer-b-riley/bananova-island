@@ -66,8 +66,8 @@ const Scene = (() => {
       <path d="M-15 1 C-11 -3 2 -4.5 9 -2 C13 -0.5 14 1.5 11 2.6 C3 4.8 -8 4.2 -15 2.6 L-21 2Z" fill="#fff"/><path d="M-15 1.4 L-21 2 L-15 2.8Z" fill="#9aa3ad"/>
       <circle cx="10" cy="-2" r="3.4" fill="#fff"/><path d="M13 -2.4 L18.5 -1.2 L13 0Z" fill="#f2c94c"/><circle cx="17" cy="-1" r=".7" fill="#e63946"/><circle cx="11" cy="-2.8" r=".8" fill="#23313f"/>
       <g class="wing near"><path d="M1 -1 C-2 -10 -12 -19 -28 -24 L-31 -21 C-20 -15 -10 -7 -4 1.5Z" fill="#e3e8ec" stroke="#aab3bb" stroke-width=".6"/><path d="M-28 -24 L-31 -21 L-26 -20.4 L-24 -22.4Z" fill="#2b2f36"/></g></g>`;
-  const gullFlight = (k, y, sc, dur, delay) =>
-    `<g data-k="birds${k}" class="fade"><g class="fly" style="animation-duration:${dur}s;animation-delay:${delay}s"><g transform="translate(0 ${y}) scale(${sc})"><g class="soar">${gull}</g></g></g></g>`;
+  const gullFlight = (k, y, sc, dur, delay, left = false) =>
+    `<g data-k="birds${k}" class="fade"><g class="fly${left ? ' left' : ''}" style="animation-duration:${dur}s;animation-delay:${delay}s"><g transform="translate(0 ${y}) scale(${left ? -sc : sc} ${sc})"><g class="soar">${gull}</g></g></g></g>`;
 
   const tree = (x, y, sc = 1) => `<g transform="translate(${x} ${y}) scale(${sc})"><g class="tree">
       <path d="M-4 0 L-3 -30 L3 -30 L4 0Z" fill="#9b6a3c"/>
@@ -112,13 +112,16 @@ const Scene = (() => {
       <path d="M-7 2 l-5 4 M-4 3 l-3 5 M7 2 l5 4 M4 3 l3 5" stroke="#e8573f" stroke-width="2" stroke-linecap="round"/>
       <ellipse cx="0" cy="0" rx="9" ry="5.5" fill="#ff6b4a"/><path d="M-4 -4 v-5 M4 -4 v-5" stroke="#e8573f" stroke-width="1.6"/><circle cx="-4" cy="-9" r="1.8" fill="#23313f"/><circle cx="4" cy="-9" r="1.8" fill="#23313f"/>
       <circle cx="-12" cy="-3" r="3.5" fill="#ff6b4a"/><circle cx="12" cy="-3" r="3.5" fill="#ff6b4a"/></g></g>`;
-  // A hawk soaring high in circles (seen from below: wide brown wings with "finger" tips, banded tail)
-  const HAWK = `<g class="hawk">
-      <path d="M0 -3 C-8 -6 -16 -7 -24 -4 L-28 -1 L-25 0 L-27 2 L-23 2 L-24 4 L-14 3 C-8 3 -4 2 0 2Z" fill="#8a5a33"/>
-      <path d="M0 -3 C8 -6 16 -7 24 -4 L28 -1 L25 0 L27 2 L23 2 L24 4 L14 3 C8 3 4 2 0 2Z" fill="#8a5a33"/>
-      <path d="M-20 -2 C-12 -3 -6 -2 -2 0 M20 -2 C12 -3 6 -2 2 0" stroke="#d9b38c" stroke-width="1.4" fill="none"/>
-      <ellipse cx="0" cy="0" rx="3.2" ry="8" fill="#a8774a"/><circle cx="0" cy="-8" r="2.6" fill="#6b4423"/><path d="M0 -10.6 l1 -1.8 l-2 0Z" fill="#f2c94c"/>
-      <path d="M-3 7 L-5 14 H5 L3 7Z" fill="#c0703a"/><path d="M-4.4 10.5 H4.4 M-4.8 12.6 H4.8" stroke="#6b4423" stroke-width="1"/></g>`;
+  // A hawk gliding high above the city (side view; it flaps only now and then)
+  const HAWK = `<g class="hawk-side">
+      <g class="hwing far"><path d="M-2 -2 C-7 -9 -16 -14 -29 -14 L-33 -11 L-29 -10.5 L-31.5 -8 L-27.5 -8 L-28.5 -5.5 C-18 -5 -8 -2 -2 2Z" fill="#6b4423"/></g>
+      <path d="M-16 1 L-29 -2.5 L-30 2 L-28 6 L-16 3.5Z" fill="#a0673a"/><path d="M-27 -1.5 L-27.5 4.5 M-23 -0.5 L-23.5 4.5" stroke="#5a3a1e" stroke-width="1.2"/>
+      <path d="M-17 1 C-11 -4.5 4 -6 12 -3.5 C16 -2 18 0.5 15.5 2.5 C8 5.5 -6 5 -16 3.5Z" fill="#8a5a33"/>
+      <path d="M1 2.2 C7 3.8 12 2.8 15 1.2 C12 -1 6 -1 1 2.2Z" fill="#ead8b8"/>
+      <circle cx="14" cy="-3.6" r="4.2" fill="#6b4423"/><path d="M17.6 -4.8 Q21.6 -4.2 20.4 -1.2 L17.8 -1.8Z" fill="#f2c94c" stroke="#8a6a1e" stroke-width=".5"/>
+      <circle cx="15.4" cy="-4.4" r="1.1" fill="#ffd23f"/><circle cx="15.6" cy="-4.4" r=".55" fill="#23313f"/><path d="M13 -6.4 L17 -5.6" stroke="#4a2e16" stroke-width="1"/>
+      <g class="hwing near"><path d="M2 -2 C-2 -12 -14 -21 -31 -23 L-35 -20 L-31 -19 L-34 -16 L-29.5 -16 L-31.5 -13 L-26.5 -13 C-16 -8.5 -6 -3.5 -3 2Z" fill="#8a5a33" stroke="#5a3a1e" stroke-width=".7"/>
+        <path d="M-31 -23 L-35 -20 L-31 -19 L-34 -16 L-29.5 -16 L-31.5 -13 L-27 -14 L-28 -19Z" fill="#4a2e16"/><path d="M-6 -9 C-12 -11 -18 -14 -24 -15" stroke="#c49a6c" stroke-width="1.2" fill="none"/></g></g>`;
   // A pigeon on the pavement that pecks at the ground (faces left; feet at 0,0)
   const pigeon = (x, y, flip, d) => `<g transform="translate(${x} ${y}) scale(${flip ? -1 : 1} 1)"><g class="pigeon-walk" style="animation-delay:${d}s"><g class="peck" style="animation-delay:${d * 0.7}s">
       <path d="M-1.5 -1 v1.6 M1.6 -1 v1.6" stroke="#e8573f" stroke-width="1"/>
@@ -298,9 +301,9 @@ const Scene = (() => {
   <g class="camera">
 
   <g data-k="skyClouds"></g>
-  ${gullFlight(1, 110, 1.4, 19, -4)}${gullFlight(2, 78, 1.1, 25, -15)}${gullFlight(3, 150, 1.2, 22, -9)}
+  ${gullFlight(1, 96, 1.3, 24, -4)}${gullFlight(2, 236, 0.6, 36, -20, true)}${gullFlight(3, 548, 1.5, 21, -11)}
   <!-- one hawk circling high above the city -->
-  <g data-k="hawk" class="fade"><g transform="translate(250 120)"><g class="orbit" style="animation-duration:26s"><g transform="translate(64 0) rotate(180) scale(1.15)">${HAWK}</g></g></g></g>
+  <g data-k="hawk" class="fade"><g class="hawk-fly"><g transform="translate(0 150) scale(-1.25 1.25)"><g class="soar">${HAWK}</g></g></g></g>
 
   <g class="waves"><path d="M-260 320 q15 -8 30 0 q15 8 30 0 M900 318 q15 -8 30 0 q15 8 30 0 M-120 480 q15 -8 30 0 q15 8 30 0 M960 490 q15 -8 30 0 q15 8 30 0 M120 560 q15 -8 30 0 q15 8 30 0 M560 580 q15 -8 30 0 q15 8 30 0"/></g>
   <g data-k="seaFx"></g>
@@ -573,7 +576,7 @@ const Scene = (() => {
   <g data-k="butterflies" class="fade">${butterfly(660, 410, '#ff8ad8', 0)}${butterfly(588, 404, '#ffd23f', -5)}${butterfly(742, 414, '#8fd3ff', -9)}</g>
   <g data-k="songbirds" class="fade">${songbird(150, 390, '#ff5b4a', 0)}${songbird(350, 355, '#2f80ed', -1.2)}${songbird(704, 432, '#ffb627', -2.2)}</g>
   <!-- pigeons pecking on the pavement -->
-  <g data-k="pigeons" class="fade">${pigeon(258, 456, false, 0)}${pigeon(268, 457, true, -1.1)}${pigeon(592, 456, false, -0.6)}${pigeon(420, 457, true, -1.7)}</g>
+  <g data-k="pigeons" class="fade">${pigeon(262, 456, false, 0)}${pigeon(596, 457, true, -1.1)}</g>
   <g data-k="bees" class="fade">${bee(712, 432, 0)}${bee(745, 428, -2.4)}</g>
   <g data-k="bugs1" class="fade hide">${flies(318, 438)}${flies(690, 428)}</g>
   <g data-k="bugs2" class="fade hide">${flies(150, 430)}${flies(505, 418)}${flies(420, 360)}${flies(760, 432)}</g>
@@ -1371,6 +1374,7 @@ const Scene = (() => {
       /* the end of the game: everyone goes home */
       goHome() { begin(); return s.go(P.home).catch(() => {}); },
       // for the title screen: a happy, clean city
+      calm() { container.classList.add('calm'); },
       showcase() { ['solarRoof', 'solarSchool', 'turbines', 'cyclists', 'shadeTrees', 'veggieGarden'].forEach(s.show); s.renew = 3; s.updatePlant(); },
       jump: s.jump,
       droop: s.droop,
