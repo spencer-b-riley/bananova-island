@@ -759,3 +759,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 @keyframes reveal { 0% { transform: scale(0.2); opacity: 0; } 60% { transform: scale(1.18); opacity: 1; } 100% { transform: scale(1); } }
 .ring { fill: none; stroke: #fff36b; stroke-width: 4; opacity: 0; transform-box: fill-box; transform-origin: center; animation: ring 1.5s ease-out forwards; }
 @keyframes ring { 0% { transform: scale(0.2); opacity: 1; } 100% { transform: scale(2.6); opacity: 0; } }
+
+/* the bike group: two friends ride along the street by the school, arrive, and set off again */
+.to-school { animation: toSchool 18s linear infinite; }
+@keyframes toSchool { 0% { transform: translateX(660px); opacity: 0; } 4% { opacity: 1; } 80% { transform: translateX(140px); opacity: 1; } 86%, 100% { transform: translateX(110px); opacity: 0; } }
+:root[data-perf="low"] .to-school { animation-duration: 30s; }
