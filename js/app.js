@@ -1,32 +1,35 @@
-/* Climate Island – main game flow.
-   Screens: title → name → intro → 10 choices (with payoffs) → ending → recap → takeaways.
+/* Bobo's City – main game flow.
+   Screens: title → intro → 11 choices (with payoffs) → ending → recap → takeaways.
    Menu tabs: Play, My Games, Achievements, Privacy. */
 
 (() => {
   'use strict';
 
-  const START = { h: 50, i: 50 };      // starting meters
-  const PAYOFF = { h: 12, i: 3 };      // reward when a green choice "comes back" 2 turns later
+  const START = { h: 50, t: 1.0 };       // Bobo's happiness + the city's temperature (°C above the old normal)
+  const PAYOFF = { h: 6, t: -0.05 };     // reward when a green choice "comes back" 2 turns later
+  // A hot city makes everyone grumpy: Bobo loses some happiness with every choice once it's +1.9 °C or more
+  const HEAT_PENALTY = [0, 0, 3, 5];
   const PAYOFF_DELAY = 2;
+  const TURNS = CHOICES.length;          // 11
+  const MIN_T = 1.0;                     // the planet is already about 1 °C warmer today
   const GAMES_PER_PAGE = 4;
-  // How the monkey looks when each situation appears
-  const REACT = { shelter: 'think', plastic: 'sad', food: 'yay', banana: 'yay', fishing: 'think', compost: 'sad', fire: 'scared', firewood: 'cold', water: 'hot', turtles: 'yay' };
-  const RANDOM_NAMES = [
-    'Coco', 'Mango', 'Kiki', 'Bobo', 'Zuzu', 'Lulu', 'Pippa', 'Tiki', 'Banjo', 'Momo',
-    'Suki', 'Bongo', 'Kiwi', 'Papaya', 'Juju', 'Pico', 'Peanut', 'Biscuit', 'Noodle', 'Pebble',
-    'Sunny', 'Tango', 'Zippy', 'Coconut', 'Maple', 'Pumpkin', 'Ziggy', 'Lolo', 'Nugget', 'Bubbles',
-  ];
+  // How Bobo looks when each situation appears
+  const REACT = { school: 'think', lights: 'think', bottle: 'hot', toy: 'sad', hot: 'hot', cold: 'cold', shower: 'think',
+    party: 'yay', jacket: 'think', trip: 'yay', food: 'yay' };
+  // Climate levels: below +1.4 °C, +1.9, +2.4, above
+  const levelOf = (temp) => (temp < 1.4 ? 0 : temp < 1.9 ? 1 : temp < 2.4 ? 2 : 3);
+  const RAIN_CHANCE = [0.12, 0.2, 0.3, 0.42];   // hotter = wilder weather
 
   const $ = (sel, root = document) => root.querySelector(sel);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const round2 = (v) => Math.round(v * 100) / 100;
 
   let store = Store.load();
   let lang = I18N[store.settings.lang] ? store.settings.lang : detectLang();
   let rerender = () => {};   // redraws the current screen (used when the language changes)
   let G = null;              // the game in progress
   let scene = null;
-  let nameDraft = '';
   let gamesPage = 0;
 
   function detectLang() {
@@ -36,13 +39,15 @@
 
   /* ── text helpers ── */
   function fmt(s, vars = {}) {
-    const all = { name: G ? G.name : '', ...vars };
-    return String(s).replace(/\{(\w+)\}/g, (m, k) => (k in all ? all[k] : m));
+    return String(s).replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
   }
   const t = (key, vars) => esc(fmt(I18N[lang].ui[key] ?? I18N.en.ui[key] ?? key, vars));
   const L = () => I18N[lang];
-  const ct = (idx, key) => esc(fmt(L().choices[idx][key]));
-  const sayLine = (fn) => scene && scene.say(fmt(fn(L().say)));  // speech bubble (plain text, no HTML)
+  const ct = (idx, key) => esc(L().choices[idx][key]);
+  const sayLine = (fn) => scene && scene.say(fn(L().say));  // speech bubble (plain text, no HTML)
+  // +1.2 °C (with the right decimal comma for each language)
+  const deg = (v, digits = 1) => `+${v.toFixed(digits).replace('.', lang === 'en' ? '.' : ',')} °C`;
+  const degDelta = (d) => `${d > 0 ? '+' : d < 0 ? '−' : '±'}${Math.abs(d).toFixed(2).replace('.', lang === 'en' ? '.' : ',')} °C`;
 
   /* ── screen + chrome ── */
   function setScreen(html, { tab = null, home = false, brand = true } = {}) {
@@ -56,12 +61,17 @@
     requestAnimationFrame(syncHorizon);
   }
 
-  /* Line the page's sky/sea background up with the island drawing's horizon,
+  /* Line the page's sky/sea background up with the city drawing's horizon,
      so the sea "outside" the game sits at exactly the same level as inside. */
   function syncHorizon() {
     const svg = $('#screen svg.scene-main');
-    const ctm = svg && svg.getScreenCTM();
-    if (!ctm) return; // screens without an island keep the last horizon
+    if (!svg) return; // screens without the city keep the last horizon
+    // Where the drawing sits on screen (worked out from its box, so the camera's sideways
+    // slide on phones doesn't move the far-away sky: the sun and moon stay put)
+    const box = svg.parentElement.getBoundingClientRect(), vb = svg.viewBox.baseVal;
+    if (!box.width || !box.height) return;
+    const k = Math.min(box.width / vb.width, box.height / vb.height);
+    const ctm = { a: k, d: k, e: box.left + (box.width - vb.width * k) / 2 - vb.x * k, f: box.top + (box.height - vb.height * k) / 2 - vb.y * k };
     const y = (v) => Math.round(ctm.f + ctm.d * v) + 'px';
     const root = document.documentElement.style;
     root.setProperty('--sky-top', y(0));
@@ -69,12 +79,13 @@
     root.setProperty('--deep', y(500));
     root.setProperty('--abyss', y(900));
     root.setProperty('--cloud-base', y(225));
-    // island units -> screen pixels, so HTML layers (sun, moon) line up with the drawing
+    // city units -> screen pixels, so HTML layers (sun, moon) line up with the drawing
     root.setProperty('--u', ctm.a.toFixed(4) + 'px');
     root.setProperty('--ox', ctm.e.toFixed(1) + 'px');
     root.setProperty('--oy', ctm.f.toFixed(1) + 'px');
   }
   const horizonWatcher = new ResizeObserver(() => syncHorizon());
+  document.addEventListener('scenezoom', () => syncHorizon());
   horizonWatcher.observe(document.getElementById('screen'));
   function watchScene(el) {
     horizonWatcher.disconnect();
@@ -153,13 +164,10 @@
   }
   const achName = (id) => esc(L().ach[id][0]);
   const achEmoji = (id) => ACHIEVEMENTS.find((a) => a.id === id).emoji;
-  // The final mystery achievement: every other achievement (hidden ones too) is unlocked
-  const legendReady = () => ACHIEVEMENTS.every((a) => a.id === 'legend' || store.ach[a.id]);
   function unlockWithToast(id) {
     if (!unlock(id)) return;
     toast(achEmoji(id), t('newAch'), achName(id));
     Sound.play('achieve');
-    if (legendReady()) setTimeout(() => unlockWithToast('legend'), 1500);
   }
 
   /* ═════════════════════ MENU SCREENS ═════════════════════ */
@@ -169,7 +177,7 @@
     G = null;
     setScreen(`
       <section class="screen title-screen">
-        <h1 class="logo"><span class="w1">Climate</span> <span class="w2">Island</span></h1>
+        <h1 class="logo"><span class="w1">Bobo’s</span> <span class="w2">City</span></h1>
         <p class="subtitle">${t('subtitle')}</p>
         <div class="title-scene" id="titleScene" aria-hidden="true"></div>
         <div class="title-actions">
@@ -181,7 +189,8 @@
         <p class="credits">${t('credits')}</p>
       </section>`, { tab: 'title', brand: false });
     const s = Scene.create($('#titleScene'));
-    s.setStats(100, 100);
+    s.setStats(100, START.t);
+    s.showcase();
     watchScene($('#titleScene'));
   }
 
@@ -198,10 +207,10 @@
         <p class="muted small">${t('played', { n: store.games.length })} · ${t('savedLocal')}</p>
         ${games.length === 0 ? `<p class="intro-text">🐒 ${t('gamesEmpty')}</p><button class="btn primary" data-action="play">▶ ${t('play')}</button>` : `
         <div class="game-list">${list.map((g) => {
-          const e = ENDINGS[g.e] ? g.e : 'okay';
+          const e = ENDINGS[g.e] ? g.e : 'warming';
           return `<div class="game-row"><span class="emo">${ENDINGS[e].emoji}</span>
-            <div class="info"><b>${esc(g.n)} · ${esc(L().endings[e][0])}</b><small>${esc(dateFmt.format(new Date(g.d)))}</small></div>
-            <div class="mini">🐒 ${g.h} · 🏝️ ${g.i}<br>✅ ${g.g}/10</div></div>`;
+            <div class="info"><b>${esc(L().endings[e][0])}</b><small>${esc(dateFmt.format(new Date(g.d)))}</small></div>
+            <div class="mini">🌡️ ${deg(g.t)} · 🐒 ${g.h}<br>✅ ${g.g}/${TURNS}</div></div>`;
         }).join('')}</div>
         ${pages > 1 ? `<div class="pager"><button class="btn ghost small" data-action="pagePrev" ${gamesPage === 0 ? 'disabled' : ''} aria-label="⬅">⬅</button>
           <span>${gamesPage + 1} / ${pages}</span>
@@ -218,11 +227,9 @@
         <p class="muted small">${t('achCount', { a: got, b: ACHIEVEMENTS.length })} · ${t('savedLocal')}</p>
         <div class="ach-grid">${ACHIEVEMENTS.map((a) => {
           const has = !!store.ach[a.id];
-          const secret = a.mystery && !has;
-          const name = secret ? t('mystery') : achName(a.id);
-          const desc = secret ? '???' : esc(L().ach[a.id][1]);
-          return `<div class="badge ${has ? 'got' : 'locked'} ${a.mystery ? 'mystery' : ''}" title="${desc}">
-            <span class="emo">${secret ? '❓' : a.emoji}</span><b>${has ? '' : '🔒 '}${name}</b><small>${desc}</small></div>`;
+          const desc = esc(L().ach[a.id][1]);
+          return `<div class="badge ${has ? 'got' : 'locked'}" title="${desc}">
+            <span class="emo">${a.emoji}</span><b>${has ? '' : '🔒 '}${achName(a.id)}</b><small>${desc}</small></div>`;
         }).join('')}</div>
       </div></section>`, { tab: 'ach' });
   }
@@ -258,77 +265,21 @@
 
   /* ═════════════════════ START A GAME ═════════════════════ */
 
-  function renderName() {
-    rerender = renderName;
-    G = null;
-    setScreen(`
-      <section class="screen"><div class="panel">
-        <div class="big-emoji" aria-hidden="true">🐒</div>
-        <h2>${t('nameTitle')}</h2>
-        <form id="nameForm" autocomplete="off" novalidate>
-          <input id="nameInput" class="name-input" maxlength="12" placeholder="${t('namePh')}" aria-label="${t('namePh')}"
-            autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" value="${esc(nameDraft)}">
-          <p class="err" id="nameErr" role="alert"></p>
-          <div class="row">
-            <button type="button" class="btn ghost" data-action="randomName">${t('random')}</button>
-            <button type="submit" class="btn primary">${t('start')}</button>
-          </div>
-        </form>
-        <p class="tip">${t('nameTip')}</p>
-      </div></section>`, { home: true });
-    const input = $('#nameInput');
-    input.addEventListener('input', () => { nameDraft = input.value; $('#nameErr').textContent = ''; });
-    $('#nameForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const r = NameFilter.check(input.value);
-      if (!r.ok) {
-        $('#nameErr').textContent = I18N[lang].ui['err' + r.reason.charAt(0).toUpperCase() + r.reason.slice(1)];
-        Sound.play('bad');
-        input.focus();
-        return;
-      }
-      nameDraft = r.name;
-      startGame(r.name);
-    });
-    if (matchMedia('(pointer: fine)').matches) input.focus();
-  }
-
   const shuffle = (arr) => {
     for (let k = arr.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [arr[k], arr[j]] = [arr[j], arr[k]]; }
     return arr;
   };
 
-  function startGame(name) {
-    // The home question always comes first; the other 9 come in a random order every game.
-    const seq = [0, ...shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])];
-    // Rainy days are random too (never at night, during the fire or on the hot day)
-    const rainTurns = new Set();
-    seq.forEach((ci, turn) => {
-      const c = CHOICES[ci];
-      if (turn > 0 && c.time !== 'night' && c.id !== 'fire' && c.id !== 'water' && Math.random() < 0.25) rainTurns.add(turn);
-    });
-    // Time of day: the first three go morning → day → day, after that it's random,
-    // except where the story needs a certain time (cold night, hot day, turtles at sunset/night)
-    const TIME_RULES = { firewood: ['night'], water: ['day'], turtles: ['evening', 'night'] };
-    const FIRST = ['morning', 'day', 'day'];
-    const ALL = ['morning', 'day', 'day', 'evening', 'night'];
-    const times = seq.map((ci, turn) => {
-      const allowed = TIME_RULES[CHOICES[ci].id];
-      if (allowed) return allowed[Math.floor(Math.random() * allowed.length)];
-      return turn < 3 ? FIRST[turn] : ALL[Math.floor(Math.random() * ALL.length)];
-    });
-    // Rare solar eclipse: about 1 game in 10 (so in a class of ~20 players, someone almost always sees it)
-    const dayTurns = seq.map((ci, turn) => turn).filter((turn) => turn > 0 && times[turn] === 'day' && !rainTurns.has(turn));
-    const eclipseTurn = Math.random() < 0.1 && dayTurns.length ? dayTurns[Math.floor(Math.random() * dayTurns.length)] : -1;
+  function startGame() {
+    // Getting to school always comes first; the other 10 come in a random order every game.
+    const seq = [0, ...shuffle(CHOICES.slice(1).map((_, k) => k + 1))];
+    // Each situation happens at a time of day that fits it (lights at sunset/night, a bath in the evening…)
+    const times = seq.map((ci) => { const ok = CHOICES[ci].times; return ok[Math.floor(Math.random() * ok.length)]; });
     G = {
-      seq, made: [], rainTurns, eclipseTurn, times,
-      // Rare: about 1 game in 10, pirates show up (any time, any weather)
-      pirateTurn: Math.random() < 0.1 ? 2 + Math.floor(Math.random() * 8) : -1, piratesDone: false,
-      name, h: START.h, i: START.i, turn: 0, picks: [], order: [], payQueue: [],
-      next: null, cardView: null, busy: false, disaster: null, cause: null,
-      ending: null, newAch: [], recapIdx: 0, langs: new Set([lang]), sawWhale: false,
-      // The whale is rare too: it only visits in about 1 game in 4, and only if the island is very healthy
-      whaleLuck: Math.random() < 0.25,
+      seq, made: [], times, weather: [],
+      h: START.h, temp: START.t, turn: 0, picks: [], order: [], payQueue: [],
+      next: null, cardView: null, busy: false,
+      ending: null, newAch: [], recapIdx: 0, langs: new Set([lang]),
     };
     renderIntro();
   }
@@ -337,12 +288,12 @@
     rerender = renderIntro;
     setScreen(`
       <section class="screen"><div class="panel">
-        <div class="big-emoji" aria-hidden="true">🏝️</div>
+        <div class="big-emoji" aria-hidden="true">🐒🏙️</div>
         <h2>${t('introTitle')}</h2>
         <p class="intro-text">${t('introText')}</p>
         <div class="meter-legend">
           <div><span aria-hidden="true">🐒</span>${t('monkeyMeter')}</div>
-          <div><span aria-hidden="true">🏝️</span>${t('islandMeter')}</div>
+          <div><span aria-hidden="true">🌡️</span>${t('tempMeter')}</div>
         </div>
         <p class="intro-text">${t('introMeters')}</p>
         <button class="btn primary big" data-action="go">${t('go')}</button>
@@ -357,16 +308,15 @@
         <div class="hud">
           <div class="meter" id="mh"><span class="emo" aria-hidden="true">🐒</span>
             <div class="mcol"><small data-label="monkeyMeter"></small><div class="bar"><i></i></div></div><b>0</b></div>
-          <div class="dots" id="dots" aria-hidden="true">${'<span></span>'.repeat(10)}</div>
+          <div class="dots" id="dots" aria-hidden="true">${'<span></span>'.repeat(TURNS)}</div>
           <div class="turn-txt" id="turnTxt"></div>
-          <div class="meter" id="mi"><span class="emo" aria-hidden="true">🏝️</span>
-            <div class="mcol"><small data-label="islandMeter"></small><div class="bar"><i></i></div></div><b>0</b></div>
+          <div class="meter thermo" id="mt"><span class="emo" aria-hidden="true">🌡️</span>
+            <div class="mcol"><small data-label="tempMeter"></small><div class="bar"><i></i></div></div><b>0</b></div>
         </div>
         <div class="scene-wrap" id="sceneWrap"></div>
         <div class="card" id="card" aria-live="polite"></div>
       </section>`, { home: true });
     scene = Scene.create($('#sceneWrap'));
-    scene.allowWhale(G.whaleLuck);
     watchScene($('#sceneWrap'));
     labelHud();
     updateHud();
@@ -376,59 +326,53 @@
   function labelHud() {
     document.querySelectorAll('[data-label]').forEach((el) => { el.textContent = I18N[lang].ui[el.dataset.label]; });
     $('#mh').title = I18N[lang].ui.monkeyMeter;
-    $('#mi').title = I18N[lang].ui.islandMeter;
+    $('#mt').title = I18N[lang].ui.tempMeter;
     $('#mh').setAttribute('aria-label', `${I18N[lang].ui.monkeyMeter}: ${G.h}`);
-    $('#mi').setAttribute('aria-label', `${I18N[lang].ui.islandMeter}: ${G.i}`);
-  }
-
-  function setMeter(id, v) {
-    const m = $('#' + id);
-    m.querySelector('.bar i').style.width = v + '%';
-    m.querySelector('b').textContent = v;
-    m.dataset.level = v > 60 ? 'hi' : v > 30 ? 'mid' : 'lo';
+    $('#mt').setAttribute('aria-label', `${I18N[lang].ui.tempMeter}: ${deg(G.temp)}`);
+    $('#mt b').textContent = deg(G.temp).replace(' °C', '°');
   }
 
   function updateHud() {
-    setMeter('mh', G.h);
-    setMeter('mi', G.i);
+    const mh = $('#mh');
+    mh.querySelector('.bar i').style.width = G.h + '%';
+    mh.querySelector('b').textContent = G.h;
+    mh.dataset.level = G.h > 60 ? 'hi' : G.h > 30 ? 'mid' : 'lo';
+    // thermometer: +0.8 °C = empty, +3.5 °C = full
+    $('#mt .bar i').style.width = clamp((G.temp - 0.8) / 2.7 * 100, 4, 100) + '%';
     const dots = $('#dots').children;
-    for (let k = 0; k < 10; k++) {
+    for (let k = 0; k < TURNS; k++) {
       const pk = G.picks[G.seq[k]];
       dots[k].className = k < G.made.length ? (pk ? 'g' : 'b') : k === G.turn ? 'now' : '';
     }
-    $('#turnTxt').textContent = `${Math.min(G.turn + 1, 10)}/10`;
-    scene.setStats(G.h, G.i);
+    $('#turnTxt').textContent = `${Math.min(G.turn + 1, TURNS)}/${TURNS}`;
+    scene.setStats(G.h, G.temp);
     labelHud();
   }
 
-  function floatDelta(id, d) {
-    if (!d) return;
+  function floatDelta(id, text, good) {
     const el = document.createElement('span');
-    el.className = 'delta ' + (d > 0 ? 'up' : 'down');
-    el.textContent = (d > 0 ? '+' : '') + d;
+    el.className = 'delta ' + (good ? 'up' : 'down');
+    el.textContent = text;
     $('#' + id).appendChild(el);
     setTimeout(() => el.remove(), 1500);
   }
 
-  function applyDelta(dh, di) {
-    const oldH = G.h, oldI = G.i;
+  function applyDelta(dh, dt) {
+    const oldH = G.h, oldT = G.temp;
     G.h = clamp(G.h + dh, 0, 100);
-    G.i = clamp(G.i + di, 0, 100);
-    floatDelta('mh', G.h - oldH);
-    floatDelta('mi', G.i - oldI);
+    G.temp = Math.max(MIN_T, round2(G.temp + dt));
+    if (G.h !== oldH) floatDelta('mh', (G.h > oldH ? '+' : '') + (G.h - oldH), G.h > oldH);
+    if (G.temp !== oldT) floatDelta('mt', degDelta(G.temp - oldT).replace(' °C', '°'), G.temp < oldT);
     updateHud();
     if (dh > 0) scene.jump(); else if (dh < 0) scene.droop();
-    // a really healthy island gets a visit from a whale
-    if (G.i >= 88 && G.whaleLuck && !G.sawWhale) {
-      G.sawWhale = true;
-      setTimeout(() => { if (G && !G.disaster) { sayLine((sy) => sy.whale); unlockWithToast('whale'); } }, 3200);
-    }
+    // the city just got warmer (and its weather wilder)
+    if (levelOf(G.temp) > levelOf(oldT)) setTimeout(() => { if (G) toast('🌡️', t('hotter')); }, 900);
   }
 
-  const deltaChips = (dh, di) => {
-    const chip = (emo, d) => `<span class="chip ${d >= 0 ? 'up' : 'down'}">${emo} ${d > 0 ? '+' : ''}${d}</span>`;
-    return `<div class="chips">${chip('🐒', dh)}${chip('🏝️', di)}</div>`;
-  };
+  const deltaChips = (dh, dt, heat = 0) => `<div class="chips">
+      <span class="chip ${dh >= 0 ? 'up' : 'down'}">🐒 ${dh > 0 ? '+' : ''}${dh}</span>
+      <span class="chip ${dt <= 0 ? 'up' : 'down'}">🌡️ ${degDelta(dt)}</span>
+      ${heat ? `<span class="chip down">🥵 ${t('tooHot')} −${heat}</span>` : ''}</div>`;
 
   const wait = (ms) => new Promise((done) => setTimeout(done, ms));
   // While an animation plays, the card steps aside so the player can just watch.
@@ -448,8 +392,7 @@
   function step() {
     const q = G.payQueue;
     if (q.length && q[0].due <= G.turn) return showPayoff(q.shift());
-    if (G.turn === G.pirateTurn && !G.piratesDone) return showPirates();
-    if (G.turn < 10) return showChoice();
+    if (G.turn < TURNS) return showChoice();
     if (q.length) return showPayoff(q.shift());
     finish();
   }
@@ -457,45 +400,42 @@
   async function showChoice() {
     const game = G, turn = G.turn, idx = G.seq[turn], ch = CHOICES[idx];
     if (G.order[idx] === undefined) G.order[idx] = Math.random() < 0.5; // good option first?
-    const newSky = turn > 0 && (G.times[turn] !== G.times[turn - 1] || G.rainTurns.has(turn) !== G.rainTurns.has(turn - 1));
+    // Weather: the hotter the city, the more rain and (when it's very hot) storms
+    const lvl = levelOf(G.temp);
+    const wet = turn > 0 && ch.id !== 'hot' && Math.random() < RAIN_CHANCE[lvl];
+    G.weather[turn] = wet ? (lvl >= 3 ? 'storm' : 'rain') : 'clear';
+    const newSky = turn > 0 && (G.times[turn] !== G.times[turn - 1] || G.weather[turn] !== G.weather[turn - 1]);
+    cardWait();
+    sayLine(() => '');
     scene.setTime(G.times[turn]);
-    scene.setWeather(G.rainTurns.has(turn) ? 'rain' : 'clear');
+    scene.setWeather(G.weather[turn]);
+    if (G.weather[turn] === 'storm') Sound.play('storm');
     if (newSky) {             // the sky changes first…
-      cardWait();
-      sayLine(() => '');
-      await wait(2000);
+      await wait(1800);
       if (G !== game) return;
     }
-    scene.event(ch.id);       // …then the new situation appears, with its question
+    // …then Bobo goes to where the new situation happens…
+    await Promise.race([scene.event(ch.id), wait(6000)]);
+    if (G !== game) return;
+    // …and only then the question appears
     scene.react(REACT[ch.id], 0);
-    if (idx === 0) {
+    if (turn === 0) {
       sayLine((sy) => sy.hello);
-      setTimeout(() => { if (G && G.turn === 0) sayLine((sy) => sy.choices[0][0]); }, 2200);
+      setTimeout(() => { if (G === game && G.turn === 0 && !G.made.length) sayLine((sy) => sy.choices[0][0]); }, 2200);
     } else sayLine((sy) => sy.choices[idx][0]);
-    if (turn === G.eclipseTurn) {
-      setTimeout(() => {
-        if (!G || G.turn !== turn) return;
-        scene.eclipse();
-        scene.react('scared', 4000);  // wide-eyed amazement
-        sayLine((sy) => sy.eclipse);
-        unlockWithToast('eclipse');
-      }, 1800);
-    }
     updateHud();
-    G.cardView = () => {
+    cardShow(() => {
       const opts = [
         { good: true, txt: ct(idx, 'good'), emo: ch.good.emoji },
         { good: false, txt: ct(idx, 'bad'), emo: ch.bad.emoji },
       ];
       if (!G.order[idx]) opts.reverse();
-      $('#card').classList.remove('card-wait');
       card(`
         <div class="card-head"><span class="pill">${t('turn', { n: turn + 1 })}</span><span class="topic">${ct(idx, 'topic')}</span></div>
         <p class="situation">${ct(idx, 'sit')}</p>
         <div class="choices">${opts.map((o) =>
           `<button class="choice-btn" data-action="pick" data-good="${o.good ? 1 : 0}"><span class="emo" aria-hidden="true">${o.emo}</span><span>${o.txt}</span></button>`).join('')}</div>`);
-    };
-    G.cardView();
+    });
   }
 
   async function pick(good) {
@@ -504,33 +444,29 @@
     const game = G, turn = G.turn, idx = G.seq[turn], ch = CHOICES[idx], d = good ? ch.good : ch.bad;
     G.picks[idx] = good;
     G.made.push(idx);
-    G.last = idx;
     // 1. the decision is made: the card steps aside
     cardWait();
-    sayLine(() => '');
+    react0();
     Sound.play(good ? 'good' : 'bad');
-    if (!good && (ch.id === 'plastic' || ch.id === 'fishing')) setTimeout(() => Sound.play('splash'), 900);
-    // 2. the monkey does it (walks there, throws, fishes, chops…)
-    await Promise.race([scene.outcome(ch.id, good), wait(5000)]);
+    // 2. Bobo does it (bikes to school, takes the train, goes to the thrift store…)
+    await Promise.race([scene.outcome(ch.id, good), wait(10000)]);
     if (G !== game) return;   // the player left the game meanwhile
     // 3. then the result: reaction, speech bubble, meters and the text card
     scene.react(good ? 'yay' : 'sad');
     sayLine((sy) => sy.choices[idx][good ? 1 : 2]);
-    applyDelta(d.h, d.i);
+    const heat = HEAT_PENALTY[levelOf(G.temp)];
+    applyDelta(d.h - heat, d.t);
     if (good) G.payQueue.push({ idx, due: turn + PAYOFF_DELAY });
 
-    G.next = () => {
-      G.turn++;
-      if (G.h <= 0 || G.i <= 0) doDisaster();
-      else step();
-    };
+    G.next = () => { G.turn++; step(); };
     cardShow(() => card(`
       <div class="card-head"><span class="pill">${t('turn', { n: turn + 1 })}</span><span class="topic">${ct(idx, 'topic')}</span></div>
       <div class="result"><span class="emo" aria-hidden="true">${d.emoji}</span><p>${ct(idx, good ? 'resGood' : 'resBad')}</p></div>
-      ${deltaChips(d.h, d.i)}
+      ${deltaChips(d.h, d.t, heat)}
       <div class="row end"><button class="btn primary" data-action="cont">${t('cont')}</button></div>`));
     G.busy = false;
   }
+  function react0() { sayLine(() => ''); scene.react(null); }
 
   async function showPayoff({ idx }) {
     const game = G, ch = CHOICES[idx];
@@ -538,114 +474,64 @@
     sayLine(() => '');
     scene.payoff(ch.id);
     Sound.play('payoff');
-    await wait(1400);          // let the reward appear on the island first
+    await wait(1400);          // let the reward appear in the city first
     if (G !== game) return;
     scene.react('yay');
     sayLine((sy) => sy.choices[idx][3]);
-    applyDelta(PAYOFF.h, PAYOFF.i);
+    applyDelta(PAYOFF.h, PAYOFF.t);
     G.next = step;
     cardShow(() => card(`
-      <div class="card-head"><span class="pill">✨ ${G.turn < 10 ? t('remember') : t('later')}</span><span class="topic">${ct(idx, 'topic')}</span></div>
+      <div class="card-head"><span class="pill">✨ ${G.turn < TURNS ? t('remember') : t('later')}</span><span class="topic">${ct(idx, 'topic')}</span></div>
       <div class="result"><span class="emo" aria-hidden="true">${ch.good.emoji}</span><div>
         <p>${ct(idx, 'payoff')}</p>
         <p class="because">${t('because')} ${ct(idx, 'good')}</p></div></div>
-      ${deltaChips(PAYOFF.h, PAYOFF.i)}
+      ${deltaChips(PAYOFF.h, PAYOFF.t)}
       <div class="row end"><button class="btn primary" data-action="cont">${t('cont')}</button></div>`));
-  }
-
-  /* Rare pirate raid: not caused by the player's choices, so it doesn't end the game,
-     but the pirates take some loot and the monkey is sad about it. */
-  async function showPirates() {
-    G.piratesDone = true;
-    G.next = null;
-    G.cardView = () => card(`
-      <div class="card-head"><span class="pill">⚓ ${t('pirateTitle')}</span></div>
-      <div class="result"><span class="emo" aria-hidden="true">🏴‍☠️</span><p>${t('pirateText')}</p></div>
-      ${deltaChips(-10, 0)}
-      <div class="row end"><button class="btn primary" data-action="cont" ${G.next ? '' : 'disabled'}>${t('cont')}</button></div>`);
-    G.cardView();
-    Sound.play('pirate');
-    sayLine((sy) => sy.pirates);
-    await scene.pirates();
-    if (!G) return;
-    sayLine((sy) => sy.piratesGone);
-    applyDelta(-10, 0);
-    unlockWithToast('pirates');
-    G.next = () => { if (G.h <= 0) doDisaster(); else step(); };
-    G.cardView();
-  }
-
-  async function doDisaster() {
-    G.disaster = CHOICES[G.last].disaster;
-    G.cause = G.i <= 0 ? 'island' : 'monkey';
-    G.cardView = () => card(`<div class="result"><span class="emo">${ENDINGS[G.disaster].emoji}</span><p>${esc(L().endings[G.disaster][0])}</p></div>`);
-    G.cardView();
-    Sound.duck(4);
-    Sound.play(G.disaster);
-    sayLine((sy) => sy[G.disaster]);
-    await scene.disaster(G.disaster);
-    if (!G) return;
-    finish();
-    sayLine((sy) => sy.safe);
   }
 
   /* ═════════════════════ ENDING ═════════════════════ */
 
   function finish() {
-    const ending = G.disaster || (G.i >= 90 && G.h >= 70 ? 'hero' : G.i >= 70 ? 'friend' : G.i >= 40 ? 'okay' : 'struggle');
+    const ending = G.temp <= 1.4 ? 'warrior' : G.temp <= 2.2 ? 'warming' : 'hot';
     G.ending = ending;
     const greens = G.picks.filter(Boolean).length;
-    store.games.push({ d: Date.now(), n: G.name, e: ending, h: G.h, i: G.i, g: greens, c: G.made.length });
+    store.games.push({ d: Date.now(), e: ending, h: G.h, t: G.temp, g: greens, c: G.made.length });
     Store.save(store);
 
     const earned = [];
     const check = (cond, id) => { if (cond && unlock(id)) earned.push(id); };
     check(true, 'first');
-    check(ending === 'hero', 'hero');
-    check(greens === 10, 'perfect');
-    check(G.picks[0] === true, 'tree');
-    check(G.picks[1] === true, 'ocean');
-    check(G.picks[3] === true, 'planter');
-    check(G.picks[4] === true, 'fisher');
-    check(G.picks[6] === true, 'firefighter');
-    check(G.picks[9] === true, 'turtle');
-    check(G.picks[5] === true, 'compost');
-    check(G.picks[8] === true, 'water');
-    check(G.picks[7] === true, 'cozy');
-    check(!!G.disaster, 'survivor');
+    check(ending === 'warrior', 'warrior');
+    check(greens === TURNS, 'perfect');
+    CHOICES.forEach((c, k) => check(G.picks[k] === true, CHOICE_ACH[c.id]));
     check(store.games.length >= 3, 'three');
-    if (G.disaster) {
-      store.stats.disasters[G.disaster] = true;
-      Store.save(store);
-    }
-    check(['flood', 'heat', 'storm'].every((d) => store.stats.disasters[d]), 'stormchaser');
-    check(legendReady(), 'legend');
     G.newAch = earned;
 
-    Sound.play(G.disaster ? 'lose' : ending === 'hero' ? 'win' : 'payoff');
+    Sound.play(ending === 'warrior' ? 'win' : ending === 'hot' ? 'lose' : 'payoff');
     if (earned.length) setTimeout(() => Sound.play('achieve'), 900);
     $('#game').classList.add('ending');
-    if (!G.disaster) {
-      scene.setTime('day');
-      scene.setWeather('clear');
-      scene.react({ hero: 'yay', friend: 'yay', okay: 'think', struggle: 'sad' }[ending], 0);
-      if (ending === 'hero') setTimeout(() => sayLine((sy) => sy.hero), 400);
-    }
+    scene.setTime('day');
+    scene.setWeather(ending === 'hot' ? 'storm' : 'clear');
+    sayLine(() => '');
+    scene.goHome().then(() => {
+      if (!G || G.ending !== ending) return;
+      scene.react({ warrior: 'yay', warming: 'think', hot: 'hot' }[ending], 0);
+      sayLine((sy) => (ending === 'warrior' ? sy.warrior : ending === 'hot' ? sy.heat : ''));
+    });
     G.next = null;
     G.cardView = endingView;
     endingView();
   }
 
   function endingView() {
-    const e = G.ending, [title, text] = L().endings[e], dis = ENDINGS[e].disaster;
+    const e = G.ending, [title, text] = L().endings[e];
     const greens = G.picks.filter(Boolean).length;
     card(`
       <div class="end-top"><span class="end-emoji" aria-hidden="true">${ENDINGS[e].emoji}</span><div>
-        ${dis ? `<p class="cause">${t('gameOver')} ${G.cause === 'island' ? t('causeIsland') : t('causeMonkey')}</p>` : ''}
-        <h2>${esc(fmt(title))}</h2></div></div>
-      <p class="end-text">${esc(fmt(text))}</p>
-      ${dis ? `<p class="note">🌍 ${t('disasterNote')}</p>` : ''}
-      <div class="chips"><span class="chip">🐒 ${G.h}</span><span class="chip">🏝️ ${G.i}</span><span class="chip">✅ ${t('greenChoices', { n: greens })}</span></div>
+        <h2>${esc(title)}</h2></div></div>
+      <p class="end-text">${esc(fmt(text, { n: deg(G.temp).replace(/^\+| °C$/g, '') }))}</p>
+      <p class="note">🌍 ${t('tempNote')}</p>
+      <div class="chips"><span class="chip">🌡️ ${deg(G.temp)}</span><span class="chip">🐒 ${G.h}</span><span class="chip">✅ ${t('greenChoices', { n: greens })}</span></div>
       ${G.newAch.length ? `<div class="new-ach"><b>🏆 ${t('newAch')}</b> ${G.newAch.map((id) =>
         G.newAch.length <= 2 ? `<span class="chip ach-chip">${achEmoji(id)} ${achName(id)}</span>`
           : `<span class="ach-mini" title="${achName(id)}" aria-label="${achName(id)}">${achEmoji(id)}</span>`).join('')}</div>` : ''}
@@ -691,7 +577,7 @@
       case 'tab':
         ({ title: renderTitle, games: renderGames, ach: renderAch, privacy: renderPrivacy })[el.dataset.tab]();
         break;
-      case 'play': renderName(); break;
+      case 'play': startGame(); break;
       case 'setLang': setLang(el.dataset.lang); break;
       case 'qr': showQR(); break;
       case 'closeModal': closeModal(); break;
@@ -699,13 +585,6 @@
         const r = modalResolve;
         closeModal();
         if (r) r(a === 'confirmYes');
-        break;
-      }
-      case 'randomName': {
-        nameDraft = RANDOM_NAMES[Math.floor(Math.random() * RANDOM_NAMES.length)];
-        $('#nameInput').value = nameDraft;
-        $('#nameErr').textContent = '';
-        Sound.play('pop');
         break;
       }
       case 'go': renderGame(); step(); break;
@@ -725,7 +604,7 @@
         }
         break;
       case 'takeaways': G.cardView = takeawaysView; takeawaysView(); break;
-      case 'playAgain': nameDraft = G ? G.name : nameDraft; renderName(); break;
+      case 'playAgain': startGame(); break;
       case 'menu': renderTitle(); break;
       case 'home':
         if (G && !G.ending && $('#game')) {
@@ -768,7 +647,7 @@
       if (e.target === el && !modalResolve) closeModal();
       return;
     }
-    if (a !== 'pick' && a !== 'randomName') Sound.play('click');
+    if (a !== 'pick') Sound.play('click');
     onAction(a, el);
   });
 

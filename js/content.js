@@ -1,56 +1,54 @@
 /* Game data that doesn't depend on language.
    All text (in 4 languages) lives in i18n.js, in the same order as CHOICES.
 
-   h = change to 🐒 monkey happiness, i = change to 🏝️ island health.
-   Sustainable ("good") choices cost a little happiness now but pay back
-   two turns later (see PAYOFF in app.js).
-   time = time of day the situation happens (morning, day, evening, night). */
+   h = change to 🐒 Bobo's happiness.
+   t = change to 🌡️ the city's temperature (in °C above the old normal; the game starts at +1.0).
+   Climate-smart ("good") choices don't warm the city. Some of them are ALSO more fun or
+   cheaper right away (biking, thrift store, swapping toys), because green isn't always boring.
+   times = the times of day that fit the situation. */
 
 const CHOICES = [
-  { id: 'shelter',  good: { h: -8,  i: 5,  emoji: '🪨' }, bad: { h: 10, i: -12, emoji: '🪓' }, time: 'morning', disaster: 'storm' },
-  { id: 'plastic',  good: { h: -8,  i: 5,  emoji: '🗑️' }, bad: { h: 8,  i: -15, emoji: '🌊' }, time: 'day', disaster: 'flood' },
-  { id: 'food',     good: { h: -8,  i: 4,  emoji: '🧺' }, bad: { h: 12, i: -10, emoji: '😋' }, time: 'day', disaster: 'heat' },
-  { id: 'banana',   good: { h: -8,  i: 5,  emoji: '🌱' }, bad: { h: 8,  i: -10, emoji: '🍌' }, time: 'day', disaster: 'heat' },
-  { id: 'fishing',  good: { h: -6,  i: 5,  emoji: '🎣' }, bad: { h: 10, i: -14, emoji: '🕸️' }, time: 'evening', disaster: 'flood' },
-  { id: 'compost',  good: { h: -8,  i: 5,  emoji: '♻️' }, bad: { h: 8,  i: -12, emoji: '🪰' }, time: 'day', disaster: 'storm' },
-  { id: 'fire',     good: { h: -14, i: 6, emoji: '💧' }, bad: { h: 8,  i: -18, emoji: '🔥' }, time: 'day', disaster: 'heat' },
-  { id: 'firewood', good: { h: -6,  i: 4,  emoji: '🍂' }, bad: { h: 12, i: -12, emoji: '🪓' }, time: 'night', disaster: 'heat' },
-  { id: 'water',    good: { h: -8,  i: 4,  emoji: '🌧️' }, bad: { h: 10, i: -12, emoji: '💦' }, time: 'day', disaster: 'heat' },
-  { id: 'turtles',  good: { h: -8,  i: 5,  emoji: '🐢' }, bad: { h: 8,  i: -12, emoji: '👋' }, time: 'night', disaster: 'flood' },
+  { id: 'school', good: { h: 6, t: 0, emoji: '🚲' }, bad: { h: -2, t: 0.25, emoji: '🚗' }, times: ['morning'] },
+  { id: 'lights', good: { h: -2, t: 0, emoji: '💡' }, bad: { h: 2, t: 0.15, emoji: '📺' }, times: ['evening', 'night'] },
+  { id: 'bottle', good: { h: 4, t: 0, emoji: '🍶' }, bad: { h: 2, t: 0.15, emoji: '🥤' }, times: ['morning', 'day'] },
+  { id: 'toy', good: { h: 6, t: 0, emoji: '🔧' }, bad: { h: 8, t: 0.2, emoji: '📦' }, times: ['day'] },
+  { id: 'hot', good: { h: -6, t: 0, emoji: '🌬️' }, bad: { h: 8, t: 0.25, emoji: '❄️' }, times: ['day'] },
+  { id: 'cold', good: { h: 2, t: 0, emoji: '🧶' }, bad: { h: 6, t: 0.25, emoji: '🔥' }, times: ['morning', 'evening'] },
+  { id: 'shower', good: { h: 4, t: 0, emoji: '🚿' }, bad: { h: 6, t: 0.15, emoji: '🛁' }, times: ['evening'] },
+  { id: 'party', good: { h: 2, t: 0, emoji: '♻️' }, bad: { h: 4, t: 0.2, emoji: '🗑️' }, times: ['day'] },
+  { id: 'jacket', good: { h: 10, t: 0, emoji: '🛍️' }, bad: { h: 4, t: 0.25, emoji: '🏬' }, times: ['day'] },
+  { id: 'trip', good: { h: 6, t: 0, emoji: '🚆' }, bad: { h: 2, t: 0.3, emoji: '🚗' }, times: ['morning', 'day'] },
+  { id: 'food', good: { h: 4, t: 0, emoji: '🥦' }, bad: { h: 6, t: 0.3, emoji: '🍔' }, times: ['day', 'evening'] },
 ];
 
+// Endings depend on the final temperature (see app.js)
 const ENDINGS = {
-  hero:     { emoji: '🏆' },
-  friend:   { emoji: '🌴' },
-  okay:     { emoji: '🌤️' },
-  struggle: { emoji: '🌧️' },
-  flood:    { emoji: '🌊', disaster: true },
-  heat:     { emoji: '🥵', disaster: true },
-  storm:    { emoji: '⛈️', disaster: true },
+  warrior: { emoji: '🦸' },   // up to +1.4 °C
+  warming: { emoji: '🌡️' },   // up to +2.2 °C
+  hot:     { emoji: '🥵' },    // above that
 };
 
 const ACHIEVEMENTS = [
-  { id: 'first',       emoji: '👣' },
-  { id: 'hero',        emoji: '🏆' },
-  { id: 'perfect',     emoji: '💯' },
-  { id: 'tree',        emoji: '🌳' },
-  { id: 'ocean',       emoji: '🌊' },
-  { id: 'planter',     emoji: '🍌' },
-  { id: 'fisher',      emoji: '🎣' },
-  { id: 'firefighter', emoji: '🚒' },
-  { id: 'turtle',      emoji: '🐢' },
-  { id: 'compost',     emoji: '♻️' },
-  { id: 'water',       emoji: '💧' },
-  { id: 'cozy',        emoji: '🔥' },
-  { id: 'learner',     emoji: '📚' },
-  { id: 'survivor',    emoji: '⛈️' },
-  { id: 'three',       emoji: '🔁' },
-  // Mystery achievements: hidden as "???" until unlocked
-  { id: 'whale',       emoji: '🐋', mystery: true },
-  { id: 'stormchaser', emoji: '🌪️', mystery: true },
-  { id: 'eclipse',     emoji: '🌑', mystery: true }, // about 1 game in 10
-  { id: 'pirates',     emoji: '🏴‍☠️', mystery: true }, // about 1 game in 10
-  { id: 'legend',      emoji: '👑', mystery: true }, // unlock every other achievement
+  { id: 'first',   emoji: '👣' },
+  { id: 'warrior', emoji: '🦸' },
+  { id: 'perfect', emoji: '💯' },
+  { id: 'bike',    emoji: '🚲' },
+  { id: 'lights',  emoji: '💡' },
+  { id: 'bottle',  emoji: '🍶' },
+  { id: 'toy',     emoji: '🔧' },
+  { id: 'breeze',  emoji: '🌬️' },
+  { id: 'sweater', emoji: '🧶' },
+  { id: 'shower',  emoji: '🚿' },
+  { id: 'party',   emoji: '🎈' },
+  { id: 'thrift',  emoji: '🛍️' },
+  { id: 'train',   emoji: '🚆' },
+  { id: 'veggie',  emoji: '🥦' },
+  { id: 'learner', emoji: '📚' },
+  { id: 'three',   emoji: '🔁' },
 ];
 
-const TAKEAWAY_EMOJI = ['🗑️', '♻️', '🍎', '🌱', '💧', '🐢'];
+// which achievement belongs to which choice (unlocked by the climate-smart answer)
+const CHOICE_ACH = { school: 'bike', lights: 'lights', bottle: 'bottle', toy: 'toy', hot: 'breeze', cold: 'sweater',
+  shower: 'shower', party: 'party', jacket: 'thrift', trip: 'train', food: 'veggie' };
+
+const TAKEAWAY_EMOJI = ['🚲', '💡', '🔧', '♻️', '🥦', '🗣️'];

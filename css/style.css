@@ -1,4 +1,4 @@
-/* ───────── Climate Island – styles ───────── */
+/* ───────── Bobo's City – styles ───────── */
 /* Sky + sea colours for each time of day. Used by the island drawing AND the page
    background, so inside and outside the game always match. */
 @property --sky-top-c { syntax: '<color>'; inherits: true; initial-value: #5ec8f5; }
@@ -12,28 +12,30 @@
 }
 /* ── Full-screen layers as plain HTML: the phone's GPU fades/moves these almost for free ── */
 .backdrop { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
-.bd, .bd-haze, .bd-murk, .bd-gloom, .bd-cover { position: absolute; inset: 0; opacity: 0; transition: opacity 2s ease-in-out; }
+.bd, .bd-haze, .bd-gloom, .bd-cover { position: absolute; inset: 0; opacity: 0; transition: opacity 2s ease-in-out; }
 /* sky + sea for each time of day; the horizon lines up with the island drawing (app.js: syncHorizon) */
 .bd-morning { background: linear-gradient(#7cc8ef var(--sky-top, 0%), #ffe3c4 var(--horizon, 58%), #45b4dc var(--horizon, 58%), #1a7fb6 var(--deep, 80%), #0e406e var(--abyss, 100%)); }
 .bd-day     { background: linear-gradient(#5ec8f5 var(--sky-top, 0%), #c4f0ff var(--horizon, 58%), #2bb3e0 var(--horizon, 58%), #1279b8 var(--deep, 80%), #0b3a66 var(--abyss, 100%)); }
 .bd-evening { background: linear-gradient(#5b5fb0 var(--sky-top, 0%), #ffae80 var(--horizon, 58%), #3f86b8 var(--horizon, 58%), #1b4f86 var(--deep, 80%), #0c2a52 var(--abyss, 100%)); }
 .bd-night   { background: linear-gradient(#142a5e var(--sky-top, 0%), #3e5aa6 var(--horizon, 58%), #2a5f95 var(--horizon, 58%), #133a6c var(--deep, 80%), #071a36 var(--abyss, 100%)); }
-.bd-eclipse { background: linear-gradient(#1c2850 var(--sky-top, 0%), #4a5590 var(--horizon, 58%), #2a5480 var(--horizon, 58%), #133a6c var(--deep, 80%), #071a36 var(--abyss, 100%)); }
 :root[data-time="morning"] .bd-morning, :root[data-time="day"] .bd-day, :root:not([data-time]) .bd-day,
-:root[data-time="evening"] .bd-evening, :root[data-time="night"] .bd-night, :root[data-time="eclipse"] .bd-eclipse { opacity: 1; }
+:root[data-time="evening"] .bd-evening, :root[data-time="night"] .bd-night { opacity: 1; }
 .bd-stars { position: absolute; left: 0; right: 0; top: 0; height: var(--horizon, 58%); }
 .bd-stars svg { display: block; }
 .bd-haze { background: linear-gradient(#9c8f86 var(--sky-top, 0%), #e9b98a var(--horizon, 58%), transparent var(--horizon, 58%)); }
-.bd-murk { background: linear-gradient(transparent var(--horizon, 58%), #6f7d3c var(--horizon, 58%)); }
 .bd-gloom { background: #4b5563; }
 .raining .bd-gloom { opacity: 0.3; }
 /* rain / storm: the whole sky is one cloud cover with a soft bumpy edge */
 .bd-cover { bottom: auto; height: var(--cloud-base, 30%); }
-.bd-cover::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 44px; background-size: 80px 44px; background-repeat: repeat-x; }
+/* the bumpy bottom edge is sized in city units, so it never reaches past the horizon on small phones */
+.bd-cover::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 100%; height: calc(44 * var(--u, 1px));
+  background-size: calc(80 * var(--u, 1px)) calc(44 * var(--u, 1px)); background-repeat: repeat-x;
+}
 .bd-rain { background: linear-gradient(#7c8591, #9aa3ae); }
-.bd-rain::after { background-image: radial-gradient(circle at 50% 0, #9aa3ae 36px, transparent 37px); }
-.bd-storm { background: linear-gradient(#2f3540, #4a525f); height: calc(var(--cloud-base, 30%) + 10px); }
-.bd-storm::after { background-image: radial-gradient(circle at 50% 0, #4a525f 36px, transparent 37px); }
+.bd-rain::after { background-image: radial-gradient(circle at 50% 0, #9aa3ae calc(36 * var(--u, 1px)), transparent calc(37 * var(--u, 1px))); }
+.bd-storm { background: linear-gradient(#2f3540, #4a525f); height: calc(var(--cloud-base, 30%) + 10 * var(--u, 1px)); }
+.bd-storm::after { background-image: radial-gradient(circle at 50% 0, #4a525f calc(36 * var(--u, 1px)), transparent calc(37 * var(--u, 1px))); }
 .raining .bd-rain, .storming .bd-storm { opacity: 1; }
 /* The sun and moon are HTML too, so moving them never redraws the island.
    Positions are in island units (see app.js: --u, --ox, --oy). */
@@ -48,51 +50,47 @@
 :root[data-time="evening"] .sun-html { transform: translate(calc(30 * var(--u, 1px)), calc(165 * var(--u, 1px))); }
 :root[data-time="night"] .sun-html { transform: translate(calc(80 * var(--u, 1px)), calc(260 * var(--u, 1px))); opacity: 0; }
 .raining .sun-html, .storming .sun-html { opacity: 0; }
-.fx-heat .sun-html { transform: translate(calc(-160 * var(--u, 1px)), calc(-10 * var(--u, 1px))) scale(1.45); }
-.panned .sun-html { translate: var(--pan, 0px) 0; transition: transform 3s ease-in-out, opacity 1.5s, translate 1.6s ease-in-out; }
+/* zoomed in on a phone: the sun rises and sets a bit closer to the middle so it stays in view */
+:root[data-time="morning"] .zoomed .sun-html { transform: translate(calc(-500 * var(--u, 1px)), calc(85 * var(--u, 1px))); }
+:root[data-time="evening"] .zoomed .sun-html { transform: translate(calc(-60 * var(--u, 1px)), calc(165 * var(--u, 1px))); }
+.zoomed .moon-html { left: calc(var(--ox, 0px) + 190 * var(--u, 1px)); }
+/* a very hot city: the sun looks bigger and the air glows orange */
+.clim-hot .sun-html > .sun-disc, .clim-hot .sun-html > .sun-halo { transform: scale(1.3); }
+.clim-hot.heat-day .fxh-heat { opacity: 0.16; }
 .sun-halo { --r: 62; background: #ffe680; opacity: 0.35; }
 .sun-disc { --r: 42; background: radial-gradient(#fff6b0, #ffd23f); }
 .sun-tint { --r: 42; background: #ff7a3d; opacity: 0; transition: opacity 3s; }
 :root[data-time="morning"] .sun-tint { opacity: 0.35; }
 :root[data-time="evening"] .sun-tint { opacity: 0.7; }
 .sun-heat { --r: 95; background: #ffb03a; opacity: 0.45; }
-.corona { --r: 50; border: calc(7 * var(--u, 1px)) solid #fff6c8; box-sizing: border-box; opacity: 0; }
-.eclipse-moon { --r: 44; background: #151a2b; opacity: 0; }
 .sun-html > *, .moon-html > * {
   width: calc(var(--r) * 2 * var(--u, 1px)); height: calc(var(--r) * 2 * var(--u, 1px));
   left: calc(var(--r) * -1 * var(--u, 1px)); top: calc(var(--r) * -1 * var(--u, 1px));
 }
-.eclipse .eclipse-moon { animation: moonPassHtml 7s ease-in-out forwards; }
-.eclipse .corona { animation: corona 7s ease-in-out forwards; }
-@keyframes moonPassHtml { 0% { transform: translateX(calc(-120 * var(--u, 1px))); opacity: 1; } 40%, 62% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(calc(120 * var(--u, 1px))); opacity: 1; } }
 .moon-html { left: calc(var(--ox, 0px) + 110 * var(--u, 1px)); top: calc(var(--oy, 0px) + 80 * var(--u, 1px)); opacity: 0; transition: opacity 2s; }
 :root[data-time="night"] .moon-html { opacity: 1; }
 .raining .moon-html, .storming .moon-html { opacity: 0; }
 .moon-halo { --r: 30; background: #fff7d6; opacity: 0.25; }
 .moon-disc { --r: 22; background: #fff4c2; }
 .moon-cut { --r: 19; background: #142a5e; margin-left: calc(9 * var(--u, 1px)); margin-top: calc(-6 * var(--u, 1px)); }
-:root[data-time="eclipse"] .bd-stars { opacity: 0.8; }
 
-/* night tint + disaster flashes, on top of the island (but under the lights and speech bubble) */
+/* night tint + storm flashes, on top of the island (but under the lights and speech bubble) */
 .fx-html { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
 .fxh { position: absolute; inset: 0; opacity: 0; }
 .fxh-tint { background: #071230; transition: opacity 2s ease-in-out, background-color 2s ease-in-out; }
 :root[data-time="morning"] .fxh-tint { background: #ffb070; opacity: 0.08; }
 :root[data-time="evening"] .fxh-tint { background: #5a2a5a; opacity: 0.2; }
 :root[data-time="night"] .fxh-tint { background: #071230; opacity: 0.58; }
-:root[data-time="eclipse"] .fxh-tint { background: #0b1430; opacity: 0.4; }
-.fxh-heat { background: #ff7a2e; }
-.fx-heat .fxh-heat { animation: heat 3.4s ease-in-out forwards; }
+.fxh-heat { background: #ff7a2e; transition: opacity 2s; }
 .fxh-dark { background: #1d2533; }
 .fx-storm .fxh-dark { animation: dark 3.4s ease forwards; }
 .fxh-flash { background: #fff; }
 .fx-storm .fxh-flash { animation: flash 3.4s linear forwards; }
 /* the lights + speech bubble SVG sits exactly over the island SVG */
 .scene-top { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+/* the camera slides the city sideways on phones (see Scene camTo) */
+.scene-wrap > svg { transform: translate3d(var(--camx, 0px), 0, 0); transition: transform var(--camt, 0ms) ease-in-out; }
 .scene-main { position: relative; z-index: 0; }
-/* pirate visit: slide both pictures to the right side (moved by the GPU, not redrawn) */
-.scene-wrap > svg, .title-scene > svg { transition: transform 1.6s ease-in-out; }
-.panned > svg { transform: translate3d(var(--pan, -250px), 0, 0); }
 
 /* Rain: one big image of raindrops that slides down. Moving it with transform lets the
    phone's graphics chip do the work, so it stays smooth. */
@@ -111,7 +109,6 @@
 :root[data-time="morning"] { --sky-top-c: #7cc8ef; --sky-bot-c: #ffe3c4; --sea-top-c: #45b4dc; --sea-bot-c: #1a7fb6; --cloud-c: #fff6ec; --sea-deep-c: #0e406e; }
 :root[data-time="evening"] { --sky-top-c: #5b5fb0; --sky-bot-c: #ffae80; --sea-top-c: #3f86b8; --sea-bot-c: #1b4f86; --cloud-c: #ffd9c7; --sea-deep-c: #0c2a52; }
 :root[data-time="night"]   { --sky-top-c: #142a5e; --sky-bot-c: #3e5aa6; --sea-top-c: #2a5f95; --sea-bot-c: #133a6c; --cloud-c: #8a96b6; --sea-deep-c: #071a36; }
-:root[data-time="eclipse"] { --sky-top-c: #1c2850; --sky-bot-c: #4a5590; --sea-top-c: #2a5480; --sea-bot-c: #133a6c; --cloud-c: #7480a0; --sea-deep-c: #071a36; }
 
 :root {
   --sky: #7fd3f7;
@@ -245,15 +242,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   color: #fff; font-weight: 700; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
-/* ── name + intro ── */
+/* ── intro ── */
 .big-emoji { font-size: clamp(44px, 8vh, 72px); line-height: 1; }
-.name-input {
-  width: 100%; max-width: 340px; font-size: 24px; font-weight: 800; text-align: center;
-  border: 3px solid #d9e2e8; border-radius: 18px; padding: 10px 14px; color: var(--ink); background: #fff;
-}
-.name-input:focus { border-color: var(--sun); outline: none; }
-.err { min-height: 1.3em; margin: 6px 0; color: #d93a2b; font-weight: 800; }
-.tip { margin: 12px 0 0; font-weight: 700; color: var(--ink2); background: #eef8ff; border-radius: 14px; padding: 8px 12px; }
 .intro-text { font-size: clamp(16px, 2.4vh, 20px); font-weight: 700; line-height: 1.4; margin: 8px 0 12px; }
 .meter-legend { display: grid; gap: 8px; margin: 0 auto 14px; max-width: 380px; text-align: left; }
 .meter-legend div { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 14px; padding: 8px 12px; font-weight: 800; }
@@ -339,7 +329,6 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .end-top { display: flex; gap: 12px; align-items: center; }
 .end-emoji { font-size: clamp(44px, 8vh, 72px); line-height: 1; }
 .end-top h2 { margin: 0; font-size: clamp(22px, 3.6vh, 32px); }
-.end-top .cause { margin: 2px 0 0; font-weight: 800; color: #d6322a; font-size: 14px; }
 .end-text { font-weight: 700; line-height: 1.4; margin: 8px 0; font-size: clamp(14px, 2.2vh, 18px); }
 .note { background: #fff4e0; border-radius: 14px; padding: 6px 10px; font-weight: 800; font-size: 14px; margin: 6px 0; }
 .ach-chip { background: #fff4c2; border: 2px solid var(--sun); }
@@ -371,7 +360,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .pager { display: flex; gap: 10px; align-items: center; justify-content: center; font-weight: 800; }
 
 /* ── achievements ── */
-.ach-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.ach-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
 .badge { background: #fff; border-radius: 16px; padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .badge .emo { font-size: clamp(26px, 4.4vh, 38px); line-height: 1.1; }
 .badge b { font-size: 13px; line-height: 1.15; max-width: 100%; overflow-wrap: anywhere; hyphens: auto; }
@@ -455,7 +444,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   .logo { font-size: 38px; -webkit-text-stroke: 2px var(--ink); text-shadow: 0 3px 0 var(--ink); }
 }
 
-/* ───────── island scene (SVG) ───────── */
+
+/* ───────── the city (SVG) ───────── */
 .hide { opacity: 0 !important; visibility: hidden; }
 .hide, .hide * { animation-play-state: paused !important; }
 .pop {
@@ -463,47 +453,89 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   transition: opacity 0.5s, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), visibility 0.5s;
 }
 .pop.hide { transform: scale(0.3); }
-.fade, .part, .cocos { transition: opacity 0.9s, visibility 0.9s; }
-svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
+.fade { transition: opacity 0.9s, visibility 0.9s; }
 
-.trunk { fill: none; stroke: #9b6a3c; stroke-width: 11; stroke-linecap: round; }
-.ring { stroke: #7d522b; stroke-width: 2; fill: none; }
-.leaf { fill: #3cb853; transition: fill 1.5s; }
-.leaf.dark { fill: #2e9e46; }
-.cocos circle { fill: #7a4a24; }
-.grass { fill: #6cc551; transition: fill 1.5s; }
-.grass.light { fill: #7fd65b; }
-.unhealthy .grass { fill: #9fb35a; }
-.unhealthy .grass.light { fill: #b2c06a; }
-.dry .leaf { fill: #c99a45; }
-.dry .leaf.dark { fill: #b0832f; }
-.dry .grass { fill: #c9b162; }
-.dry .grass.light { fill: #d8c27a; }
-.cloud { fill: var(--cloud-c); opacity: 0.92; }
-.st-sky-top { stop-color: var(--sky-top-c); }
-.st-sky-bot { stop-color: var(--sky-bot-c); }
 .st-sea-top { stop-color: var(--sea-top-c); }
 .st-sea-bot { stop-color: var(--sea-bot-c); }
 .st-sea-deep { stop-color: var(--sea-deep-c); }
-/* pollution haze, tinted to match the time of day */
-.st-haze-top { stop-color: #9c8f86; transition: stop-color 1.4s; }
-.st-haze-bot { stop-color: #e9b98a; transition: stop-color 1.4s; }
-:root[data-time="evening"] .st-haze-top { stop-color: #6d5a6e; }
-:root[data-time="evening"] .st-haze-bot { stop-color: #d9917a; }
-:root[data-time="night"] .st-haze-top { stop-color: #161b2a; }
-:root[data-time="night"] .st-haze-bot { stop-color: #3a3d52; }
+.cloud { fill: var(--cloud-c); opacity: 0.92; transition: fill 2s; }
+.rainy [data-k="skyClouds"] { opacity: 0; }   /* the full cloud cover replaces them */
+.waves path { stroke: #fff; stroke-width: 3; fill: none; opacity: 0.55; stroke-linecap: round; }
+.lagoon { fill: #7fe3e6; opacity: 0.22; }
 
+/* ground, trees and bushes: green when the climate is OK, dry and brown when it's too hot */
+.grass { fill: #6cc551; transition: fill 1.5s; }
+.grass.light { fill: #7fd65b; }
+.leaf { fill: #3cb853; transition: fill 1.5s; }
+.leaf.dark { fill: #2e9e46; }
+.bush-d { fill: #3f9e3a; transition: fill 1.5s; } .bush-l { fill: #5cc148; transition: fill 1.5s; } .berry { fill: #ff5a7a; transition: opacity 1s; }
+.clim-1 .grass { fill: #8cc657; } .clim-1 .grass.light { fill: #9cd166; }
+.clim-2 .grass { fill: #b8bd5e; } .clim-2 .grass.light { fill: #c6c56c; }
+.clim-2 .leaf { fill: #8fb243; } .clim-2 .leaf.dark { fill: #7b9b38; } .clim-2 .berry { opacity: 0; }
+.clim-2 .bush-d { fill: #8a9a45; } .clim-2 .bush-l { fill: #a5b25a; }
+.clim-3 .grass { fill: #d1b46a; } .clim-3 .grass.light { fill: #dcc27c; }
+.clim-3 .leaf { fill: #c99a45; } .clim-3 .leaf.dark { fill: #b0832f; }
+.clim-3 .bush-d { fill: #a27c3a; } .clim-3 .bush-l { fill: #c0954a; }
+/* the sea rises over the beach as the city gets hotter */
+.sea-rise { stroke-width: 0; transition: stroke-width 2s ease-in-out; }
 
-.star { fill: #fffbe8; }
-.moon-cut { fill: var(--sky-top-c); }
-/* The sun travels across the sky: rises low on the left, high at midday, sets low on the right */
+.pave { fill: #ddd6c6; }
+.road { fill: #5d6470; }
+.win { fill: #cfefff; transition: fill 2s; }
+:root[data-time="evening"] .win { fill: #ffe9a3; }
+:root[data-time="night"] .win { fill: #ffd85a; }
+:root[data-time="night"] .lights-off .hw, :root[data-time="evening"] .lights-off .hw { fill: #2c3a55; }
+.win-open .hw { fill: #fff; }
+.lampbulb { fill: #fff3a8; }
+.tv-flicker { animation: tv 0.5s steps(2) infinite; }
+@keyframes tv { 50% { fill: #b388ff; } }
+.flag { transform-box: fill-box; transform-origin: 0 50%; animation: flag 1.4s ease-in-out infinite alternate; }
+@keyframes flag { from { transform: skewY(-6deg) scaleX(0.9); } to { transform: skewY(6deg); } }
+
+/* smoke from the power plant, chimneys and cars */
+.smoke { transform-box: fill-box; transform-origin: center; animation: smokeRise 4s linear infinite; opacity: 0; }
+@keyframes smokeRise { 0% { transform: translate(0, 0) scale(0.4); opacity: 0; } 15% { opacity: 0.85; } 100% { transform: translate(-30px, -80px) scale(1.6); opacity: 0; } }
+.exhaust circle { fill: #9aa3ad; opacity: 0; }
+.puffing .exhaust circle { animation: exhaust 0.8s linear infinite; }
+@keyframes exhaust { 0% { transform: translate(0, 0); opacity: 0.8; } 100% { transform: translate(-14px, -10px); opacity: 0; } }
+.cow-gas .smoke { animation-name: gasRise; }
+@keyframes gasRise { 0% { transform: translate(0, 0) scale(0.4); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translate(-6px, -40px) scale(1.4); opacity: 0; } }
+/* electricity flowing along the wire from the power plant */
+.energy circle { fill: #ffd23f; stroke: #ff9f1c; stroke-width: 1; animation: energy 3s linear infinite; }
+.energy.fast circle { animation-duration: 0.8s; }
+.energy.slow circle { animation-duration: 7s; opacity: 0.5; }
+@keyframes energy { from { transform: translateX(0); } to { transform: translateX(-172px); } }
+
+/* moving things */
+.driveL { animation: driveL 15s linear infinite; }
+.driveR { animation: driveR 13s linear infinite; }
+@keyframes driveL { from { transform: translateX(1300px); } to { transform: translateX(-500px); } }
+@keyframes driveR { from { transform: translateX(-500px); } to { transform: translateX(1300px); } }
+.ride { animation: driveR 16s linear infinite; }
+.pedal { animation: bob 0.5s ease-in-out infinite; }
+.trainrun { animation: train 26s linear infinite; }
+.trainrun.back { animation-name: trainBack; }
+@keyframes train { 0% { transform: translateX(-900px); } 55%, 100% { transform: translateX(1700px); } }
+@keyframes trainBack { 0% { transform: translateX(1900px); } 55%, 100% { transform: translateX(-700px); } }
+.vehicle, .buddy { transform-box: view-box; }
+.spin { transform-box: fill-box; transform-origin: center; animation: spin 3.2s linear infinite; }
+.fast-spin { animation-duration: 0.4s; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.balloon { animation: balloon 3s ease-in-out infinite alternate; }
+@keyframes balloon { from { transform: translateY(0) rotate(-2deg); } to { transform: translateY(-5px) rotate(2deg); } }
+.ac-air path { stroke: #bfe9ff; stroke-width: 2.5; fill: none; stroke-linecap: round; animation: acAir 0.9s linear infinite; }
+@keyframes acAir { from { transform: translateX(0); opacity: 1; } to { transform: translateX(12px); opacity: 0; } }
+.bubbles-up circle { animation: bubbleUp 1.8s ease-out infinite; }
+@keyframes bubbleUp { from { transform: translate(0, 0); opacity: 1; } 50% { transform: translate(6px, -36px); } to { transform: translate(-4px, -72px); opacity: 0; } }
+
+/* Bobo goes inside a house, a shop, a car or the train */
+.walker.inside { opacity: 0; }
 
 .glows circle { opacity: 0; transition: opacity 1.2s; pointer-events: none; }
 .glows circle.on { opacity: 1; animation: glowFlicker 2.4s ease-in-out infinite alternate; }
 @keyframes glowFlicker { 50% { opacity: 0.8; } }
-@keyframes twinkle { 50% { opacity: 0.35; } }
 
-/* monkey reactions */
+/* Bobo's reactions */
 .r { opacity: 0; transition: opacity 0.2s; }
 [data-react] .mood { opacity: 0 !important; }
 [data-react="yay"] .eyes, [data-react="scared"] .eyes { opacity: 0; }
@@ -517,9 +549,6 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 @keyframes shiver { 25% { transform: translateX(-1.5px); } 75% { transform: translateX(1.5px); } }
 @keyframes heartUp { 0% { transform: translateY(4px) scale(0.8); opacity: 0.4; } 50% { opacity: 1; } 100% { transform: translateY(-8px) scale(1.1); opacity: 0.2; } }
 @keyframes drip { from { transform: translateY(0); } to { transform: translateY(6px); opacity: 0.3; } }
-.wade-water { opacity: 0; transition: opacity 0.3s 1.75s; }
-.dry .wade-water { opacity: 1; }
-
 
 /* speech bubble */
 .bubble { transition: opacity 0.25s; pointer-events: none; }
@@ -527,46 +556,9 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 .bubble-in { transform-box: fill-box; transform-origin: 50% 100%; }
 .bubble-in.jump { animation: bubblePop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
 @keyframes bubblePop { from { transform: scale(0.4); opacity: 0; } }
-.bird { stroke: #23313f; stroke-width: 3; fill: none; stroke-linecap: round; }
-.waves path { stroke: #fff; stroke-width: 3; fill: none; opacity: 0.55; stroke-linecap: round; }
-.pondwater { fill: #4fc3f7; stroke: #2fa3d8; stroke-width: 2; transition: fill 1s, transform 1s; transform-box: fill-box; transform-origin: center; }
-.pondwater.dirty { fill: #8d7b4a; stroke: #6d5d33; transform: scale(0.65, 0.7); }
-.billow circle { fill: #59606b; opacity: 0.75; }
-.puff circle { fill: #c9ced4; opacity: 0.85; }
 .flies circle { fill: #222; animation: buzz 0.9s linear infinite; }
-/* pirates */
-.ship-rock { animation: shipRock 3.6s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
-@keyframes shipRock { 0%, 100% { transform: rotate(-1.2deg) translateY(0); } 50% { transform: rotate(1.2deg) translateY(4px); } }
-.pirate-walker { transform-box: view-box; }
-.pm-walking .pm-bob { animation: walkbob 0.26s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
-.pm-carry.hide { opacity: 0; }
-.ladder-wrap { transform-box: view-box; transition: transform 0.9s cubic-bezier(.4, 1.4, .6, 1), opacity 0.3s; }
-.ladder-up { transform: rotate(-118deg); opacity: 0; }
-.jolly-roger { transform-box: fill-box; transform-origin: 0 50%; animation: flagWave 1.6s ease-in-out infinite alternate; }
-@keyframes flagWave { from { transform: translate(-16px, -128px) skewY(-4deg) scaleX(0.96); } to { transform: translate(-16px, -128px) skewY(4deg) scaleX(1); } }
-/* the view pans to the right while the pirate ship visits, so the ship fits on screen */
 
-.rainy [data-k="skyClouds"] { opacity: 0; }   /* the full cloud cover replaces them */
-.cloud { transition: fill 2s; }
-.rain-cloud { fill: #77818f; }
-/* storm cloud cover slowly rolling */
-
-/* dead fish and bottles drifting around the sea */
-.wander { animation: wander 36s ease-in-out infinite; }
-@keyframes wander {
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(calc(var(--wx, 1) * 110px), 6px); }
-  50% { transform: translate(calc(var(--wx, 1) * 200px), -4px); }
-  75% { transform: translate(calc(var(--wx, 1) * 90px), 9px); }
-}
-
-
-.swim { animation: swim 34s linear infinite; }
-.bob { animation: bob 2.4s ease-in-out infinite; }
-.float { animation: floaty 3s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-.flicker { transform-box: fill-box; transform-origin: 50% 100%; animation: flicker 0.32s ease-in-out infinite alternate; }
-.drift { animation: drift 110s linear infinite; }
-/* seagulls: fly across, glide up and down, flap their wings */
+/* seagulls, butterflies, bees, birds, crabs */
 .fly { animation: fly 20s linear infinite; }
 .soar { animation: soar 3s ease-in-out infinite; }
 .wing { animation: flap 0.42s ease-in-out infinite alternate; }
@@ -574,14 +566,6 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 @keyframes fly { from { transform: translateX(-600px); } to { transform: translateX(1500px); } }
 @keyframes soar { 50% { transform: translateY(-14px); } }
 @keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(-0.75); } }
-
-/* bushes, grass, critters */
-.bush-d { fill: #3f9e3a; transition: fill 1.5s; }
-.bush-l { fill: #5cc148; transition: fill 1.5s; }
-.berry { fill: #ff5a7a; transition: opacity 1s; }
-.tuft { stroke: #5aa83c; stroke-width: 3; fill: none; stroke-linecap: round; transition: stroke 1.5s; }
-.unhealthy .bush-d { fill: #8a9a45; } .unhealthy .bush-l { fill: #a5b25a; } .unhealthy .berry { opacity: 0; } .unhealthy .tuft { stroke: #a39a55; }
-.dry .bush-d { fill: #a27c3a; } .dry .bush-l { fill: #c0954a; } .dry .tuft { stroke: #b8913f; }
 .flutter { animation: flutter 7s ease-in-out infinite; }
 .bfly .bwing { transform-box: fill-box; transform-origin: center; }
 .bfly { animation: wingbeat 0.25s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
@@ -593,10 +577,9 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 .scuttle { animation: scuttle 5s ease-in-out infinite; }
 @keyframes scuttle { 0%, 100% { transform: translateX(0); } 40% { transform: translateX(22px); } 60% { transform: translateX(22px); } }
 .hop { animation: hop 3.4s ease-in-out infinite; }
-@keyframes hop { 0%, 80%, 100% { transform: translateY(0); } 88% { transform: translateY(-10px); } }
+@keyframes hop { 0%, 80%, 100% { transform: translateY(0); } 88% { transform: translateY(-6px); } }
 
 /* coral reef: colourful when healthy, pale, then white when bleached */
-.lagoon { fill: #7fe3e6; opacity: 0.22; }
 .reef { opacity: 0.88; }
 .coral { transition: color 2s; }
 .c-a { color: #ef7d72; } .c-b { color: #f2a65a; } .c-c { color: #9a7fd1; } .c-d { color: #e9c46a; } .c-e { color: #3fb8a9; }
@@ -607,93 +590,52 @@ svg [data-k="haze"], svg [data-k="murk"] { transition: opacity 1.2s; }
 .coral-bleached .kelp path { stroke: #9b8f5c; }
 .coral-bleached .coral { color: #f1efe8; }
 
-/* the whale */
-.whale-bob { animation: whale 4s ease-in-out infinite; }
-@keyframes whale { 50% { transform: translateY(4px); } }
-.spout { transform-box: fill-box; transform-origin: 50% 100%; animation: spout 4s ease-out infinite; }
-@keyframes spout { 0%, 55% { transform: scale(0.2); opacity: 0; } 65% { transform: scale(1.1); opacity: 1; } 90% { transform: scale(1); opacity: 0.8; } 100% { opacity: 0; } }
+/* bottles drifting around the sea */
+.wander { animation: wander 36s ease-in-out infinite; }
+@keyframes wander {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(calc(var(--wx, 1) * 110px), 6px); }
+  50% { transform: translate(calc(var(--wx, 1) * 200px), -4px); }
+  75% { transform: translate(calc(var(--wx, 1) * 90px), 9px); }
+}
 
-/* solar eclipse */
+/* storms in a hot climate: trees bend in the wind */
+.storming .crown { transform-box: fill-box; transform-origin: 50% 100%; animation: sway 0.9s ease-in-out infinite alternate; }
+.fx-storm .fxh-dark { animation: dark 3.4s ease forwards; }
+.fx-storm .fxh-flash { animation: flash 6s linear infinite; }
+@keyframes dark { to { opacity: 0.35; } }
+@keyframes flash { 0%, 40% { opacity: 0; } 41% { opacity: 0.7; } 43% { opacity: 0; } 45% { opacity: 0.5; } 48%, 100% { opacity: 0; } }
+.heat-lines path { stroke: #fff2c4; stroke-width: 3; fill: none; opacity: 0.8; animation: rise 1.2s linear infinite; }
+@keyframes rise { from { transform: translateY(20px); opacity: 0; } 50% { opacity: 0.8; } to { transform: translateY(-30px); opacity: 0; } }
 
-@keyframes moonPass { 0% { transform: translateX(-120px); opacity: 1; } 40%, 62% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(120px); opacity: 1; } }
-@keyframes corona { 0%, 33% { opacity: 0; } 42%, 60% { opacity: 1; } 70%, 100% { opacity: 0; } }
-.crawl { animation: crawl 4s ease-in infinite; }
-.swimaway { animation: swimaway 4s ease-in forwards; }
-.fishjump { transform-box: fill-box; transform-origin: center; animation: fishjump 2.8s ease-in-out infinite; }
+.swim { animation: swim 34s linear infinite; }
+.bob { animation: bob 2.4s ease-in-out infinite; }
+.float { animation: floaty 3s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.flicker { transform-box: fill-box; transform-origin: 50% 100%; animation: flicker 0.32s ease-in-out infinite alternate; }
+.drift { animation: drift 110s linear infinite; }
 .sparkle { transform-box: fill-box; transform-origin: center; animation: spark 1.2s ease-out forwards; }
-.walker { transition: transform 1s ease-in-out; }
-.walking .bob { animation: walkbob 0.26s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+.walker { transition: transform 1s ease-in-out, opacity 0.3s; }
+.walking .bob, .walking .bd-bob { animation: walkbob 0.26s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
 @keyframes walkbob { from { transform: translateY(0) rotate(-4deg); } to { transform: translateY(-6px) rotate(4deg); } }
 .mjump.chop { animation: chop 0.25s ease-in-out 4; transform-box: fill-box; transform-origin: 50% 100%; }
 @keyframes chop { 50% { transform: rotate(-12deg) translateY(2px); } }
-.splash { transform-box: fill-box; transform-origin: 50% 100%; animation: splash 0.9s ease-out forwards; }
-@keyframes splash { from { transform: scale(0.3); opacity: 1; } to { transform: scale(1.6); opacity: 0; } }
 .mjump.jump { animation: jump 0.7s ease; }
 .mjump.droop { animation: droop 0.9s ease; transform-box: fill-box; transform-origin: 50% 100%; }
-.stormy .sway { transform-box: fill-box; transform-origin: 50% 100%; animation: sway 0.9s ease-in-out infinite alternate; }
-
-.stormy .cloud { fill: #6d7682; transition: fill 1.5s; }
 
 @keyframes swim { from { transform: translateX(-700px); } to { transform: translateX(1500px); } }
 @keyframes bob { 50% { transform: translateY(-4px); } }
 @keyframes floaty { 50% { transform: translateY(3px) rotate(5deg); } }
 @keyframes flicker { to { transform: scale(1.08, 1.2); } }
 @keyframes drift { from { transform: translateX(-900px); } to { transform: translateX(1700px); } }
-@keyframes glide { from { transform: translateX(-60px); } to { transform: translateX(160px) translateY(-10px); } }
 @keyframes buzz { 25% { transform: translate(4px, -3px); } 50% { transform: translate(0, -6px); } 75% { transform: translate(-4px, -3px); } }
-@keyframes fall { from { transform: translateY(-60px); } to { transform: translateY(60px); } }
-@keyframes foam { 50% { transform: scale(1.012, 1.03); opacity: 0.4; } }
-@keyframes crawl { 0% { transform: translate(0, 0); opacity: 1; } 80% { transform: translate(40px, 50px); opacity: 1; } 100% { transform: translate(48px, 58px); opacity: 0; } }
-@keyframes swimaway { to { transform: translateX(170px); opacity: 0; } }
-@keyframes fishjump { 0%, 55%, 100% { transform: translateY(0) rotate(0); opacity: 0; } 62% { opacity: 1; } 75% { transform: translateY(-56px) rotate(-30deg); opacity: 1; } 92% { transform: translateY(-6px) rotate(35deg); opacity: 1; } }
 @keyframes spark { from { transform: scale(0.2) rotate(0); opacity: 1; } to { transform: scale(1.6) rotate(60deg); opacity: 0; } }
 @keyframes jump { 30% { transform: translateY(-24px); } 60% { transform: translateY(0); } 78% { transform: translateY(-7px); } }
 @keyframes droop { 40% { transform: scale(1.04, 0.9); } }
 @keyframes sway { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
 
-/* disasters */
-[data-k="monkey"] { transition: transform 1.4s ease-in-out; }
-/* flood: the monkey climbs to the top of the hill; storm/heatwave: it hides in the cave */
-.flooded [data-k="monkey"] { transform: translate(0, -192px) scale(0.85); }          /* runs up the hill */
-.stormy [data-k="monkey"] { transform: translate(-242px, -72px) scale(0.45); }        /* hides inside the cave */
-.dry [data-k="monkey"] { animation: dive 2s ease-in-out forwards; }                    /* runs and jumps into the cool sea */
-@keyframes dive {
-  0% { transform: translate(0, 0); }
-  45% { transform: translate(76px, 30px); }
-  68% { transform: translate(104px, -28px) rotate(16deg); }
-  88% { transform: translate(128px, 72px) rotate(4deg); }
-  100% { transform: translate(130px, 66px); }
-}
-.scorched { transform-box: fill-box; transform-origin: 50% 100%; animation: scorch 1.6s ease-in var(--delay, 0s) forwards; }
-@keyframes scorch { 40% { opacity: 1; } 100% { opacity: 0; transform: scale(0.85, 0.3); } }
-.wildfire { transform-box: fill-box; transform-origin: 50% 100%; opacity: 0; animation: wildfire 2.2s ease-in-out var(--delay, 0s) forwards; }
-@keyframes wildfire { 0% { opacity: 0; transform: scale(0.3); } 20% { opacity: 1; transform: scale(1.2); } 70% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0.6); } }
-.burned .grass { fill: #6d5a3c; transition: fill 2s 1.2s; }
-.burned .grass.light { fill: #7d6844; }
-.swept {
-  transform-box: fill-box; transform-origin: center;
-  animation: sweep 1.5s cubic-bezier(0.55, 0, 0.85, 0.55) var(--delay, 0s) forwards;
-}
-@keyframes sweep {
-  12% { transform: translate(calc(var(--dx) * 0.01), -4px) rotate(calc(var(--rot) * 0.02)); }
-  100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); }
-}
-.wind path { stroke: #fff; stroke-width: 4; fill: none; opacity: 0; stroke-linecap: round; animation: wind 0.9s linear 3 both; }
-@keyframes wind { 0% { transform: translateX(0); opacity: 0; } 20% { opacity: 0.7; } 100% { transform: translateX(1300px); opacity: 0; } }
-.flood-water { animation: floodRise 3.4s ease-in-out forwards; }
-.flood-wave { animation: wave 3.2s linear forwards; }
-@keyframes floodRise { 0% { transform: translateY(0); } 50% { transform: translateY(-235px); } 100% { transform: translateY(-112px); } }
-@keyframes wave { from { transform: translateX(0); } to { transform: translateX(-2500px); } }
-
-@keyframes heat { 40% { opacity: 0.5; } 100% { opacity: 0.32; } }
-.heat-lines path { stroke: #fff2c4; stroke-width: 3; fill: none; opacity: 0.8; animation: rise 1.2s linear infinite; }
-@keyframes rise { from { transform: translateY(20px); opacity: 0; } 50% { opacity: 0.8; } to { transform: translateY(-30px); opacity: 0; } }
-
-@keyframes dark { to { opacity: 0.5; } }
-.bolt { opacity: 0; animation: flash 3.4s linear forwards; }
-@keyframes flash { 0%, 28% { opacity: 0; } 30% { opacity: 0.9; } 33% { opacity: 0; } 36% { opacity: 0.7; } 40%, 66% { opacity: 0; } 68% { opacity: 0.8; } 72%, 100% { opacity: 0; } }
-.shake > svg { animation: shake 0.5s ease-in-out 5; }
-@keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+/* the thermometer in the HUD */
+.thermo .bar i { background: linear-gradient(90deg, #4fc3f7, #ffb627 45%, #ff5b4a); background-size: 220px 100%; }
+.meter.thermo b { min-width: 3.2em; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001s !important; animation-iteration-count: 1 !important; transition-duration: 0.2s !important; }

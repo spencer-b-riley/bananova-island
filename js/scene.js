@@ -1,46 +1,31 @@
-/* The island: a cartoon SVG drawing that changes with every choice.
+/* Bobo's City: a cartoon SVG city on an island that changes with every choice.
    Scene.create(container) returns an object with:
-     setStats(h, i)        – monkey mood, sky haze, birds, flowers, sea color
-     event(id)             – show the problem (e.g. bottles on the beach)
-     outcome(id, good)     – show what the choice did
-     payoff(id)            – show the reward 2 turns later
-     disaster(type)        – 'flood' | 'heat' | 'storm' animation (returns a Promise)
+     setStats(h, temp)     – Bobo's mood + the climate look (temperature in °C above normal)
+     event(id)             – Bobo goes to where the situation happens (returns a Promise)
+     outcome(id, good)     – plays what the choice does (returns a Promise)
+     payoff(id)            – a reward 2 turns later (solar panels, wind turbines, a bike gang…)
      setTime(t)            – 'morning' | 'day' | 'evening' | 'night'
-     setWeather(w)         – 'rain' | 'clear'
-     react(kind, ms)       – monkey face: 'yay' | 'scared' | 'cold' | 'hot' | 'sad' | 'think'
-     say(text, ms)         – speech bubble above the monkey
-   Every part of the drawing has a data-k="name" so it can be shown/hidden. */
+     setWeather(w)         – 'clear' | 'rain' | 'storm'
+     react(kind, ms)       – Bobo's face: 'yay' | 'scared' | 'cold' | 'hot' | 'sad' | 'think'
+     say(text, ms)         – speech bubble above Bobo
+   Every part of the drawing has a data-k="name" so it can be shown/hidden.
+
+   The city has three rows (back to front): the school + shops, the houses, and the road.
+   Bobo walks between the back and the front through the little side street (x = 232), and is
+   drawn behind the houses while in the back row, so nothing ever overlaps the wrong way. */
 
 const Scene = (() => {
   let uid = 0;
+  const NS = 'http://www.w3.org/2000/svg';
+  const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const sfx = (name) => { if (typeof Sound !== 'undefined') Sound.play(name); };
+  // Further back in the city = smaller (y is where the feet are)
+  const depthK = (y) => clamp(1 - (468 - y) * 0.0028, 0.55, 1.05);
 
   /* ── little drawing helpers ── */
   const item = (k, x, y, inner, cls = 'pop', hidden = true) =>
     `<g transform="translate(${x} ${y})"><g data-k="${k}" class="${cls}${hidden ? ' hide' : ''}">${inner}</g></g>`;
-
-  const flame = (x, y, s = 1) =>
-    `<g transform="translate(${x} ${y}) scale(${s})"><g class="flicker">
-      <path d="M0 10 C-18 -6 -8 -26 0 -46 C8 -26 18 -6 0 10Z" fill="#ff6b1a"/>
-      <path d="M0 8 C-9 -2 -4 -14 0 -26 C4 -14 9 -2 0 8Z" fill="#ffd23f"/></g></g>`;
-
-  const LEAF = 'M0 0 Q28 -24 62 4 Q30 -8 0 0Z';
-  const palm = (n, x, y, s) => `
-    <g transform="translate(${x} ${y}) scale(${s})"><g data-k="palm${n}">
-      <g class="part alive"><g class="sway">
-        <path class="trunk" d="M0 0 C-6 -40 8 -80 -4 -118"/>
-        <path class="ring" d="M-7 -20 h11 M-4 -45 h11 M0 -70 h9 M-2 -95 h8"/>
-        <g transform="translate(-4 -118)">
-          <path class="leaf" d="${LEAF}" transform="rotate(-12)"/>
-          <path class="leaf" d="${LEAF}" transform="rotate(28)"/>
-          <path class="leaf dark" d="${LEAF}" transform="scale(-1 1) rotate(-12)"/>
-          <path class="leaf dark" d="${LEAF}" transform="scale(-1 1) rotate(28)"/>
-          <path class="leaf" d="${LEAF}" transform="rotate(-78)"/>
-          <g class="cocos fade hide"><circle cx="-7" cy="7" r="6.5"/><circle cx="6" cy="8" r="6.5"/><circle cx="0" cy="14" r="6.5"/></g>
-        </g></g></g>
-      <g class="part stump hide"><path d="M-10 0 L-8 -16 L8 -16 L10 0Z" fill="#9b6a3c"/><ellipse cx="0" cy="-16" rx="8" ry="3.5" fill="#e5b77f"/><path d="M-3 -16 a3 1.5 0 1 0 6 0" stroke="#b98a55" fill="none"/></g>
-      <g class="part burnt hide"><path d="M0 0 C-4 -30 4 -60 -2 -88" stroke="#3b2b25" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M-1 -58 l-18 -14 M0 -72 l15 -12" stroke="#3b2b25" stroke-width="4" stroke-linecap="round"/></g>
-      <g class="part flames hide">${flame(-4, -112, 1.3)}${flame(-24, -96, 0.8)}${flame(16, -100, 0.9)}${flame(2, -45, 0.9)}${flame(-14, -10, 0.7)}</g>
-    </g></g>`;
 
   const fish = (color = '#ff8c42') => `
     <ellipse cx="0" cy="0" rx="14" ry="8" fill="${color}"/>
@@ -48,23 +33,14 @@ const Scene = (() => {
     <path d="M-2 -7 Q2 -13 6 -7" fill="${color}" stroke="#00000022"/>
     <circle cx="7" cy="-2" r="2.6" fill="#fff"/><circle cx="7.6" cy="-2" r="1.4" fill="#23313f"/>`;
 
-  // A sick fish, belly-up with cartoon X eyes (kid friendly!)
-  const deadFish = (x, y, r, sc = 1) => `
-    <g transform="translate(${x} ${y}) rotate(${r}) scale(${sc})"><g class="float">
-      <ellipse cx="0" cy="0" rx="15" ry="8" fill="#a9b8a3"/>
-      <path d="M-13 0 L-25 -8 L-23 0 L-25 8Z" fill="#a9b8a3"/>
-      <ellipse cx="0" cy="3" rx="10" ry="4" fill="#d6e0cf"/>
-      <path d="M4 -5 l6 6 M10 -5 l-6 6" stroke="#23313f" stroke-width="2.2" stroke-linecap="round"/>
-      <path d="M12 3 q2 2 0 4" stroke="#23313f" stroke-width="1.5" fill="none"/></g></g>`;
-
   const bottle = (x, y, r, sc = 1) => `
     <g transform="translate(${x} ${y}) rotate(${r}) scale(${sc})">
       <rect x="-5" y="-16" width="10" height="16" rx="3" fill="#a8e0f5" stroke="#4fb0d8" stroke-width="1.5"/>
       <rect x="-2.5" y="-21" width="5" height="5" rx="1" fill="#2f80ed"/>
       <rect x="-5" y="-11" width="10" height="4" fill="#ff6fa8" opacity=".8"/></g>`;
 
-  const turtle = (x, y, s = 1, flip = false) => `
-    <g transform="translate(${x} ${y}) scale(${flip ? -s : s} ${s})">
+  const turtle = (x, y, s = 1) => `
+    <g transform="translate(${x} ${y}) scale(${s})">
       <ellipse cx="-11" cy="5" rx="5" ry="3" fill="#8fd16a"/><ellipse cx="9" cy="6" rx="5" ry="3" fill="#8fd16a"/>
       <ellipse cx="17" cy="-2" rx="6" ry="5" fill="#8fd16a"/><circle cx="19" cy="-3" r="1.3" fill="#23313f"/>
       <ellipse cx="0" cy="0" rx="16" ry="10" fill="#4f9a3a"/>
@@ -76,17 +52,11 @@ const Scene = (() => {
       <circle cx="0" cy="-15" r="3" fill="${c}"/><circle cx="0" cy="-9.5" r="3" fill="${c}"/>
       <circle cx="0" cy="-12" r="2" fill="#ffd23f"/></g>`;
 
-  const fruit = (x, y, r, c) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/><circle cx="${x - r / 3}" cy="${y - r / 3}" r="${r / 3}" fill="#fff" opacity=".45"/>`;
-
   const flies = (x, y) => `<g class="flies" transform="translate(${x} ${y})">
-      <circle cx="0" cy="0" r="1.8"/><circle cx="10" cy="-6" r="1.8" style="animation-delay:-.3s"/><circle cx="-8" cy="-10" r="1.8" style="animation-delay:-.6s"/></g>`;
+      <circle cx="0" cy="0" r="1.8"/><circle cx="10" cy="-6" r="1.8" style="animation-delay:-.3s"/><circle cx="-8" cy="-10" r="1.8" style="animation-delay:-.6s"/><circle cx="4" cy="-14" r="1.6" style="animation-delay:-.45s"/></g>`;
 
-  const bananas = `<path d="M0 0 Q10 10 24 -2 Q10 5 0 0Z" fill="#ffd93b" stroke="#c9a227" stroke-width="1.2"/>`;
-
-  // simple repeatable "random" so every screen draws the same scene
+  // simple repeatable "random" so every screen draws the same stars
   const rnd = (n) => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };
-
-  // Night stars across the whole sky
   const STARS = `<svg viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">${Array.from({ length: 70 }, (_, k) =>
     `<circle cx="${(rnd(k + 1) * 1200).toFixed(0)}" cy="${(rnd(k + 99) * 290).toFixed(0)}" r="${k % 3 ? 1.6 : 2.4}" fill="#fffbe8"/>`).join('')}</svg>`;
 
@@ -99,38 +69,38 @@ const Scene = (() => {
   const gullFlight = (k, y, sc, dur, delay) =>
     `<g data-k="birds${k}" class="fade"><g class="fly" style="animation-duration:${dur}s;animation-delay:${delay}s"><g transform="translate(0 ${y}) scale(${sc})"><g class="soar">${gull}</g></g></g></g>`;
 
-  // Bushes and grass tufts make the island dense; they wilt or burn when the island is sick
-  const bush = (x, y, sc) => `<g transform="translate(${x} ${y}) scale(${sc})"><g class="veg">
+  const tree = (x, y, sc = 1) => `<g transform="translate(${x} ${y}) scale(${sc})"><g class="tree">
+      <path d="M-4 0 L-3 -30 L3 -30 L4 0Z" fill="#9b6a3c"/>
+      <g class="crown"><circle cx="0" cy="-44" r="18" class="leaf"/><circle cx="-13" cy="-33" r="12" class="leaf dark"/><circle cx="13" cy="-34" r="13" class="leaf dark"/>
+      <circle cx="-6" cy="-50" r="6" fill="#fff" opacity=".2"/></g></g></g>`;
+  const bush = (x, y, sc) => `<g transform="translate(${x} ${y}) scale(${sc})">
       <circle cx="-12" cy="-8" r="11" class="bush-d"/><circle cx="11" cy="-9" r="12" class="bush-d"/><circle cx="0" cy="-16" r="13" class="bush-l"/>
-      <circle cx="-6" cy="-20" r="3.5" fill="#fff" opacity=".22"/><circle cx="-10" cy="-12" r="2" class="berry"/><circle cx="8" cy="-17" r="2" class="berry"/><circle cx="12" cy="-8" r="2" class="berry"/></g></g>`;
-  const tuft = (x, y, sc = 1) => `<g transform="translate(${x} ${y}) scale(${sc})"><g class="veg"><path class="tuft" d="M-8 0 q2 -10 -3 -16 M0 0 q0 -12 2 -19 M8 0 q-2 -10 5 -15"/></g></g>`;
+      <circle cx="-10" cy="-12" r="2" class="berry"/><circle cx="8" cy="-17" r="2" class="berry"/></g>`;
+  // street lamp; flip = the arm points left
+  const lamp = (x, y, flip) => `<g transform="translate(${x} ${y}) scale(${flip ? -1 : 1} 1)"><path d="M0 0 V-44 Q0 -52 8 -52 H11" stroke="#4a5563" stroke-width="3" fill="none"/>
+      <rect x="8" y="-55" width="11" height="5" rx="2" fill="#4a5563"/><rect x="9.5" y="-51" width="8" height="3" rx="1" class="lampbulb"/></g>`;
 
-  // Coral reef in the shallow water; it bleaches when the island gets sick
-  // Realistic reef pieces. currentColor = coral colour (changes when it bleaches).
+  // Coral reef in the sea in front of the city; it bleaches when the sea gets too warm
   const CORAL = {
     staghorn: `<path d="M0 0 C-1 -10 -9 -15 -13 -27 M0 0 C1 -12 4 -21 2 -35 M0 -5 C6 -11 12 -16 16 -27 M2 -22 C-2 -26 -5 -31 -6 -37 M-7 -17 C-13 -19 -17 -21 -21 -23 M15 -24 C19 -27 21 -30 22 -34"
         stroke="currentColor" stroke-width="5.5" stroke-linecap="round" fill="none"/>
-      <g fill="#ffffff" opacity=".35"><circle cx="-13" cy="-27" r="2.6"/><circle cx="2" cy="-35" r="2.6"/><circle cx="16" cy="-27" r="2.6"/><circle cx="-6" cy="-37" r="2.3"/><circle cx="-21" cy="-23" r="2.3"/><circle cx="22" cy="-34" r="2.3"/></g>`,
+      <g fill="#ffffff" opacity=".35"><circle cx="-13" cy="-27" r="2.6"/><circle cx="2" cy="-35" r="2.6"/><circle cx="16" cy="-27" r="2.6"/><circle cx="-6" cy="-37" r="2.3"/></g>`,
     brain: `<path d="M-19 0 Q-20 -21 0 -22 Q20 -21 19 0Z" fill="currentColor"/>
-      <path d="M-14 -3 q3 -7 6 -2 t6 -3 t6 1 t5 -2 M-11 -10 q3 -5 6 -1 t6 -2 t6 0 M-6 -16 q3 -3 6 0 t5 -1" stroke="#00000030" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-      <path d="M-15 -12 Q-10 -19 -2 -20" stroke="#ffffff50" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+      <path d="M-14 -3 q3 -7 6 -2 t6 -3 t6 1 t5 -2 M-11 -10 q3 -5 6 -1 t6 -2 t6 0 M-6 -16 q3 -3 6 0 t5 -1" stroke="#00000030" stroke-width="1.6" fill="none" stroke-linecap="round"/>`,
     fan: `<path d="M-1 0 L0 -7 C-20 -9 -24 -28 -12 -38 C-4 -44 6 -44 13 -38 C24 -28 20 -9 1 -7 L1 0Z" fill="currentColor" opacity=".9"/>
-      <path d="M0 -7 C-6 -18 -12 -26 -12 -36 M0 -7 C0 -20 0 -30 1 -42 M0 -7 C6 -18 12 -26 13 -36 M-17 -20 Q0 -26 17 -20 M-14 -30 Q0 -35 15 -30" stroke="#00000028" stroke-width="1.3" fill="none"/>`,
-    tube: `<rect x="-14" y="-18" width="8" height="18" rx="3" fill="currentColor"/><rect x="-4" y="-28" width="8" height="28" rx="3" fill="currentColor"/><rect x="6" y="-14" width="8" height="14" rx="3" fill="currentColor"/>
-      <ellipse cx="-10" cy="-18" rx="4" ry="1.8" fill="#00000035"/><ellipse cx="0" cy="-28" rx="4" ry="1.8" fill="#00000035"/><ellipse cx="10" cy="-14" rx="4" ry="1.8" fill="#00000035"/>`,
+      <path d="M0 -7 C-6 -18 -12 -26 -12 -36 M0 -7 C0 -20 0 -30 1 -42 M0 -7 C6 -18 12 -26 13 -36" stroke="#00000028" stroke-width="1.3" fill="none"/>`,
+    tube: `<rect x="-14" y="-18" width="8" height="18" rx="3" fill="currentColor"/><rect x="-4" y="-28" width="8" height="28" rx="3" fill="currentColor"/><rect x="6" y="-14" width="8" height="14" rx="3" fill="currentColor"/>`,
     anemone: `<ellipse cx="0" cy="-3" rx="9" ry="4" fill="currentColor"/>
-      <g class="sway-soft" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"><path d="M-7 -4 q-6 -8 -4 -15 M-3 -5 q-3 -9 0 -17 M2 -5 q3 -9 1 -17 M6 -4 q6 -8 4 -15 M0 -5 q0 -8 0 -19"/></g>`,
+      <g class="sway-soft" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"><path d="M-7 -4 q-6 -8 -4 -15 M-3 -5 q-3 -9 0 -17 M2 -5 q3 -9 1 -17 M6 -4 q6 -8 4 -15"/></g>`,
   };
-  const coral = (x, y, type, col, sc = 1) =>
-    `<g transform="translate(${x} ${y}) scale(${sc})"><g class="coral c-${col}">${CORAL[type]}</g></g>`;
+  const coral = (x, y, type, col, sc = 1) => `<g transform="translate(${x} ${y}) scale(${sc})"><g class="coral c-${col}">${CORAL[type]}</g></g>`;
   const kelp = (x, y, h, d) => `<g transform="translate(${x} ${y})"><g class="kelp" style="animation-delay:${d}s">
       <path d="M0 0 C-6 ${-h * 0.3} 6 ${-h * 0.6} 0 ${-h} M4 0 C10 ${-h * 0.3} -2 ${-h * 0.55} 6 ${-h * 0.8}" stroke="#3f9b5f" stroke-width="4" fill="none" stroke-linecap="round"/></g></g>`;
-  const rock = (x, y, w) => `<ellipse cx="${x}" cy="${y}" rx="${w}" ry="${w * 0.32}" fill="#5b6470" opacity=".85"/><ellipse cx="${x - w * 0.25}" cy="${y - w * 0.12}" rx="${w * 0.45}" ry="${w * 0.15}" fill="#7a8592" opacity=".7"/>`;
-  // A reef cluster: rock + a few corals + seaweed
+  const rock = (x, y, w) => `<ellipse cx="${x}" cy="${y}" rx="${w}" ry="${w * 0.32}" fill="#5b6470" opacity=".85"/>`;
   const reef = (x, y, sc, a, b, c, ca, cb, cc) => `<g transform="translate(${x} ${y}) scale(${sc})">${rock(0, 2, 34)}
       ${kelp(-30, 4, 46, (x % 7) * -0.3)}${coral(-14, 0, a, ca)}${coral(14, 2, b, cb, 0.9)}${coral(0, 4, c, cc, 0.75)}</g>`;
 
-  // Little island critters
+  // Critters
   const butterfly = (x, y, col, d) => `<g transform="translate(${x} ${y})"><g class="flutter" style="animation-delay:${d}s"><g class="bfly">
       <ellipse class="bwing" cx="-5" cy="-3" rx="6" ry="4.5" fill="${col}"/><ellipse class="bwing" cx="5" cy="-3" rx="6" ry="4.5" fill="${col}"/>
       <ellipse class="bwing" cx="-4" cy="3" rx="4" ry="3" fill="${col}"/><ellipse class="bwing" cx="4" cy="3" rx="4" ry="3" fill="${col}"/>
@@ -142,180 +112,273 @@ const Scene = (() => {
       <path d="M-7 2 l-5 4 M-4 3 l-3 5 M7 2 l5 4 M4 3 l3 5" stroke="#e8573f" stroke-width="2" stroke-linecap="round"/>
       <ellipse cx="0" cy="0" rx="9" ry="5.5" fill="#ff6b4a"/><path d="M-4 -4 v-5 M4 -4 v-5" stroke="#e8573f" stroke-width="1.6"/><circle cx="-4" cy="-9" r="1.8" fill="#23313f"/><circle cx="4" cy="-9" r="1.8" fill="#23313f"/>
       <circle cx="-12" cy="-3" r="3.5" fill="#ff6b4a"/><circle cx="12" cy="-3" r="3.5" fill="#ff6b4a"/></g></g>`;
-  const frog = `<g class="hop"><ellipse cx="0" cy="-5" rx="9" ry="6" fill="#4caf50"/><circle cx="-4" cy="-11" r="3.4" fill="#4caf50"/><circle cx="4" cy="-11" r="3.4" fill="#4caf50"/>
-      <circle cx="-4" cy="-11.5" r="1.6" fill="#23313f"/><circle cx="4" cy="-11.5" r="1.6" fill="#23313f"/><path d="M-4 -4 q4 3 8 0" stroke="#2e7d32" stroke-width="1.4" fill="none"/>
-      <ellipse cx="-8" cy="0" rx="4" ry="2" fill="#43a047"/><ellipse cx="8" cy="0" rx="4" ry="2" fill="#43a047"/></g>`;
+  const songbird = (x, y, c, d) => `<g transform="translate(${x} ${y})"><g class="hop" style="animation-delay:${d}s">
+      <ellipse cx="0" cy="-5" rx="6" ry="4.6" fill="${c}"/><circle cx="5" cy="-9" r="3.4" fill="${c}"/><path d="M8 -9.5 l3.5 1 l-3.5 1Z" fill="#ffb627"/>
+      <circle cx="6" cy="-10" r=".9" fill="#23313f"/><path d="M-5 -6 l-6 -3 l1 5Z" fill="${c}"/><path d="M-1 -1 v2 M2 -1 v2" stroke="#8b5a2b" stroke-width="1"/></g></g>`;
+  const cow = (x, y, flip) => `<g transform="translate(${x} ${y}) scale(${flip ? -1 : 1} 1)">
+      <rect x="-16" y="-24" width="30" height="16" rx="7" fill="#fff" stroke="#23313f" stroke-width="1.5"/>
+      <path d="M-8 -24 q4 6 -2 10 q-6 -2 -4 -10Z M6 -21 q5 2 3 8 q-6 0 -3 -8Z" fill="#23313f"/>
+      <path d="M-12 -9 v9 M-6 -9 v9 M6 -9 v9 M11 -9 v9" stroke="#23313f" stroke-width="2.6"/>
+      <rect x="11" y="-31" width="13" height="13" rx="4" fill="#fff" stroke="#23313f" stroke-width="1.5"/><ellipse cx="21" cy="-21" rx="5" ry="3.6" fill="#ffb3c7"/>
+      <circle cx="16" cy="-27" r="1.4" fill="#23313f"/><path d="M13 -31 l-3 -4 M22 -31 l3 -4" stroke="#c9a227" stroke-width="2"/>
+      <path d="M-16 -20 q-6 2 -5 10" stroke="#23313f" stroke-width="1.5" fill="none"/></g>`;
 
-  // Where sick (dead) fish appear, one more for every harmful choice
-  const DEAD_SLOTS = [[100, 470, 170, 1.6], [640, 488, 176, 1.5], [215, 486, 192, 1.5], [40, 446, 185, 1.3], [700, 470, 165, 1.4],
-    [330, 494, 180, 1.3], [760, 452, 190, 1.2], [150, 496, 175, 1.2], [440, 497, 188, 1.25], [-80, 470, 178, 1.4], [880, 480, 185, 1.4]];
+  const solar = (w, n) => `<g class="solar">${Array.from({ length: n }, (_, k) =>
+    `<rect x="${k * (w + 2)}" y="0" width="${w}" height="10" rx="1" fill="#2f5d9e" stroke="#9cc3ff" stroke-width="1"/><path d="M${k * (w + 2) + w / 2} 0 V10 M${k * (w + 2)} 5 H${k * (w + 2) + w}" stroke="#9cc3ff" stroke-width=".8"/>`).join('')}</g>`;
+
+  const turbine = (x, y, sc, d) => `<g transform="translate(${x} ${y}) scale(${sc})"><path d="M-3 0 L-1.5 -64 L1.5 -64 L3 0Z" fill="#eef2f5" stroke="#c8d0d8" stroke-width="1"/>
+      <g transform="translate(0 -64)"><g class="spin" style="animation-delay:${d}s">${[0, 120, 240].map((a) =>
+        `<path transform="rotate(${a})" d="M-2.5 0 Q-4.5 -16 0 -32 Q3.5 -16 2.5 0Z" fill="#fff" stroke="#c8d0d8" stroke-width="1"/>`).join('')}</g><circle r="3.6" fill="#dfe5ea"/></g></g>`;
+
+  // a puff of smoke that rises and fades (used by cars, chimneys and the power plant)
+  const puffs = (x, y, n, r, col, dur = 4) => Array.from({ length: n }, (_, k) =>
+    `<circle class="smoke" cx="${x}" cy="${y}" r="${r}" fill="${col}" style="animation-duration:${dur}s;animation-delay:${(-k * dur / n).toFixed(2)}s"/>`).join('');
+
+  /* ── vehicles (side view, facing right; the origin is where the wheels touch the ground) ── */
+  const exhaust = (x) => `<g class="exhaust"><circle cx="${x}" cy="-7" r="5"/><circle cx="${x - 8}" cy="-13" r="7" style="animation-delay:-.27s"/><circle cx="${x - 18}" cy="-19" r="9" style="animation-delay:-.54s"/></g>`;
+  const wheel = (x, r = 7) => `<circle cx="${x}" cy="${-r + 2}" r="${r}" fill="#2b2f36"/><circle cx="${x}" cy="${-r + 2}" r="${r * 0.42}" fill="#b8c0c8"/>`;
+  const car = (c) => `${exhaust(-38)}
+      <path d="M-32 -8 Q-32 -19 -24 -19 L-16 -19 L-8 -31 L12 -31 L22 -19 L28 -19 Q34 -19 34 -11 L34 -6 L-32 -6Z" fill="${c}"/>
+      <path d="M-5 -28 L3 -28 L3 -20 L-11 -20Z M7 -28 L11 -28 L18 -20 L7 -20Z" fill="#cfefff"/>
+      <rect x="27" y="-16" width="6" height="4" rx="1" fill="#fff3a8"/><rect x="-32" y="-16" width="4" height="4" fill="#ff5b4a"/>
+      ${wheel(-17)}${wheel(17)}`;
+  const truck = `${exhaust(-52)}
+      <rect x="-48" y="-50" width="64" height="42" rx="3" fill="#f7f7f7" stroke="#c8cdd3" stroke-width="2"/>
+      <path d="M-38 -36 h44 M-38 -26 h44" stroke="#ffb627" stroke-width="5"/>
+      <path d="M17 -38 L34 -38 L45 -23 L45 -8 L17 -8Z" fill="#2f80ed"/><path d="M22 -34 L32 -34 L40 -23 L22 -23Z" fill="#cfefff"/>
+      ${wheel(-32, 8)}${wheel(-12, 8)}${wheel(30, 8)}`;
+  const carriage = (x) => `<rect x="${x}" y="-40" width="62" height="34" rx="6" fill="#f4f6f8" stroke="#c8cdd3" stroke-width="1.5"/>
+      <rect x="${x}" y="-17" width="62" height="5" fill="#2f80ed"/>
+      <rect class="win" x="${x + 6}" y="-34" width="14" height="11" rx="2"/><rect class="win" x="${x + 42}" y="-34" width="14" height="11" rx="2"/>
+      <rect x="${x + 25}" y="-36" width="12" height="28" rx="2" fill="#9aa5b1"/>${wheel(x + 12, 5)}${wheel(x + 50, 5)}`;
+  // front of the train at x = 0; a carriage door is at x = -98
+  const TRAIN = `${carriage(-194)}${carriage(-129)}
+      <path d="M-64 -42 H-12 Q6 -42 8 -24 L8 -6 H-64Z" fill="#e63946"/><path d="M-64 -17 H8" stroke="#fff" stroke-width="4"/>
+      <path d="M-16 -36 H-4 Q3 -36 4 -26 H-16Z" fill="#cfefff"/><rect class="win" x="-56" y="-35" width="12" height="11" rx="2"/><rect class="win" x="-38" y="-35" width="12" height="11" rx="2"/>
+      <circle cx="6" cy="-12" r="2.6" fill="#fff3a8"/>${wheel(-50, 5)}${wheel(-26, 5)}${wheel(-6, 5)}`;
+  const SHIP = `<g transform="scale(.8)">${puffs(-36, -60, 3, 7, '#8a8f98', 3.5)}
+      <path d="M-70 -14 H64 L52 4 H-62Z" fill="#c0392b"/><path d="M-70 -14 H64 L62 -8 H-68Z" fill="#23313f"/>
+      <rect x="-60" y="-30" width="22" height="16" fill="#2f80ed"/><rect x="-36" y="-30" width="22" height="16" fill="#ffb627"/><rect x="-12" y="-30" width="22" height="16" fill="#2fb35a"/><rect x="12" y="-30" width="22" height="16" fill="#e63946"/>
+      <rect x="-48" y="-46" width="22" height="16" fill="#e63946"/><rect x="-24" y="-46" width="22" height="16" fill="#2f80ed"/><rect x="0" y="-46" width="22" height="16" fill="#ffb627"/>
+      <rect x="38" y="-38" width="18" height="24" fill="#f4f6f8"/><rect x="-40" y="-60" width="8" height="14" fill="#555b63"/></g>`;
+
+  // A friend monkey (different fur and shirt). hat = party hat.
+  const buddy = (fur, shirt, hat) => `<g class="bd-bob">
+      <path d="M16 12 C46 14 52 -18 34 -26 C26 -28 24 -18 32 -16" stroke="${fur}" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <ellipse cx="-11" cy="24" rx="9" ry="6" fill="${fur}"/><ellipse cx="11" cy="24" rx="9" ry="6" fill="${fur}"/>
+      <ellipse cx="0" cy="0" rx="22" ry="26" fill="${shirt}"/><path d="M-12 -18 Q0 -10 12 -18" stroke="#fff" stroke-width="3" fill="none" opacity=".6"/>
+      <path d="M-18 -8 Q-34 6 -24 20 M18 -8 Q34 6 24 20" stroke="${shirt}" stroke-width="9" fill="none" stroke-linecap="round"/>
+      <circle cx="-24" cy="21" r="5" fill="${fur}"/><circle cx="24" cy="21" r="5" fill="${fur}"/>
+      <g transform="translate(0 -40)">
+        <circle cx="-26" cy="0" r="10" fill="${fur}"/><circle cx="-26" cy="0" r="6" fill="#f2d4b5"/><circle cx="26" cy="0" r="10" fill="${fur}"/><circle cx="26" cy="0" r="6" fill="#f2d4b5"/>
+        <circle cx="0" cy="0" r="26" fill="${fur}"/><ellipse cx="0" cy="8" rx="18" ry="14" fill="#f2d4b5"/>
+        <circle cx="-8" cy="-4" r="9" fill="#f2d4b5"/><circle cx="8" cy="-4" r="9" fill="#f2d4b5"/>
+        <circle cx="-7" cy="-4" r="3.6" fill="#23313f"/><circle cx="7" cy="-4" r="3.6" fill="#23313f"/><circle cx="-6" cy="-5.5" r="1.2" fill="#fff"/><circle cx="8" cy="-5.5" r="1.2" fill="#fff"/>
+        <path d="M-9 10 Q0 21 9 10 Z" fill="#5a2d0c"/><circle cx="-15" cy="6" r="4" fill="#ff9aa2" opacity=".6"/><circle cx="15" cy="6" r="4" fill="#ff9aa2" opacity=".6"/>
+        ${hat ? `<path d="M-15 -20 L5 -66 L17 -16Z" fill="${hat}"/><path d="M-9 -32 L13 -28 M-3 -46 L10 -43" stroke="#fff" stroke-width="3"/><circle cx="5" cy="-66" r="5" fill="#ffd23f"/>` : ''}
+      </g></g>`;
+  // A bike under a monkey (monkey drawing units: body centre at 0, feet at +30)
+  const BIKE = `<circle cx="-28" cy="16" r="14" fill="none" stroke="#23313f" stroke-width="4"/><circle cx="28" cy="16" r="14" fill="none" stroke="#23313f" stroke-width="4"/>
+      <path d="M-28 16 L-6 16 L10 -2 L28 16 M-6 16 L-12 -2 M-19 -4 H-5 M10 -2 L14 -13 L23 -13" stroke="#ff5b4a" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const MONKEY_FIT = 'translate(0 -18.6) scale(.62)';    // Bobo-sized, standing on the origin
+  const rider = (fur, shirt, d, dur) => `<g class="ride" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 466) scale(.93)"><g transform="${MONKEY_FIT}"><g class="pedal">${BIKE}${buddy(fur, shirt)}</g></g></g></g>`;
+
+  // cars looping along the road (lane A goes left, lane B goes right)
+  const laneCar = (lane, c, dur, d) => lane === 'A'
+    ? `<g class="driveL" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 448) scale(-.92 .92)">${car(c)}</g></g>`
+    : `<g class="driveR" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 457) scale(.96)">${car(c)}</g></g>`;
 
   function buildSVG(u) {
+    const piers = (y, h) => [-660, -560, -460, -360, -260, -160, -60, 860, 960, 1060, 1160, 1260, 1360, 1460].map((x) =>
+      `<rect x="${x}" y="${y}" width="12" height="${h}" fill="#9aa5b1"/>`).join('');
     return `
-<svg class="scene-main" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Island" xmlns="http://www.w3.org/2000/svg">
+<svg class="scene-main" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Bobo's City" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="${u}sky" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="285"><stop offset="0" class="st-sky-top"/><stop offset="1" class="st-sky-bot"/></linearGradient>
-    <linearGradient id="${u}haze" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="285"><stop offset="0" class="st-haze-top"/><stop offset="1" class="st-haze-bot"/></linearGradient>
     <linearGradient id="${u}sea" gradientUnits="userSpaceOnUse" x1="0" y1="285" x2="0" y2="900"><stop offset="0" class="st-sea-top"/><stop offset=".35" class="st-sea-bot"/><stop offset="1" class="st-sea-deep"/></linearGradient>
-    <radialGradient id="${u}sun"><stop offset="0" stop-color="#fff6b0"/><stop offset="1" stop-color="#ffd23f"/></radialGradient>
   </defs>
   <g class="camera">
 
   <g data-k="skyClouds"></g>
-
-  ${item('darkSmoke', 0, 0, `<g class="billow">
-      <circle cx="690" cy="330" r="14"/><circle cx="682" cy="290" r="20"/><circle cx="672" cy="245" r="26"/>
-      <circle cx="660" cy="195" r="32"/><circle cx="640" cy="140" r="40"/><circle cx="600" cy="110" r="44"/><circle cx="690" cy="120" r="38"/><circle cx="545" cy="105" r="34"/></g>`, 'fade')}
-
   ${gullFlight(1, 110, 1.4, 19, -4)}${gullFlight(2, 78, 1.1, 25, -15)}${gullFlight(3, 150, 1.2, 22, -9)}
 
-  <g class="waves"><path d="M20 310 q15 -8 30 0 q15 8 30 0 M640 300 q15 -8 30 0 q15 8 30 0 M300 296 q15 -6 30 0 q15 6 30 0 M-260 320 q15 -8 30 0 q15 8 30 0 M-520 300 q15 -6 30 0 q15 6 30 0 M900 318 q15 -8 30 0 q15 8 30 0 M1160 300 q15 -6 30 0 q15 6 30 0 M-120 460 q15 -8 30 0 q15 8 30 0 M960 470 q15 -8 30 0 q15 8 30 0"/></g>
+  <g class="waves"><path d="M20 312 q15 -8 30 0 q15 8 30 0 M660 304 q15 -8 30 0 q15 8 30 0 M-260 320 q15 -8 30 0 q15 8 30 0 M-520 300 q15 -6 30 0 q15 6 30 0 M900 318 q15 -8 30 0 q15 8 30 0 M1160 300 q15 -6 30 0 q15 6 30 0 M-120 470 q15 -8 30 0 q15 8 30 0 M960 480 q15 -8 30 0 q15 8 30 0"/></g>
+  <g data-k="seaFx"></g>
 
-  <g data-k="land">
-  <g transform="translate(716 306) scale(.85)"><g data-k="whale" class="fade hide"><g class="whale-bob">
-    <path d="M-34 0 L-50 -16 L-45 0 L-52 10Z" fill="#4a6fa5"/>
-    <path d="M-36 6 Q-32 -18 0 -20 Q30 -20 36 2 Q20 10 -36 6Z" fill="#4a6fa5"/>
-    <path d="M-26 4 Q0 10 32 2" stroke="#9cc0ea" stroke-width="3" fill="none"/>
-    <circle cx="20" cy="-7" r="2.3" fill="#23313f"/><circle cx="20.8" cy="-7.7" r=".8" fill="#fff"/><path d="M24 -1 q6 3 10 -1" stroke="#23313f" stroke-width="1.6" fill="none"/>
-    <circle cx="14" cy="-2" r="3" fill="#ff9aa2" opacity=".6"/>
-    <g class="spout"><path d="M6 -20 q-6 -14 -14 -16 M6 -20 v-20 M6 -20 q6 -14 14 -16" stroke="#dff4ff" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-      <circle cx="-9" cy="-37" r="3.2" fill="#dff4ff"/><circle cx="21" cy="-37" r="3.2" fill="#dff4ff"/><circle cx="6" cy="-44" r="3.2" fill="#dff4ff"/></g>
-    <ellipse cx="0" cy="8" rx="46" ry="4.5" fill="#e6f9ff" opacity=".75"/></g></g></g>
-  <ellipse class="lagoon" cx="400" cy="408" rx="560" ry="132"/>
-  <ellipse class="lagoon" cx="400" cy="396" rx="450" ry="108"/>
+  <!-- offshore wind turbines (a reward) -->
+  ${item('turbines', 0, 0, `${turbine(36, 300, 1, 0)}${turbine(82, 296, 0.85, -0.7)}${turbine(122, 293, 0.7, -1.3)}`, 'fade')}
+
+  <ellipse class="lagoon" cx="400" cy="420" rx="560" ry="132"/>
   <g data-k="farFish" class="fade"><g class="swim" style="animation-duration:60s;animation-delay:-10s"><g transform="translate(0 312) scale(.3)">${fish('#ffd23f')}</g></g>
-    <g class="swim" style="animation-duration:70s;animation-delay:-42s"><g transform="translate(0 300) scale(.26)">${fish('#ff8c42')}</g></g>
     <g class="swim" style="animation-duration:66s;animation-delay:-25s"><g transform="translate(0 326) scale(.34)">${fish('#7ad3ff')}</g></g></g>
-  <g data-k="shipLayer"></g>
-  <ellipse cx="400" cy="372" rx="366" ry="100" fill="none" stroke="#e6f9ff" stroke-width="5" opacity=".7" class="foam"/>
-  <ellipse cx="400" cy="368" rx="352" ry="94" fill="#ecc673"/>
-  <ellipse cx="400" cy="362" rx="338" ry="84" fill="#fbe3a2"/>
-  <path class="grass" d="M190 318 Q260 228 400 226 Q540 228 610 318Z"/>
-  <ellipse class="grass" cx="400" cy="318" rx="245" ry="52"/>
-  <ellipse class="grass light" cx="400" cy="312" rx="228" ry="42"/>
 
-  ${tuft(84, 376)}${tuft(742, 366)}${tuft(272, 438, 0.9)}${tuft(712, 384, 0.8)}
-  <g data-k="flowers" class="fade">${flower(452, 352, '#b388ff')}${flower(614, 326, '#ffd23f')}${flower(484, 362, '#ff6fa8')}</g>
+  <!-- bridges: the train and the road go across the sea to the other towns -->
+  ${piers(320, 50)}${piers(458, 70)}
 
-  <g transform="translate(566 342)"><g data-k="pond">
-    <ellipse class="pondwater" data-k="pondWater" cx="0" cy="0" rx="40" ry="11"/>
-    <path d="M-20 -3 q8 -3 16 0" stroke="#fff" stroke-width="2" fill="none" opacity=".7"/>
-    <g data-k="bubbles" class="fade hide"><circle cx="-12" cy="-6" r="4" fill="#fff" opacity=".9"/><circle cx="-2" cy="-9" r="3" fill="#fff" opacity=".9"/><circle cx="12" cy="-6" r="5" fill="#fff" opacity=".9"/></g>
-  </g></g>
+  <!-- the island -->
+  <path class="foam" d="M30 298 C160 284 640 284 770 298 C806 304 812 358 808 422 C804 476 782 490 744 490 L56 490 C18 490 -4 476 -8 422 C-12 358 -6 304 30 298Z" fill="none" stroke="#e6f9ff" stroke-width="5" opacity=".7"/>
+  <path d="M34 296 C160 282 640 282 766 296 C800 302 806 356 802 420 C798 472 778 486 744 486 L56 486 C22 486 2 472 -2 420 C-6 356 0 302 34 296Z" fill="#fbe3a2"/>
+  <path data-k="seaRise" class="sea-rise" d="M34 296 C160 282 640 282 766 296 C800 302 806 356 802 420 C798 472 778 486 744 486 L56 486 C22 486 2 472 -2 420 C-6 356 0 302 34 296Z" fill="none" stroke="url(#${u}sea)"/>
+  <path class="grass" d="M44 304 C170 292 630 292 756 304 C786 310 792 358 788 418 C785 460 768 470 738 470 L62 470 C32 470 15 460 12 418 C8 358 14 310 44 304Z"/>
+  <path class="grass light" d="M60 310 C180 300 620 300 740 310 C766 316 770 340 760 352 L40 352 C30 340 34 316 60 310Z"/>
 
-  <g transform="translate(158 342)"><g data-k="cave">
-    <path d="M-66 0 Q-72 -54 -32 -78 Q8 -94 46 -72 Q76 -52 68 0Z" fill="#8f99a3"/>
-    <path d="M-48 -30 Q-36 -62 2 -72" stroke="#b4bcc4" stroke-width="6" fill="none" stroke-linecap="round"/>
-    <path d="M40 -60 Q58 -44 58 -20" stroke="#76808a" stroke-width="5" fill="none" stroke-linecap="round"/>
-    <path d="M-34 0 Q-36 -56 2 -56 Q38 -56 36 0Z" fill="#2c3139"/></g></g>
-  ${item('caveBed', 154, 341, `<ellipse cx="0" cy="-5" rx="24" ry="7" fill="#4fae3a"/><path d="M-20 -8 q6 -8 12 0 M-4 -9 q6 -8 12 0 M10 -8 q5 -7 10 0" stroke="#7fd65b" stroke-width="3" fill="none"/>`)}
-  ${item('caveLamp', 176, 330, `<path d="M0 -26 v-6" stroke="#6b4423" stroke-width="2"/><rect x="-7" y="-26" width="14" height="18" rx="4" fill="#ffe680" stroke="#a0673a" stroke-width="2.5"/><circle cx="0" cy="-17" r="4" fill="#fff6b0"/><rect x="-5" y="-8" width="10" height="3" fill="#a0673a"/>`)}
-
-  ${palm(0, 264, 300, 0.85)}${palm(1, 320, 290, 1)}${palm(2, 372, 300, 0.8)}${palm(3, 462, 300, 0.82)}${palm(4, 526, 290, 1)}${palm(5, 592, 300, 0.9)}
-  ${bush(558, 312, 0.66)}
-
-  ${item('parrot', 528, 180, `<ellipse cx="0" cy="0" rx="8" ry="12" fill="#ff4d4d"/><circle cx="2" cy="-12" r="7" fill="#ff4d4d"/>
-      <path d="M7 -13 q6 2 2 7Z" fill="#ffd23f"/><circle cx="4" cy="-14" r="1.6" fill="#23313f"/>
-      <path d="M-6 -4 q-8 10 -2 18 q6 -6 4 -14Z" fill="#2f80ed"/><path d="M-2 10 l-4 14 M2 10 l2 14" stroke="#ffd23f" stroke-width="3"/>`)}
-  ${item('ash', 0, 0, `<ellipse cx="500" cy="306" rx="70" ry="9" fill="#4a4a4a" opacity=".45"/><ellipse cx="470" cy="312" rx="30" ry="5" fill="#333" opacity=".4"/>`, 'fade')}
-  ${item('smoke', 0, 0, `<g class="puff"><circle cx="470" cy="190" r="18"/><circle cx="530" cy="160" r="24"/><circle cx="505" cy="130" r="16"/></g>`, 'fade')}
-  ${item('bucket', 505, 330, `<path d="M-9 0 L-12 -16 H12 L9 0Z" fill="#4f8fd6"/><path d="M-12 -16 q12 -14 24 0" stroke="#555" stroke-width="2" fill="none"/>`)}
-
-  ${item('sticks', 400, 302, `<path d="M-32 0 L20 -9 M-22 -4 L28 2 M-26 -11 L16 -3" stroke="#8b5a2b" stroke-width="5" stroke-linecap="round"/><path d="M-6 -8 q8 -14 20 -8 q-8 4 -20 8Z" fill="#62b544"/>`, 'pop', false)}
-  ${item('house', 400, 302, `
-      <rect x="-82" y="-86" width="164" height="86" fill="#c17f45"/>
-      <path d="M-82 -70 H82 M-82 -54 H82 M-82 -38 H82 M-82 -22 H82 M-82 -6 H82" stroke="#9c5f2c" stroke-width="3"/>
-      <rect x="40" y="-134" width="16" height="30" fill="#7a4020"/>
-      <path d="M-98 -84 L0 -138 L98 -84Z" fill="#8a4b25"/>
-      <rect x="-62" y="-66" width="28" height="24" fill="#bfe9ff" stroke="#6b3a1a" stroke-width="4"/>
-      <rect x="34" y="-66" width="28" height="24" fill="#bfe9ff" stroke="#6b3a1a" stroke-width="4"/>
-      <path d="M-14 0 V-38 H14 V0Z" fill="#6b3a1a"/>`)}
-
-  ${item('bpSmall', 300, 362, `<path d="M0 0 V-14" stroke="#4a9a33" stroke-width="3"/><path d="M0 -10 q-12 -6 -14 -16 q10 2 14 12Z M0 -12 q12 -8 14 -18 q-10 4 -14 14Z" fill="#62c544"/><g transform="translate(14 -2)">${bananas}</g>`)}
-  ${item('bpSapling', 300, 362, `<path d="M0 0 V-34" stroke="#4a9a33" stroke-width="4"/><path d="M0 -20 q-22 -6 -28 -24 q18 4 28 20Z M0 -26 q22 -10 26 -30 q-18 8 -26 26Z M0 -34 q-6 -16 2 -26 q4 12 -2 26Z" fill="#62c544"/>`)}
-  ${item('bpTree', 300, 362, `<g transform="scale(.8)"><path d="M-6 0 L-3 -72 L3 -72 L6 0Z" fill="#7da04a"/>
-      <path d="M0 -72 q-46 -16 -66 12 q34 -8 66 -12Z M0 -72 q46 -18 66 10 q-34 -6 -66 -10Z M0 -74 q-20 -34 -6 -50 q14 20 6 50Z M0 -70 q-36 4 -48 34 q22 -20 48 -34Z" fill="#4fbf3a"/>
-      <g transform="translate(4 -62)"><g transform="rotate(30)">${bananas}</g><g transform="translate(-2 6) rotate(40)">${bananas}</g><g transform="translate(-4 12) rotate(50)">${bananas}</g></g></g>`)}
-  ${item('bpDead', 300, 362, `<path d="M0 0 q2 -8 -2 -14" stroke="#9b7a3c" stroke-width="3" fill="none"/><path d="M-2 -12 q-12 0 -16 8 M-1 -10 q10 -2 12 8" stroke="#b08a4a" stroke-width="3" fill="none"/>`)}
-
-  ${item('barrel', 624, 352, `<rect x="-14" y="-30" width="28" height="30" rx="4" fill="#a0673a"/><path d="M-14 -22 H14 M-14 -8 H14" stroke="#6b4423" stroke-width="3"/><ellipse cx="0" cy="-30" rx="14" ry="4" fill="#7cc9ef"/>`)}
-
-  ${item('scraps', 110, 408, `<ellipse cx="0" cy="-3" rx="26" ry="6" fill="#e2c07a"/><path d="M-16 -5 q6 -12 12 0Z" fill="#ffb347"/><path d="M2 -8 q8 -8 14 2" stroke="#ffd93b" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="-24" y="-17" width="10" height="13" rx="2" fill="#9aa5b1"/><path d="M8 -4 l6 -10 l6 10z" fill="#e05d5d"/>`)}
-  ${item('compost', 110, 408, `<rect x="-24" y="-30" width="48" height="30" rx="3" fill="#a8743a"/><path d="M-24 -20 H24 M-24 -10 H24" stroke="#7d522b" stroke-width="3"/><path d="M-10 -30 q0 -10 6 -13 M6 -30 q2 -12 10 -12" stroke="#4a9a33" stroke-width="3" fill="none"/><circle cx="-4" cy="-44" r="4" fill="#62c544"/><circle cx="16" cy="-43" r="4" fill="#62c544"/>`)}
-  ${item('garden', 110, 408, `${flower(34, 2, '#ff6fa8')}${flower(46, 6, '#ffd23f')}${flower(58, 2, '#b388ff')}
-      <g transform="translate(-8 16)"><path d="M0 0 l-4 -12 M0 0 l0 -14 M0 0 l4 -12" stroke="#3d9a2e" stroke-width="2.5"/><path d="M-4 0 h8 l-4 8z" fill="#ff8c42"/></g>
-      <g transform="translate(12 16)"><path d="M0 0 l-4 -12 M0 0 l0 -14 M0 0 l4 -12" stroke="#3d9a2e" stroke-width="2.5"/><path d="M-4 0 h8 l-4 8z" fill="#ff8c42"/></g>`)}
-  ${item('trash', 110, 408, `<path d="M-34 0 Q-28 -30 0 -32 Q26 -30 34 0Z" fill="#8a8f98"/><rect x="-18" y="-22" width="12" height="10" fill="#c94f4f" transform="rotate(-15)"/><rect x="6" y="-20" width="9" height="14" rx="2" fill="#5ab4d6"/><path d="M-8 -30 l10 -6 l4 8z" fill="#f2c94c"/>${flies(0, -40)}`)}
-
-  ${item('bottles', 575, 434, `${bottle(-28, 0, -70)}${bottle(-6, -4, 20)}${bottle(16, 2, 80)}${bottle(34, -6, -10)}`)}
-  ${item('bin', 575, 434, `<path d="M-17 -36 H17 L13 0 H-13Z" fill="#2fa84f"/><rect x="-19" y="-41" width="38" height="7" rx="2" fill="#23863e"/><text x="0" y="-11" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">♻</text>`)}
-  ${item('pots', 575, 434, `<g transform="translate(-28 0)"><rect x="-6" y="-10" width="12" height="10" rx="2" fill="#a8e0f5" stroke="#4fb0d8"/>${flower(0, -8, '#ff6fa8')}</g><g transform="translate(-42 2)"><rect x="-6" y="-10" width="12" height="10" rx="2" fill="#a8e0f5" stroke="#4fb0d8"/>${flower(0, -8, '#ffd23f')}</g>`)}
-
-  ${item('rod', 318, 442, `<path d="M-24 0 L22 -64" stroke="#8b5a2b" stroke-width="4" stroke-linecap="round"/><path d="M22 -64 Q2 -36 -14 22" stroke="#fff" stroke-width="1.2" fill="none"/>
-      <path d="M-8 0 L-11 -16 H11 L8 0Z" fill="#4f8fd6"/><g transform="translate(0 -18) rotate(-70) scale(.6)">${fish()}</g>`)}
-  ${item('net', 318, 444, `<path d="M-38 0 Q-34 -34 0 -36 Q34 -34 38 0Z" fill="#ff9a55"/>
-      <g transform="translate(-16 -14) scale(.7)">${fish('#ffb067')}</g><g transform="translate(14 -20) scale(.7) rotate(15)">${fish('#ff8c42')}</g><g transform="translate(4 -6) scale(.7) rotate(-10)">${fish('#ffa04d')}</g>
-      <path d="M-34 -6 L18 -34 M-24 -1 L30 -28 M-10 0 L36 -18 M34 -6 L-18 -34 M24 -1 L-30 -28 M10 0 L-36 -18" stroke="#4d3b2e" stroke-width="1.6"/>`)}
-
-  ${item('fruitpile', 505, 428, `${fruit(-14, -7, 9, '#ff5a5a')}${fruit(4, -7, 9, '#ffb627')}${fruit(20, -6, 8, '#7ed957')}${fruit(-5, -21, 9, '#ffd93b')}${fruit(12, -20, 8, '#ff5a5a')}${fruit(3, -33, 8, '#ff9f1c')}`)}
-  ${item('basket', 505, 428, `${fruit(-8, -20, 7, '#ff5a5a')}${fruit(6, -21, 7, '#ffd93b')}<path d="M-22 -18 H22 L16 0 H-16Z" fill="#c98f4f"/><path d="M-20 -12 H20 M-18 -6 H18 M-8 -18 L-6 0 M8 -18 L6 0" stroke="#a3703a" stroke-width="2"/>`)}
-  ${item('cores', 505, 428, `<path d="M-14 -2 q-4 -8 0 -14 q4 6 0 14Z M-14 -16 v-4" fill="#f5e6c4" stroke="#c94f4f" stroke-width="2"/><path d="M4 -2 q8 -8 18 -2 q-8 0 -18 2Z" fill="#ffb347"/>${flies(4, -24)}`)}
-  ${item('peel', 452, 430, `<path d="M0 0 q-10 -4 -14 4 M0 0 q10 -4 14 4 M0 0 q0 -10 -2 -14" stroke="#ffd93b" stroke-width="5" stroke-linecap="round" fill="none"/>`)}
-
-  ${item('turtles', 630, 418, `${turtle(-14, 0, 1)}${turtle(22, 8, 0.9)}`)}
-  ${item('nest', 630, 418, `<ellipse cx="0" cy="0" rx="22" ry="6" fill="#e3bd6c"/><circle cx="-8" cy="-4" r="4.5" fill="#fff"/><circle cx="1" cy="-6" r="4.5" fill="#fff"/><circle cx="9" cy="-3" r="4.5" fill="#fff"/>
-      <path d="M-30 4 V-14 M-18 8 V-10 M18 8 V-10 M30 4 V-14 M-30 -8 H30" stroke="#a0673a" stroke-width="2.5"/>`)}
-  ${item('babies', 630, 418, `<g class="crawl">${turtle(-10, 0, 0.45)}</g><g class="crawl" style="animation-delay:-1s">${turtle(8, 4, 0.45)}</g><g class="crawl" style="animation-delay:-2s">${turtle(0, -4, 0.45)}</g>`)}
-  ${item('turtlesSwim', 720, 478, `<g class="float">${turtle(0, 0, 0.9)}</g>`)}
-  ${item('turtlesLeave', 660, 470, `<g class="swimaway">${turtle(0, 0, 1)}${turtle(34, 10, 0.9)}</g>`, 'fade')}
-
-  ${item('woodpile', 196, 388, `<rect x="-26" y="-12" width="52" height="12" rx="6" fill="#a0673a"/><rect x="-20" y="-24" width="40" height="12" rx="6" fill="#b5773f"/><rect x="-12" y="-36" width="24" height="12" rx="6" fill="#a0673a"/>
-      <circle cx="-22" cy="-6" r="5" fill="#e5b77f"/><circle cx="-16" cy="-18" r="5" fill="#e5b77f"/><circle cx="-8" cy="-30" r="5" fill="#e5b77f"/>`)}
-  ${item('bonfire', 690, 384, `<path d="M-30 0 L30 -14 M-30 -14 L30 0" stroke="#6b4423" stroke-width="7" stroke-linecap="round"/>${flame(0, -14, 2.2)}${flame(-18, -6, 1.3)}${flame(18, -6, 1.3)}`)}
-  ${item('campfire', 240, 386, `<ellipse cx="0" cy="0" rx="16" ry="4" fill="#888"/><path d="M-12 0 L12 -5 M-12 -5 L12 0" stroke="#6b4423" stroke-width="4" stroke-linecap="round"/>${flame(0, -5, 0.7)}`)}
-
-  <g data-k="reef" class="reef">
-    ${reef(60, 512, 0.9, 'staghorn', 'brain', 'anemone', 'a', 'd', 'b')}${reef(200, 516, 0.85, 'fan', 'tube', 'brain', 'c', 'b', 'e')}
-    ${reef(330, 514, 0.8, 'brain', 'staghorn', 'anemone', 'e', 'a', 'c')}${reef(640, 514, 0.85, 'staghorn', 'fan', 'tube', 'b', 'c', 'a')}
-    ${reef(770, 512, 0.9, 'tube', 'brain', 'anemone', 'd', 'a', 'e')}
-    ${reef(-140, 520, 1.1, 'fan', 'staghorn', 'brain', 'a', 'e', 'b')}${reef(-380, 520, 1.1, 'brain', 'tube', 'anemone', 'c', 'd', 'a')}
-    ${reef(960, 520, 1.1, 'staghorn', 'brain', 'tube', 'c', 'b', 'd')}${reef(1200, 520, 1.1, 'fan', 'anemone', 'brain', 'e', 'a', 'c')}
-    ${reef(120, 640, 1.4, 'brain', 'fan', 'staghorn', 'b', 'a', 'e')}${reef(460, 660, 1.5, 'staghorn', 'tube', 'fan', 'a', 'd', 'c')}
-    ${reef(760, 630, 1.4, 'fan', 'brain', 'anemone', 'c', 'e', 'b')}${reef(300, 780, 1.6, 'tube', 'staghorn', 'brain', 'd', 'b', 'a')}${reef(640, 800, 1.6, 'brain', 'fan', 'staghorn', 'e', 'c', 'a')}
+  <!-- far back: skyscrapers and the power plant -->
+  <g class="towers">
+    <rect x="286" y="190" width="40" height="124" fill="#8fb3d9"/><rect x="286" y="190" width="40" height="8" fill="#6f93b9"/>
+    ${[0, 1, 2, 3, 4, 5, 6, 7].map((r) => `<rect class="win" x="292" y="${204 + r * 13}" width="10" height="7"/><rect class="win" x="310" y="${204 + r * 13}" width="10" height="7"/>`).join('')}
+    <rect x="332" y="140" width="52" height="174" fill="#f2c94c"/><path d="M332 140 L358 118 L384 140Z" fill="#e0a92f"/><path d="M358 118 V100" stroke="#e0a92f" stroke-width="3"/>
+    ${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((r) => `<rect class="win" x="339" y="${152 + r * 14}" width="10" height="8"/><rect class="win" x="353" y="${152 + r * 14}" width="10" height="8"/><rect class="win" x="367" y="${152 + r * 14}" width="10" height="8"/>`).join('')}
+    <rect x="390" y="172" width="46" height="142" fill="#ff9f80"/><rect x="390" y="172" width="46" height="6" fill="#e9805e"/>
+    ${[0, 1, 2, 3, 4, 5, 6, 7, 8].map((r) => `<rect class="win" x="397" y="${186 + r * 14}" width="12" height="8"/><rect class="win" x="417" y="${186 + r * 14}" width="12" height="8"/>`).join('')}
+    <rect x="442" y="222" width="34" height="92" fill="#9fd8c9"/>
+    ${[0, 1, 2, 3, 4, 5].map((r) => `<rect class="win" x="448" y="${232 + r * 13}" width="9" height="7"/><rect class="win" x="462" y="${232 + r * 13}" width="9" height="7"/>`).join('')}
+    ${item('solarTowers', 0, 0, `<g transform="translate(334 132) scale(.5)">${solar(14, 6)}</g><g transform="translate(392 164)">${solar(9, 4)}</g>`, 'fade')}
   </g>
-  <!-- deeper, bigger fish (they leave when the sea gets sick or is overfished) -->
-  <g data-k="deepFish" class="fade">
-    <g class="swim" style="animation-duration:46s;animation-delay:-5s"><g transform="translate(0 560) scale(.85)">${fish('#4fa3e0')}</g></g>
-    <g class="swim" style="animation-duration:52s;animation-delay:-30s"><g transform="translate(0 600) scale(.6)">${fish('#ffd23f')}</g></g>
-    <g class="swim" style="animation-duration:58s;animation-delay:-18s"><g transform="translate(0 690) scale(1.05)">${fish('#ff8c42')}</g></g>
-    <g class="swim" style="animation-duration:50s;animation-delay:-40s"><g transform="translate(0 740) scale(.7)">${fish('#7ad3ff')}</g></g>
-    <g class="swim" style="animation-duration:64s;animation-delay:-12s"><g transform="translate(0 820) scale(.9)">${fish('#ff6fa8')}</g></g>
+  <!-- energy: electricity flows from the power plant to the city along the wire -->
+  <g class="powerline"><path d="M490 262 V318 M560 262 V318 M626 262 V318" stroke="#6b5a4a" stroke-width="3"/><path d="M484 262 H632 M484 262 L490 256 L496 262" stroke="#6b5a4a" stroke-width="2" fill="none"/>
+    <path d="M478 266 Q522 274 560 266 Q596 274 652 270" stroke="#3a3f47" stroke-width="1.6" fill="none"/>
+    <g data-k="energy" class="energy">${[0, 1, 2, 3].map((k) => `<circle cx="652" cy="269" r="3.4" style="animation-delay:${-k * 0.75}s"/>`).join('')}</g></g>
+  <g class="plant">
+    <g data-k="plantSmoke" class="plant-smoke">
+      <g data-k="ps1" class="fade">${puffs(744, 214, 4, 9, '#9aa3ad', 5)}</g>
+      <g data-k="ps2" class="fade hide">${puffs(744, 214, 4, 14, '#7f8893', 4.4)}</g>
+      <g data-k="ps3" class="fade hide">${puffs(744, 214, 5, 20, '#6b737d', 4)}</g>
+      <g data-k="ps4" class="fade hide">${puffs(744, 214, 5, 27, '#555c66', 3.6)}</g>
+    </g>
+    ${item('plantBurst', 0, 0, puffs(744, 214, 6, 24, '#4b525c', 2.2), 'fade')}
+    <rect x="650" y="276" width="86" height="58" rx="3" fill="#a9b2bc"/><rect x="650" y="270" width="86" height="8" fill="#8a939d"/>
+    <path d="M660 300 h24 v34 h-24Z" fill="#7d8691"/><rect class="win" x="694" y="288" width="12" height="10"/><rect class="win" x="712" y="288" width="12" height="10"/>
+    <path d="M734 334 L738 216 L750 216 L754 334Z" fill="#f4f6f8"/><path d="M737 236 h14 M736 260 h16 M735 284 h18" stroke="#e63946" stroke-width="9"/>
+    <path d="M668 288 l6 -9 l-2 6 h6 l-7 10 l2 -7Z" fill="#ffd23f"/>
   </g>
-  <g data-k="bigFish" class="fade"><g class="swim" style="animation-duration:80s;animation-delay:-20s"><g transform="translate(0 650) scale(1.7)">${fish('#3d7cc9')}</g></g></g>
-  <g data-k="seaTurtle" class="fade"><g class="swim" style="animation-duration:75s;animation-delay:-50s"><g transform="translate(0 540) scale(1.1)"><g class="float">${turtle(0, 0, 1)}</g></g></g></g>
-  <g data-k="critters">
-    <g data-k="butterflies" class="fade">${butterfly(280, 300, '#ff8ad8', 0)}${butterfly(470, 300, '#ffd23f', -2)}${butterfly(360, 318, '#8fd3ff', -4)}</g>
-    <g data-k="bees" class="fade">${bee(300, 330, 0)}${bee(626, 306, -1.2)}${bee(450, 330, -2.1)}</g>
-    <g data-k="crabs" class="fade">${crab(204, 438, 0)}${crab(700, 404, -1.5)}</g>
-    <g transform="translate(532 364)"><g data-k="frog" class="fade">${frog}</g></g>
+
+  <!-- the railway -->
+  <rect x="-900" y="316" width="2600" height="6" fill="#8b7a68"/><path d="M-900 316 H1700" stroke="#4a5563" stroke-width="2"/>
+  <g data-k="trains"><g class="trainrun" style="animation-duration:26s;animation-delay:-6s"><g transform="translate(0 316) scale(.95)">${TRAIN}</g></g>
+    <g data-k="train2" class="fade hide"><g class="trainrun back" style="animation-duration:26s;animation-delay:-19s"><g transform="translate(0 316) scale(-.95 .95)">${TRAIN}</g></g></g></g>
+  <g data-k="trainFx"></g>
+  <g class="station">
+    <rect x="188" y="321" width="90" height="9" fill="#c9c2b0"/><path d="M188 321 H278" stroke="#fff" stroke-width="2" opacity=".6"/>
+    <path d="M196 321 V292 M270 321 V292" stroke="#6b5a4a" stroke-width="3"/><path d="M182 292 H284 L278 284 H188Z" fill="#e63946"/>
+    <rect x="220" y="294" width="26" height="9" rx="2" fill="#2f80ed"/><path d="M226 300 h14" stroke="#fff" stroke-width="2"/>
   </g>
-  <g data-k="fish"><g class="swim" style="animation-duration:34s"><g transform="translate(0 482) scale(.6)">${fish()}</g></g><g class="swim" style="animation-delay:-14s;animation-duration:40s"><g transform="translate(0 470) scale(.45)">${fish('#ffd23f')}</g></g><g class="swim" style="animation-delay:-24s;animation-duration:30s"><g transform="translate(0 494) scale(.52)">${fish('#ff6fa8')}</g></g>
-    <g class="swim" style="animation-delay:-8s;animation-duration:44s"><g transform="translate(0 504) scale(.38)">${fish('#7ad3ff')}</g></g><g class="swim" style="animation-delay:-31s;animation-duration:38s"><g transform="translate(0 462) scale(.7)">${fish('#ffb067')}</g></g></g>
-  ${item('babyFish', 0, 0, `<g class="swim" style="animation-delay:-6s;animation-duration:26s"><g transform="translate(0 488) scale(.3)">${fish()}</g></g><g class="swim" style="animation-delay:-17s;animation-duration:28s"><g transform="translate(0 476) scale(.28)">${fish('#ffd23f')}</g></g><g class="swim" style="animation-delay:-2s;animation-duration:32s"><g transform="translate(0 494) scale(.25)">${fish('#ff6fa8')}</g></g>`, 'fade')}
-  ${item('jumper', 150, 474, `<g class="fishjump">${fish('#ffb627')}</g>`, 'fade')}
-  ${item('seaBottles', 0, 0, [[52, 452, 80], [735, 462, -60], [300, 486, 100], [560, 496, 30], [-120, 470, -20]].map(([x, y, r], k) =>
-    `<g class="wander" style="--wx:${k % 2 ? -1 : 1};animation-duration:${34 + k * 6}s;animation-delay:${-k * 9}s"><g class="float" style="animation-delay:-${k}s">${bottle(x, y, r, 1.4)}</g></g>`).join(''), 'fade')}
-  ${DEAD_SLOTS.map(([x, y, r, sc], k) => `<g data-k="dead${k}" class="fade hide"><g class="wander" style="--wx:${k % 2 ? 1 : -1};animation-duration:${30 + k * 5}s;animation-delay:${-k * 7}s">${deadFish(x, y, r, sc * 0.8)}</g></g>`).join('')}
 
-  <g data-k="fx"></g>
+  <!-- back row: school, thrift store, mall (and the paths in front of them) -->
+  <rect x="26" y="362" width="610" height="9" rx="3" class="pave"/>
+  <rect x="218" y="326" width="28" height="112" class="pave"/>
+  <g class="school">
+    <rect x="40" y="312" width="136" height="50" fill="#ffcf5a"/><rect x="36" y="306" width="144" height="7" rx="2" fill="#c98f4f"/>
+    <path d="M90 306 V290 L108 276 L126 290 V306Z" fill="#ffcf5a" stroke="#c98f4f" stroke-width="3"/><circle cx="108" cy="292" r="7" fill="#fff" stroke="#23313f" stroke-width="1.5"/><path d="M108 292 V287 M108 292 h4" stroke="#23313f" stroke-width="1.5"/>
+    ${[50, 70, 136, 156].map((x) => `<rect class="win" x="${x}" y="320" width="13" height="12" rx="1"/><rect class="win" x="${x}" y="340" width="13" height="12" rx="1"/>`).join('')}
+    <rect x="98" y="336" width="20" height="26" fill="#2f80ed"/><path d="M108 336 V362" stroke="#1d5fae" stroke-width="2"/>
+    <text x="108" y="328" text-anchor="middle" font-size="9" font-weight="900" fill="#c0392b">A B C</text>
+    <path d="M176 362 V270" stroke="#9aa5b1" stroke-width="2.5"/><path d="M177 272 l18 5 l-18 6Z" fill="#ff6fa8" class="flag"/>
+    ${item('solarSchool', 46, 296, solar(10, 3), 'fade')}
+    ${item('swapBox', 150, 362, `<rect x="-12" y="-14" width="24" height="14" rx="2" fill="#c98f4f" stroke="#8b5a2b" stroke-width="1.5"/><circle cx="-5" cy="-17" r="4" fill="#ff5b4a"/><rect x="0" y="-22" width="8" height="8" fill="#2f80ed"/><path d="M-9 -7 h18" stroke="#fff" stroke-width="2"/>`)}
+  </g>
+  <g class="thrift">
+    <rect x="424" y="324" width="76" height="38" fill="#b388ff"/><rect x="420" y="308" width="84" height="15" rx="3" fill="#7e57c2"/>
+    <path d="M454 320 q8 -9 16 0 M462 311 v4" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M450 320 h24" stroke="#fff" stroke-width="2.2"/>
+    ${[0, 1, 2, 3, 4, 5, 6].map((k) => `<path d="M${422 + k * 12} 323 h12 v6 q-6 5 -12 0Z" fill="${k % 2 ? '#fff' : '#ff6fa8'}"/>`).join('')}
+    <rect class="win" x="430" y="336" width="20" height="18" rx="2"/><path d="M434 340 l3 -2 h6 l3 2 l-2 3 v8 h-8 v-8Z" fill="#2fb35a"/>
+    <rect x="455" y="338" width="16" height="24" fill="#5e35b1"/><rect class="win" x="476" y="336" width="18" height="18" rx="2"/>
+    ${item('clothesRack', 505, 362, `<path d="M-14 0 V-24 H14 V0" stroke="#6b5a4a" stroke-width="2" fill="none"/><path d="M-11 -24 l-2 4 v12 h8 v-12 l-2 -4Z" fill="#ff6fa8"/><path d="M-1 -24 l-2 4 v12 h8 v-12 l-2 -4Z" fill="#ffd23f"/><path d="M8 -24 l-2 4 v12 h7 v-12 l-2 -4Z" fill="#2f80ed"/>`)}
+  </g>
+  <g class="mall">
+    <rect x="514" y="300" width="120" height="62" fill="#8fb3d9"/><rect x="510" y="294" width="128" height="8" rx="2" fill="#6f93b9"/>
+    <rect x="548" y="304" width="52" height="15" rx="4" fill="#ff5b4a"/><path d="M566 309 h16 l-2 8 h-12Z M569 309 q5 -7 10 0" fill="none" stroke="#fff" stroke-width="2"/>
+    ${[520, 538, 600, 618].map((x) => `<rect class="win" x="${x}" y="324" width="12" height="14" rx="1"/>`).join('')}
+    <rect x="560" y="330" width="28" height="32" fill="#cfefff" stroke="#6f93b9" stroke-width="2"/><path d="M574 330 V362" stroke="#6f93b9" stroke-width="2"/>
+    <text x="609" y="355" font-size="9" font-weight="900" fill="#fff">SALE</text>
+  </g>
+  ${tree(640, 340, 0.75)}
 
-  <g transform="translate(400 400)"><g class="walker"><g data-k="monkey"><g class="mjump"><g class="bob">
+  <!-- Bobo walks here while in the back row (so the houses stay in front of Bobo) -->
+  <g data-k="backLayer"></g>
+
+  <!-- front row: the houses, the garden, the park -->
+  <rect x="14" y="426" width="772" height="12" class="pave"/>
+  ${item('cows', 0, 0, `<path d="M70 438 V420 M126 438 V420 M70 424 H126 M70 432 H126" stroke="#a0673a" stroke-width="2.5"/>${cow(86, 438, false)}${cow(112, 436, true)}
+      <g class="cow-gas">${puffs(68, 420, 3, 6, '#a6b48a', 3)}</g>`)}
+  ${item('recycling', 44, 438, `<rect x="-26" y="-36" width="52" height="36" rx="3" fill="#2fb35a"/><path d="M-30 -36 H30 L26 -44 H-26Z" fill="#23863e"/>
+      <text x="0" y="-12" text-anchor="middle" font-size="20" font-weight="900" fill="#fff">♻</text>
+      <rect x="-24" y="-8" width="12" height="8" fill="#2f80ed"/><rect x="-6" y="-8" width="12" height="8" fill="#ffd23f"/><rect x="12" y="-8" width="12" height="8" fill="#9aa5b1"/>`)}
+  <g class="friend-house">
+    <rect x="132" y="388" width="68" height="38" fill="#ffb3c7"/><path d="M124 390 L166 356 L208 390Z" fill="#c94f6d"/>
+    <rect class="win" x="139" y="398" width="16" height="13" rx="1"/><rect class="win" x="178" y="398" width="15" height="13" rx="1"/><rect x="160" y="402" width="13" height="24" fill="#8b5a2b"/>
+    ${item('solarHeater', 172, 371, `<g transform="rotate(39)"><rect x="-4" y="-6" width="22" height="9" rx="1" fill="#2f5d9e" stroke="#9cc3ff"/><rect x="2" y="-13" width="12" height="7" rx="3" fill="#dfe5ea"/></g>`)}
+  </g>
+  ${lamp(212, 432, true)}
+  <g data-k="boboHouse" class="bobo-house">
+    <rect x="290" y="374" width="120" height="52" fill="#7fd3f7"/><path d="M290 374 H410" stroke="#5fb3d7" stroke-width="3"/>
+    <rect x="386" y="340" width="13" height="26" fill="#c0392b"/>
+    <path d="M280 377 L350 334 L420 377Z" fill="#ff8c42"/><path d="M280 377 L350 334 L420 377" stroke="#e06b28" stroke-width="3" fill="none"/>
+    ${item('houseSmoke', 0, 0, puffs(392, 334, 4, 9, '#8a8f98', 4), 'fade')}
+    <rect class="win hw" x="300" y="386" width="28" height="20" rx="2"/><rect class="win hw" x="372" y="386" width="28" height="20" rx="2"/>
+    ${item('houseLit', 0, 0, `<rect x="300" y="386" width="28" height="20" rx="2" fill="#ffe27a"/><rect x="372" y="386" width="28" height="20" rx="2" fill="#ffe27a"/>`, 'fade')}
+    <path d="M314 386 V406 M300 396 H328 M386 386 V406 M372 396 H400" stroke="#fff" stroke-width="2"/>
+    ${item('tv', 0, 0, `<rect x="303" y="390" width="14" height="9" rx="1" fill="#6fd0ff" class="tv-flicker"/>`, 'fade')}
+    <rect x="341" y="396" width="18" height="30" rx="2" fill="#8b5a2b"/><circle cx="355" cy="412" r="1.6" fill="#ffd23f"/>
+    ${item('solarRoof', 0, 0, `<g transform="translate(356 341) rotate(31.5)">${solar(11, 4)}</g><g transform="translate(296 368) rotate(-31.5)">${solar(11, 3)}</g>`, 'fade')}
+    ${item('acUnit', 0, 0, `<rect x="404" y="400" width="18" height="14" rx="2" fill="#dfe5ea" stroke="#9aa5b1" stroke-width="1.5"/><path d="M407 404 h12 M407 408 h12" stroke="#9aa5b1" stroke-width="1.5"/>`, 'fade')}
+    ${item('acAir', 0, 0, `<g class="ac-air"><path d="M426 404 q8 -3 16 0 M426 410 q9 -3 18 0"/></g>`, 'fade')}
+    ${item('fan', 384, 426, `<path d="M0 0 V-18" stroke="#4a5563" stroke-width="2.5"/><ellipse cx="0" cy="0" rx="7" ry="2" fill="#4a5563"/><circle cx="0" cy="-24" r="9" fill="none" stroke="#4a5563" stroke-width="1.5"/>
+      <g transform="translate(0 -24)"><g class="spin fast-spin"><path d="M0 0 L-3 -8 L3 -8Z M0 0 L-3 8 L3 8Z M0 0 L-8 -3 L-8 3Z M0 0 L8 -3 L8 3Z" fill="#7fd3f7"/></g></g>`)}
+    ${item('steam', 0, 0, puffs(386, 388, 4, 8, '#ffffff', 2), 'fade')}
+    ${item('bathBubbles', 0, 0, `<g class="bubbles-up">${[0, 1, 2, 3, 4, 5, 6, 7].map((k) => `<circle cx="${376 + (k % 4) * 9}" cy="392" r="${4 + (k % 3) * 2}" fill="#ffffffcc" stroke="#4fb0d8" stroke-width="1.5" style="animation-delay:${-k * 0.3}s"/>`).join('')}</g>`, 'fade')}
+    ${item('boxPile', 304, 436, `<rect x="-14" y="-16" width="24" height="16" fill="#c98f4f" stroke="#8b5a2b" stroke-width="1.5"/><rect x="-6" y="-26" width="18" height="11" fill="#d9a36a" stroke="#8b5a2b" stroke-width="1.5"/><path d="M-14 -9 h24" stroke="#8b5a2b"/>`)}
+  </g>
+  ${item('shadeTrees', 0, 0, `${tree(272, 434, 0.95)}${tree(426, 434, 0.95)}`)}
+  <g class="garden">
+    <path d="M466 420 H544 M472 420 L466 434 M538 420 L544 434 M476 420 V434 M534 420 V434" stroke="#8b5a2b" stroke-width="3.5"/>
+    ${item('balloons', 0, 0, `<g class="balloon"><path d="M468 416 Q462 396 466 380" stroke="#fff" stroke-width="1.2" fill="none"/><ellipse cx="466" cy="372" rx="9" ry="11" fill="#ff5b4a"/></g>
+      <g class="balloon" style="animation-delay:-1s"><path d="M474 416 Q480 398 478 388" stroke="#fff" stroke-width="1.2" fill="none"/><ellipse cx="479" cy="380" rx="8" ry="10" fill="#ffd23f"/></g>
+      <g class="balloon" style="animation-delay:-2s"><path d="M542 416 Q548 396 544 380" stroke="#fff" stroke-width="1.2" fill="none"/><ellipse cx="544" cy="372" rx="9" ry="11" fill="#2f80ed"/></g>`)}
+    ${item('sortBins', 0, 0, `<rect x="560" y="420" width="10" height="14" rx="1.5" fill="#2fb35a"/><rect x="573" y="420" width="10" height="14" rx="1.5" fill="#2f80ed"/><rect x="586" y="420" width="10" height="14" rx="1.5" fill="#ffd23f"/>
+      <path d="M559 420 h12 M572 420 h12 M585 420 h12" stroke="#23313f" stroke-width="2"/>`)}
+    ${item('trashBag', 572, 436, `<path d="M-10 0 Q-14 -14 -4 -18 L-2 -22 L4 -22 L5 -18 Q14 -14 10 0Z" fill="#3a3f47"/><path d="M-2 -22 l-3 -4 M4 -22 l3 -4" stroke="#3a3f47" stroke-width="2"/>`)}
+    ${item('trashPile', 0, 0, `<path d="M560 436 Q556 420 566 418 L568 414 L573 414 L574 418 Q584 422 580 436Z" fill="#3a3f47"/><path d="M576 436 Q574 424 584 422 L586 418 L591 418 L592 422 Q600 426 596 436Z" fill="#4a5060"/>
+      <rect x="586" y="428" width="8" height="5" fill="#ff5b4a" transform="rotate(-20 590 430)"/><g class="trash-flies">${flies(578, 410)}</g>`, 'fade')}
+  </g>
+  ${lamp(450, 432)}
+  ${lamp(604, 432, true)}
+  <g class="park">
+    <rect x="618" y="392" width="22" height="40" rx="3" fill="#e63946"/><rect x="622" y="397" width="14" height="20" rx="1" fill="#cfefff"/>
+    ${[0, 1, 2].map((r) => `<rect x="624" y="${399 + r * 6}" width="4" height="4" fill="#2f80ed"/><rect x="630" y="${399 + r * 6}" width="4" height="4" fill="#ff6fa8"/>`).join('')}
+    <rect x="625" y="421" width="8" height="4" fill="#23313f"/>
+    <path d="M692 432 V414" stroke="#9aa5b1" stroke-width="5"/><path d="M682 414 H702 Q702 420 692 420 Q682 420 682 414Z" fill="#9aa5b1"/><path d="M692 414 Q694 404 699 410" stroke="#7fd3f7" stroke-width="2" fill="none"/>
+    ${bush(722, 432, 0.8)}${tree(770, 436, 0.85)}
+  </g>
+  ${item('veggieGarden', 0, 0, `<rect x="708" y="440" width="78" height="10" rx="3" fill="#8b5a2b"/>${[714, 730, 746, 762, 778].map((x, k) =>
+    `<g transform="translate(${x} 441)"><path d="M0 0 q-6 -8 -2 -14 M0 0 q6 -8 2 -14 M0 0 V-12" stroke="#3d9a2e" stroke-width="2.4" fill="none"/>${k % 2 ? '<circle cx="0" cy="-2" r="3" fill="#ff8c42"/>' : '<circle cx="0" cy="-6" r="5" fill="#7fe06a"/>'}</g>`).join('')}
+      ${flower(704, 438, '#ff6fa8')}${bee(728, 416, 0)}${bee(760, 420, -1.4)}`)}
+
+  <!-- the toy in front of Bobo's house -->
+  ${item('toyBroken', 384, 436, `<g transform="rotate(-14)"><path d="M-14 -10 h28 v8 h-28Z" fill="#ff5b4a"/><circle cx="-8" cy="0" r="4" fill="#23313f"/></g><circle cx="12" cy="0" r="4" fill="#23313f"/><path d="M2 -14 l3 -4 l2 4" stroke="#23313f" stroke-width="1.5" fill="none"/>`)}
+      ${item('toyFixed', 384, 436, `<path d="M-14 -10 h28 v8 h-28Z" fill="#ff5b4a"/><path d="M-6 -16 h12 v6 h-12Z" fill="#cfefff"/><circle cx="-8" cy="0" r="4" fill="#23313f"/><circle cx="8" cy="0" r="4" fill="#23313f"/><path d="M-2 -6 h4" stroke="#ffd23f" stroke-width="3"/>`)}
+      ${item('toyNew', 384, 436, `<path d="M-14 -10 h28 v8 h-28Z" fill="#2f80ed"/><path d="M-6 -16 h12 v6 h-12Z" fill="#cfefff"/><circle cx="-8" cy="0" r="4" fill="#23313f"/><circle cx="8" cy="0" r="4" fill="#23313f"/>`)}
+
+  <!-- Bobo -->
+  <g data-k="midLayer"><g data-k="walkerWrap" transform="translate(400 400)"><g class="walker"><g transform="${MONKEY_FIT}"><g data-k="monkey"><g class="mjump"><g class="bob">
     <path d="M16 12 C46 14 52 -18 34 -26 C26 -28 24 -18 32 -16" stroke="#7a4a24" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <g data-k="mPack" class="fade hide"><rect x="-29" y="-20" width="58" height="38" rx="10" fill="#ff6b4a"/><rect x="-29" y="2" width="10" height="10" rx="2" fill="#e04f30"/><rect x="19" y="2" width="10" height="10" rx="2" fill="#e04f30"/></g>
     <ellipse cx="-11" cy="24" rx="9" ry="6" fill="#7a4a24"/><ellipse cx="11" cy="24" rx="9" ry="6" fill="#7a4a24"/>
+    <g data-k="mBike" class="fade hide">${BIKE}</g>
     <ellipse cx="0" cy="0" rx="22" ry="26" fill="#8b5a2b"/>
     <ellipse cx="0" cy="6" rx="13" ry="16" fill="#e8c39e"/>
+    <g data-k="mMud" class="fade hide"><circle cx="-8" cy="8" r="5" fill="#6b4423"/><circle cx="7" cy="-6" r="4" fill="#6b4423"/><circle cx="4" cy="16" r="3.5" fill="#6b4423"/><circle cx="-14" cy="-10" r="3" fill="#6b4423"/></g>
+    <g data-k="mStraps" class="fade hide"><path d="M-13 -22 V10 M13 -22 V10" stroke="#e04f30" stroke-width="5" stroke-linecap="round"/></g>
     <path d="M-18 -8 Q-34 6 -24 20" stroke="#8b5a2b" stroke-width="9" fill="none" stroke-linecap="round"/>
     <path d="M18 -8 Q34 6 24 20" stroke="#8b5a2b" stroke-width="9" fill="none" stroke-linecap="round"/>
+    <g data-k="mSweater" class="fade hide"><ellipse cx="0" cy="2" rx="23.5" ry="26" fill="#4f8fd6"/><path d="M-21 -4 H21 M-23 6 H23" stroke="#fff" stroke-width="3" opacity=".85"/><path d="M-10 -24 Q0 -16 10 -24" stroke="#2f6fb5" stroke-width="4" fill="none"/>
+      <path d="M-18 -8 Q-32 4 -25 16 M18 -8 Q32 4 25 16" stroke="#4f8fd6" stroke-width="10.5" fill="none" stroke-linecap="round"/></g>
+    <g data-k="mJacketCool" class="fade hide"><ellipse cx="0" cy="2" rx="23.5" ry="26" fill="#2fb35a"/><path d="M0 -24 V26" stroke="#ffd23f" stroke-width="2.5"/><circle cx="-11" cy="8" r="4.5" fill="#ff6fa8"/><path d="M8 -6 l6 0 l-3 6Z" fill="#ffd23f"/>
+      <path d="M-18 -8 Q-32 4 -25 16 M18 -8 Q32 4 25 16" stroke="#2fb35a" stroke-width="10.5" fill="none" stroke-linecap="round"/><path d="M-10 -24 L0 -14 L10 -24" stroke="#23863e" stroke-width="3.5" fill="none"/></g>
+    <g data-k="mJacketPlain" class="fade hide"><ellipse cx="0" cy="2" rx="23.5" ry="26" fill="#a3adb8"/><path d="M0 -24 V26" stroke="#7d8691" stroke-width="2"/>
+      <path d="M-18 -8 Q-32 4 -25 16 M18 -8 Q32 4 25 16" stroke="#a3adb8" stroke-width="10.5" fill="none" stroke-linecap="round"/></g>
+    <g data-k="mBottle" class="fade hide"><g transform="translate(26 14) rotate(-10)"><rect x="-5" y="-18" width="10" height="20" rx="4" fill="#2fb35a"/><rect x="-3" y="-23" width="6" height="5" rx="1" fill="#1d8f43"/><circle cx="0" cy="-8" r="2.5" fill="#ffd23f"/></g></g>
+    <g data-k="mPlastic" class="fade hide"><g transform="translate(26 14) rotate(-10)">${bottle(0, 2, 0, 1.1)}</g></g>
+    <g data-k="mGlass" class="fade hide"><g transform="translate(26 12)"><path d="M-5 -14 h10 l-1.5 15 h-7Z" fill="#cfefff" stroke="#7fd3f7" stroke-width="1.5"/><rect x="-4" y="-8" width="8" height="8" fill="#7fd3f7" opacity=".6"/></g></g>
+    <g data-k="mBag" class="fade hide"><g transform="translate(-27 16)"><rect x="-8" y="-8" width="16" height="16" rx="1.5" fill="#ff5b4a"/><path d="M-4 -8 q4 -7 8 0" stroke="#c0392b" stroke-width="2" fill="none"/></g></g>
     <g transform="translate(0 -40)">
       <circle cx="-26" cy="0" r="10" fill="#8b5a2b"/><circle cx="-26" cy="0" r="6" fill="#e8c39e"/>
       <circle cx="26" cy="0" r="10" fill="#8b5a2b"/><circle cx="26" cy="0" r="6" fill="#e8c39e"/>
@@ -328,6 +391,8 @@ const Scene = (() => {
       <g data-k="mHappy" class="fade mood"><path d="M-9 10 Q0 21 9 10 Z" fill="#5a2d0c"/><path d="M-5 14 Q0 18 5 14" fill="#ff8fa3"/><circle cx="-15" cy="6" r="4" fill="#ff9aa2" opacity=".6"/><circle cx="15" cy="6" r="4" fill="#ff9aa2" opacity=".6"/></g>
       <g data-k="mMeh" class="fade hide mood"><path d="M-7 13 Q0 15 7 13" stroke="#5a2d0c" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
       <g data-k="mSad" class="fade hide mood"><path d="M-8 16 Q0 8 8 16" stroke="#5a2d0c" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M-12 2 q-3 6 0 8 q3 -2 0 -8Z" fill="#7cc9ef"/></g>
+      <g data-k="mMudFace" class="fade hide"><circle cx="14" cy="-14" r="4" fill="#6b4423"/><circle cx="-16" cy="8" r="3" fill="#6b4423"/></g>
+      <g data-k="mHat" class="fade hide"><path d="M-15 -20 L5 -66 L17 -16Z" fill="#ff6fa8"/><path d="M-9 -32 L13 -28 M-3 -46 L10 -43" stroke="#fff" stroke-width="3"/><circle cx="5" cy="-66" r="5" fill="#ffd23f"/></g>
       <!-- reactions (shown by Scene.react) -->
       <g class="r r-yay"><path d="M-11 -3 q4 -6 8 0 M3 -3 q4 -6 8 0" stroke="#23313f" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M-10 9 Q0 25 10 9Z" fill="#5a2d0c"/><path d="M-5 15 Q0 20 5 15" fill="#ff8fa3"/>
         <path class="heart" d="M32 -30 c-3 -6 -11 -2 -6 4 l6 6 l6 -6 c5 -6 -3 -10 -6 -4Z" fill="#ff5a7a"/><path class="heart" style="animation-delay:-.4s" d="M-34 -24 c-2 -4 -8 -1 -4 3 l4 4 l4 -4 c4 -4 -2 -7 -4 -3Z" fill="#ff5a7a"/></g>
@@ -341,23 +406,68 @@ const Scene = (() => {
       <g class="r r-sad"><path d="M-8 16 Q0 8 8 16" stroke="#5a2d0c" stroke-width="2.5" fill="none" stroke-linecap="round"/><path class="drip" d="M-12 2 q-3 6 0 8 q3 -2 0 -8Z M12 2 q-3 6 0 8 q3 -2 0 -8Z" fill="#7cc9ef"/></g>
       <g class="r r-think"><circle cx="4" cy="13" r="2.8" fill="#5a2d0c"/><text x="28" y="-22" font-size="24" font-weight="900" fill="#2f80ed">?</text></g>
     </g>
-  </g></g>
-  </g></g></g>
-  <!-- the sea in front of the monkey's legs when it hides in the water (same colours as the sea) -->
-  <g class="wade-water">
-    <clipPath id="${u}wade"><path d="M470 474 q10 -4 20 0 t20 0 t20 0 t20 0 t20 0 V560 H470Z"/></clipPath>
-    <g clip-path="url(#${u}wade)">
-      <!-- exactly the same layers as the sea around it, so it blends in perfectly -->
-      <rect x="400" y="285" width="300" height="300" fill="url(#${u}sea)"/>
-      <rect data-k="wadeMurk" x="400" y="285" width="300" height="300" fill="#6f7d3c" opacity="0"/>
-      <ellipse class="lagoon" cx="400" cy="408" rx="560" ry="132"/><ellipse class="lagoon" cx="400" cy="396" rx="450" ry="108"/>
-      <ellipse cx="400" cy="372" rx="366" ry="100" fill="none" stroke="#e6f9ff" stroke-width="5" opacity=".7" class="foam"/>
-    </g>
-    <path class="wade-foam" d="M476 474 q10 -4 20 0 t20 0 t20 0 t20 0 t20 0" stroke="#e6f9ff" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".8"/>
-  </g>
-  <g data-k="fxTop"></g>
+  </g></g></g></g></g></g></g>
+  <g data-k="buddies"></g>
+  <!-- the table top and what's on it are drawn in front of Bobo (Bobo stands behind the table) -->
+  <g class="garden-top"><rect x="462" y="416" width="86" height="5" rx="2" fill="#c98f4f"/>
+    ${item('partyCloth', 0, 0, `<path d="M460 414 H550 V424 q-6 5 -11 0 q-6 5 -11 0 q-6 5 -12 0 q-6 5 -11 0 q-6 5 -12 0 q-6 5 -11 0 q-6 5 -11 0 q-6 5 -11 0Z" fill="#ff8ad8"/>`, 'fade')}
+    ${item('cake', 505, 414, `<rect x="-11" y="-12" width="22" height="12" rx="2" fill="#fff0f5" stroke="#ff8ad8" stroke-width="1.5"/><path d="M-11 -7 q4 3 7 0 q4 3 7 0 q4 3 8 0" stroke="#ff8ad8" stroke-width="1.5" fill="none"/>
+      <path d="M-4 -12 v-6 M4 -12 v-6" stroke="#2f80ed" stroke-width="2"/><g class="flicker"><circle cx="-4" cy="-20" r="2" fill="#ffb627"/></g><g class="flicker"><circle cx="4" cy="-20" r="2" fill="#ffb627"/></g>`)}
+    ${item('platesReal', 0, 0, `<ellipse cx="482" cy="414" rx="8" ry="2.6" fill="#fff" stroke="#2f80ed" stroke-width="1.5"/><ellipse cx="530" cy="414" rx="8" ry="2.6" fill="#fff" stroke="#2f80ed" stroke-width="1.5"/>
+      <rect x="490" y="405" width="6" height="9" rx="1" fill="#fff" stroke="#2fb35a" stroke-width="1.3"/><rect x="515" y="405" width="6" height="9" rx="1" fill="#fff" stroke="#2fb35a" stroke-width="1.3"/>`)}
+    ${item('platesPlastic', 0, 0, `<ellipse cx="482" cy="414" rx="8" ry="2.6" fill="#ffb627"/><ellipse cx="530" cy="414" rx="8" ry="2.6" fill="#7fe06a"/>
+      <path d="M489 404 h7 l-1 10 h-5Z" fill="#ff5b4a"/><path d="M515 404 h7 l-1 10 h-5Z" fill="#2f80ed"/><path d="M493 404 l3 -7 M519 404 l3 -7" stroke="#ff8ad8" stroke-width="1.5"/>`)}
+    ${item('tacos', 0, 0, `<ellipse cx="505" cy="414" rx="14" ry="3.6" fill="#fff" stroke="#2fb35a" stroke-width="1.5"/><path d="M494 412 q6 -14 12 0Z" fill="#ffcf5a" stroke="#d9a33a"/><path d="M504 412 q6 -14 12 0Z" fill="#ffcf5a" stroke="#d9a33a"/>
+      <circle cx="499" cy="407" r="2" fill="#7fe06a"/><circle cx="509" cy="407" r="2" fill="#ff5b4a"/><circle cx="511" cy="409" r="1.6" fill="#8b5a2b"/>`)}
+    ${item('burger', 505, 414, `<ellipse cx="0" cy="0" rx="14" ry="3.6" fill="#fff" stroke="#c94f4f" stroke-width="1.5"/><path d="M-9 -3 q9 -14 18 0Z" fill="#e0a64a"/><rect x="-10" y="-4" width="20" height="3" rx="1" fill="#7fe06a"/><rect x="-10" y="-2" width="20" height="3" rx="1" fill="#7a3b1e"/>`)}
   </g>
 
+  <!-- the road + bike lane in front (they go over the bridges to the other towns) -->
+  <rect x="-900" y="438" width="2600" height="21" class="road"/><path d="M-900 448.5 H1700" stroke="#fff" stroke-width="2" stroke-dasharray="14 12" opacity=".8"/>
+  <path d="M-900 437.5 H1700 M-900 459.5 H1700" stroke="#c8cdd3" stroke-width="2"/>
+  <rect x="16" y="460" width="768" height="8" rx="3" fill="#3fae5a"/>
+  ${[100, 300, 500, 700].map((x) => `<g transform="translate(${x} 464) scale(.16)" opacity=".6"><circle cx="-28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><circle cx="28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><path d="M-28 0 L-6 0 L10 -18 L28 0" stroke="#fff" stroke-width="7" fill="none"/></g>`).join('')}
+  <g data-k="traffic">${laneCar('A', '#ff6fa8', 15, -2)}${laneCar('B', '#2f80ed', 13, -7)}</g>
+  <g data-k="traffic2" class="fade hide">${laneCar('A', '#ffb627', 15, -9.5)}${laneCar('B', '#9aa5b1', 13, -1)}</g>
+  <g data-k="traffic3" class="fade hide">${laneCar('A', '#7d5fff', 15, -6)}${laneCar('B', '#2fb35a', 13, -10.5)}${laneCar('A', '#e63946', 15, -13)}</g>
+  <g data-k="cyclists" class="fade hide">${rider('#a0673a', '#ffd23f', -3, 16)}${rider('#6b3f1e', '#ff6fa8', -11, 16)}</g>
+  <g data-k="roadFx"></g>
+
+  <!-- the beach + the sea in front -->
+  ${item('beachTrash', 0, 0, `${bottle(612, 482, 80, 1.1)}${bottle(640, 480, -60, 1.1)}<path d="M582 482 l10 -3 l2 5Z" fill="#ff6fa8"/>`, 'fade')}
+  ${item('beachTurtle', 700, 480, `<g class="float">${turtle(0, 0, 0.8)}</g>`)}
+  <g data-k="crabs" class="fade">${crab(150, 480, 0)}${crab(520, 482, -1.5)}</g>
+  <g data-k="reef" class="reef">
+    ${reef(60, 520, 0.9, 'staghorn', 'brain', 'anemone', 'a', 'd', 'b')}${reef(220, 524, 0.85, 'fan', 'tube', 'brain', 'c', 'b', 'e')}
+    ${reef(400, 522, 0.8, 'brain', 'staghorn', 'anemone', 'e', 'a', 'c')}${reef(600, 524, 0.85, 'staghorn', 'fan', 'tube', 'b', 'c', 'a')}
+    ${reef(770, 520, 0.9, 'tube', 'brain', 'anemone', 'd', 'a', 'e')}${reef(-140, 528, 1.1, 'fan', 'staghorn', 'brain', 'a', 'e', 'b')}
+    ${reef(960, 528, 1.1, 'staghorn', 'brain', 'tube', 'c', 'b', 'd')}
+    ${reef(120, 640, 1.4, 'brain', 'fan', 'staghorn', 'b', 'a', 'e')}${reef(460, 660, 1.5, 'staghorn', 'tube', 'fan', 'a', 'd', 'c')}
+    ${reef(760, 630, 1.4, 'fan', 'brain', 'anemone', 'c', 'e', 'b')}${reef(300, 780, 1.6, 'tube', 'staghorn', 'brain', 'd', 'b', 'a')}
+  </g>
+  <g data-k="fish">
+    <g class="swim" style="animation-duration:34s"><g transform="translate(0 500) scale(.6)">${fish()}</g></g>
+    <g class="swim" style="animation-delay:-14s;animation-duration:40s"><g transform="translate(0 492) scale(.45)">${fish('#ffd23f')}</g></g>
+    <g class="swim" style="animation-delay:-24s;animation-duration:30s"><g transform="translate(0 512) scale(.52)">${fish('#ff6fa8')}</g></g>
+    <g class="swim" style="animation-duration:46s;animation-delay:-5s"><g transform="translate(0 580) scale(.85)">${fish('#4fa3e0')}</g></g>
+    <g class="swim" style="animation-duration:58s;animation-delay:-18s"><g transform="translate(0 690) scale(1.05)">${fish('#ff8c42')}</g></g>
+  </g>
+  <g data-k="seaTurtle" class="fade"><g class="swim" style="animation-duration:75s;animation-delay:-50s"><g transform="translate(0 560) scale(1.1)"><g class="float">${turtle(0, 0, 1)}</g></g></g></g>
+  ${item('seaBottles', 0, 0, [[52, 498, 80], [735, 506, -60], [300, 520, 100], [560, 510, 30]].map(([x, y, r], k) =>
+    `<g class="wander" style="--wx:${k % 2 ? -1 : 1};animation-duration:${34 + k * 6}s;animation-delay:${-k * 9}s"><g class="float" style="animation-delay:-${k}s">${bottle(x, y, r, 1.3)}</g></g>`).join(''), 'fade')}
+
+  <!-- animals and bugs (they come and go with the climate) -->
+  <g data-k="butterflies" class="fade">${butterfly(250, 400, '#ff8ad8', 0)}${butterfly(600, 396, '#ffd23f', -2)}${butterfly(730, 404, '#8fd3ff', -4)}</g>
+  <g data-k="songbirds" class="fade">${songbird(160, 357, '#ff5b4a', 0)}${songbird(352, 335, '#2f80ed', -1.2)}${songbird(704, 412, '#ffb627', -2.2)}</g>
+  <g data-k="bees" class="fade">${bee(254, 410, 0)}${bee(735, 418, -1.2)}</g>
+  <g data-k="bugs1" class="fade hide">${flies(318, 418)}${flies(690, 408)}</g>
+  <g data-k="bugs2" class="fade hide">${flies(150, 410)}${flies(505, 398)}${flies(420, 360)}${flies(760, 412)}</g>
+  ${item('heatHaze', 0, 0, `<g class="heat-lines"><path d="M120 300 q10 -15 0 -30 q-10 -15 0 -30 M300 290 q10 -15 0 -30 q-10 -15 0 -30 M520 300 q10 -15 0 -30 q-10 -15 0 -30 M700 290 q10 -15 0 -30 q-10 -15 0 -30"/></g>`, 'fade')}
+
+  <g data-k="fx"></g>
+
+  <g data-k="frontLayer"></g>
+  <g data-k="fxTop"></g>
   </g>
 </svg>`;
   }
@@ -367,16 +477,14 @@ const Scene = (() => {
     return `
 <svg class="scene-top" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
   <defs><radialGradient id="${u}glow"><stop offset="0" stop-color="#fff2a8" stop-opacity=".95"/><stop offset=".35" stop-color="#ffcf5a" stop-opacity=".55"/><stop offset="1" stop-color="#ffb03a" stop-opacity="0"/></radialGradient></defs>
-  <!-- lights that glow at night (drawn on top so they stay bright) -->
   <g class="glows">
-    <circle data-glow="caveLamp" cx="176" cy="313" r="34" fill="url(#${u}glow)"/>
-    <circle data-glow="campfire" cx="240" cy="376" r="46" fill="url(#${u}glow)"/>
-    <circle data-glow="bonfire" cx="690" cy="350" r="90" fill="url(#${u}glow)"/>
-    <circle data-glow="house" cx="352" cy="248" r="26" fill="url(#${u}glow)"/>
-    <circle data-glow="house" cx="448" cy="248" r="26" fill="url(#${u}glow)"/>
+    <circle data-glow="lamps" cx="199" cy="378" r="20" fill="url(#${u}glow)"/>
+    <circle data-glow="lamps" cx="464" cy="378" r="20" fill="url(#${u}glow)"/>
+    <circle data-glow="lamps" cx="591" cy="378" r="20" fill="url(#${u}glow)"/>
+    <circle data-glow="houseLit" cx="314" cy="396" r="24" fill="url(#${u}glow)"/>
+    <circle data-glow="houseLit" cx="386" cy="396" r="24" fill="url(#${u}glow)"/>
+    <circle data-glow="lamps" cx="704" cy="294" r="14" fill="url(#${u}glow)"/>
   </g>
-
-
   <g data-k="bubble" class="bubble hide"><g class="bubble-in">
     <rect data-k="bubbleBox" x="-60" y="-46" width="120" height="40" rx="15" fill="#fff" stroke="#23313f" stroke-width="2.6"/>
     <path d="M-9 -7.3 L0 8 L9 -7.3" fill="#fff" stroke="#23313f" stroke-width="3" stroke-linejoin="round"/>
@@ -387,220 +495,435 @@ const Scene = (() => {
 
   // Full-screen layers drawn with plain HTML (the GPU fades and moves these cheaply)
   const BACKDROP = `<div class="backdrop" aria-hidden="true">
-      <div class="bd bd-morning"></div><div class="bd bd-day"></div><div class="bd bd-evening"></div><div class="bd bd-night"><div class="bd-stars">${STARS}</div></div><div class="bd bd-eclipse"><div class="bd-stars">${STARS}</div></div>
+      <div class="bd bd-morning"></div><div class="bd bd-day"></div><div class="bd bd-evening"></div><div class="bd bd-night"><div class="bd-stars">${STARS}</div></div>
       <div class="moon-html"><div class="moon-halo"></div><div class="moon-disc"></div><div class="moon-cut"></div></div>
-      <div class="sun-html"><div data-k="heatGlow" class="sun-heat fade hide"></div><div class="sun-halo"></div><div class="sun-disc"></div><div class="sun-tint"></div><div class="corona"></div><div class="eclipse-moon"></div></div>
-      <div class="bd-haze"></div><div class="bd-murk"></div><div class="bd-gloom"></div>
+      <div class="sun-html"><div data-k="heatGlow" class="sun-heat fade hide"></div><div class="sun-halo"></div><div class="sun-disc"></div><div class="sun-tint"></div></div>
+      <div class="bd-haze"></div><div class="bd-gloom"></div>
       <div class="bd-cover bd-rain"></div><div class="bd-cover bd-storm"></div>
     </div>`;
   const FX_LAYERS = `<div class="fx-html" aria-hidden="true">
       <div class="fxh fxh-tint"></div><div class="fxh fxh-heat"></div><div class="fxh fxh-dark"></div><div class="fxh fxh-flash"></div>
     </div>`;
 
-  /* What each choice shows on the island.
-     ev = the problem appears, good/bad = result, pay = reward 2 turns later.
-     s.task(x, y, fn) walks the monkey to (x, y), does fn there, then walks back. */
-  const BOTTLE = bottle(0, 0, 0, 1.3);
-  const FISH_SMALL = `<g transform="scale(.7)">${fish()}</g>`;
-  const DROP = '<path d="M0 -8 q-6 8 0 12 q6 -4 0 -12Z" fill="#7cc9ef"/>';
+  /* Where things are (x, y = where Bobo's feet are) */
+  const P = {
+    home: [350, 434], door: [350, 430], friend: [166, 434], garden: [505, 434], vend: [650, 438], fountain: [676, 438],
+    school: [108, 368], shops: [517, 368], thrift: [462, 368], mall: [574, 368], station: [232, 326],
+    curbA: [350, 438], gapF: [232, 434], gapB: [232, 368], lane: [350, 464],
+  };
+  const BACK_Y = 400;   // above this line = the back row
+  const ROAD_Y = 445;   // below this line = in front of the cars
+
+  const DROP = '<path d="M0 -6 q-5 6 0 9 q5 -3 0 -9Z" fill="#7cc9ef"/>';
+  const BOX = '<rect x="-10" y="-8" width="20" height="16" fill="#c98f4f" stroke="#8b5a2b" stroke-width="1.5"/>';
+  const TOY = '<g transform="scale(.5)"><path d="M-14 -4 h28 v8 h-28Z" fill="#ff5b4a"/><circle cx="-8" cy="5" r="4" fill="#23313f"/><circle cx="8" cy="5" r="4" fill="#23313f"/></g>';
+  const BALL = '<circle r="5" fill="#ffd23f" stroke="#ff8c42" stroke-width="2"/>';
+  const CUP = '<path d="M-3 -4 h6 l-1 8 h-4Z" fill="#fff" stroke="#2fb35a" stroke-width="1.2"/>';
+  const PLASTIC = '<path d="M-3 -4 h6 l-1 8 h-4Z" fill="#ff5b4a"/>';
+
+  /* What each choice shows. ev = Bobo goes to where it happens. good/bad = what the choice does:
+     play() is the animation, apply() leaves lasting changes in the city (it runs at the end, or
+     right away if the player moves on before the animation is done). pay = reward 2 turns later. */
   const ACTIONS = {
-    shelter: {
-      ev() {},
-      good(s) { s.hide('sticks'); s.task(212, 372, () => { s.show('caveBed'); s.show('caveLamp'); s.sparkle(158, 300); }); },
-      bad(s) {
-        s.task(330, 372, () => {
-          s.chop();
-          // the palms where the big house goes are cut down, so the house never overlaps a tree
-          setTimeout(() => { s.hide('sticks'); [1, 2, 3].forEach((n) => s.palm(n, 'stump')); s.show('house'); }, 700);
-        });
+    school: {
+      async ev(s) { s.wear('pack'); await s.go(P.home); },
+      good: {
+        async play(s) {
+          s.wear('bike'); await s.go(P.lane);
+          s.speed = 2.6; await s.go([232, 464]); await s.go(P.gapF); await s.go(P.gapB); await s.go(P.school); s.speed = 1;
+          s.wear('bike', false); s.sparkle(108, 330); s.jump(); await s.w(500);
+        },
       },
-      pay(s) { s.showCocos(); s.sparkle(526, 180); },
+      bad: {
+        async play(s) {
+          await s.go(P.curbA);
+          const jam = [300, 248, 196].map((x, k) => s.vehicle('roadFx', car(['#ffb627', '#9aa5b1', '#7d5fff'][k]), x, 448, -1));
+          const ride = s.vehicle('roadFx', car('#e63946'), 900, 448, -1);
+          await ride.move(352, 448, 1500, 'ease-out');
+          s.inside(true);
+          ride.cam = true;   // the camera rides along with Bobo
+          [ride, ...jam].forEach((v) => v.puff(true));
+          sfx('honk');
+          await s.w(1800);   // stuck in the traffic jam, puffing smoke
+          jam.forEach((v, k) => v.move(-260 - k * 60, 448, 2600, 'ease-in'));
+          await ride.move(244, 448, 1300, 'ease-in-out');
+          ride.cam = false;
+          s.place(P.gapF); s.inside(false);
+          ride.move(-300, 448, 1800, 'ease-in');
+          await s.go(P.gapB); await s.go(P.school);
+        },
+        apply(s) { s.traffic++; },
+      },
+      pay(s) { s.show('cyclists'); s.look(400); s.sparkle(300, 450); s.sparkle(560, 450); },
     },
-    plastic: {
-      ev(s) { s.show('bottles'); },
-      good(s) {
-        s.task(616, 430, () => {
-          s.show('bin');
-          [[-28, 0], [-6, -4], [16, 2], [34, -6]].forEach(([dx, dy], k) =>
-            setTimeout(() => s.toss(575 + dx, 434 + dy, 575, 398, BOTTLE, 520, k === 3 ? () => s.hide('bottles') : null), k * 160));
-        }, 2000);
+    lights: {
+      async ev(s) { await s.go(P.home); s.houseLights(true); },
+      good: {
+        async play(s) {
+          await s.go(P.door); s.chop(); await s.w(500);
+          s.houseLights(false); s.energy('slow'); await s.w(400);
+          await s.go(P.fountain); s.jump(); await s.w(600);
+        },
       },
-      bad(s) {
-        s.task(616, 430, () => {
-          s.hide('bottles');
-          [[735, 462], [660, 488], [540, 496]].forEach(([x, y], k) =>
-            setTimeout(() => s.toss(616, 392, x, y, BOTTLE, 900, () => { s.splash(x, y); if (k === 2) { s.show('seaBottles'); s.murk += 0.22; } }), k * 260));
-        }, 2300);
+      bad: {
+        async play(s) { await s.go(P.fountain); s.energy('fast'); s.burst(); await s.w(2200); },
+        apply(s) { s.energyBad++; s.houseLights(true); },
       },
-      pay(s) { s.show('pots'); s.sparkle(545, 410); },
+      pay(s) { s.show('solarRoof'); s.show('solarSchool'); s.renew++; s.updatePlant(); s.look(260); s.sparkle(350, 350); s.sparkle(70, 296); },
+    },
+    bottle: {
+      async ev(s) { await s.go(P.fountain); },
+      good: {
+        async play(s) {
+          s.wear('bottle');
+          [0, 1, 2].forEach((k) => setTimeout(() => s.toss(694, 404, 690, 418, DROP, 420), k * 160));
+          await s.w(900); s.sparkle(694, 400); s.jump(); await s.w(500);
+        },
+      },
+      bad: {
+        async play(s) {
+          await s.go(P.vend); s.chop(); await s.w(600);
+          s.toss(630, 420, 660, 422, bottle(0, 0, 0, 1), 500, () => s.wear('plastic')); await s.w(1100);
+          s.wear('plastic', false);
+          s.toss(660, 418, 612, 482, bottle(0, 0, 0, 1.1), 900); await s.w(1000);
+        },
+        apply(s) { s.show('beachTrash'); s.show('seaBottles'); s.seaHurt = true; },
+      },
+      pay(s) { s.hide('beachTrash'); s.show('beachTurtle'); s.look(700); s.sparkle(700, 466); },
+    },
+    toy: {
+      async ev(s) { await s.go(P.home); s.show('toyBroken'); },
+      good: {
+        async play(s) {
+          const f = s.buddy('#a0673a', '#ffd23f', P.friend);
+          await f.walk(386, 436);
+          s.chop(); f.chop(); await s.w(1100);
+          s.hide('toyBroken'); s.show('toyFixed'); s.sparkle(372, 420);
+          s.toss(386, 410, 350, 412, BALL, 600); await s.w(300);
+          s.toss(350, 410, 386, 412, TOY, 600); await s.w(800);
+          await f.walk(...P.friend); f.remove();
+        },
+      },
+      bad: {
+        async play(s) {
+          const t = s.vehicle('roadFx', truck, -260, 457, 1);
+          t.puff(true);
+          await t.move(330, 457, 2200, 'ease-out');
+          s.toss(330, 410, 304, 430, BOX, 700, () => s.show('boxPile')); await s.w(500);
+          s.hide('toyBroken'); s.show('toyNew'); s.sparkle(372, 420); await s.w(600);
+          await t.move(1100, 457, 2000, 'ease-in'); t.remove();
+        },
+        apply(s) { s.show('boxPile'); },
+      },
+      pay(s) { s.show('swapBox'); s.look(150); s.sparkle(150, 344); },
+    },
+    hot: {
+      async ev(s) { s.show('heatGlow'); await s.go(P.home); },
+      good: {
+        async play(s) { s.show('fan'); s.q('boboHouse').classList.add('win-open'); await s.w(700); s.wear('glass'); s.sparkle(384, 400); await s.w(1000); },
+      },
+      bad: {
+        async play(s) { s.show('acUnit'); s.show('acAir'); await s.w(500); s.energy('fast'); s.burst(); await s.w(2000); },
+        apply(s) { s.show('acUnit'); s.energyBad++; },
+      },
+      pay(s) { s.show('shadeTrees'); s.look(350); s.sparkle(272, 390); s.sparkle(426, 390); },
+    },
+    cold: {
+      async ev(s) { await s.go(P.home); },
+      good: {
+        async play(s) { await s.go(P.door); s.inside(true); await s.w(700); s.wear('sweater'); s.inside(false); await s.go(P.home); s.sparkle(350, 400); await s.w(600); },
+      },
+      bad: {
+        async play(s) { await s.go(P.door); s.inside(true); await s.w(500); s.show('houseSmoke'); s.energy('fast'); await s.w(1600); s.inside(false); await s.go(P.home); },
+        apply(s) { s.show('houseSmoke'); s.energyBad++; },
+      },
+      pay(s) { s.show('turbines'); s.renew++; s.updatePlant(); s.look(80); s.sparkle(80, 250); },
+    },
+    shower: {
+      async ev(s) { s.wear('mud'); await s.go(P.home); },
+      good: {
+        async play(s) { await s.go(P.door); s.inside(true); await s.w(300); s.flash('steam', 1300); await s.w(1300); s.wear('mud', false); s.inside(false); s.sparkle(350, 400); await s.w(500); },
+      },
+      bad: {
+        async play(s) { await s.go(P.door); s.inside(true); await s.w(300); s.show('bathBubbles'); s.energy('fast'); s.burst(); await s.w(2600); s.hide('bathBubbles'); s.wear('mud', false); s.inside(false); await s.w(300); },
+        apply(s) { s.energyBad++; },
+      },
+      pay(s) { s.show('solarHeater'); s.renew++; s.updatePlant(); s.look(200); s.sparkle(178, 368); },
+    },
+    party: {
+      async ev(s) {
+        s.wear('hat'); s.show('partyCloth'); s.show('balloons'); s.show('cake');
+        const a = s.buddy('#a0673a', '#ffd23f', P.friend, '#2f80ed'), b = s.buddy('#6b3f1e', '#2fb35a', [860, 440], '#ffd23f');
+        a.walk(470, 432); b.walk(542, 432);
+        await s.go(P.garden);
+      },
+      good: {
+        async play(s) {
+          s.show('platesReal'); await s.w(900);
+          s.show('sortBins');
+          [CUP, BALL, CUP].forEach((it, k) => setTimeout(() => s.toss(505 - 20 + k * 20, 410, 565 + k * 13, 420, it, 600), k * 260));
+          await s.w(1000); s.buddies.forEach((b) => b.jump()); s.sparkle(578, 410); await s.w(500);
+        },
+      },
+      bad: {
+        async play(s) {
+          s.show('platesPlastic'); await s.w(900);
+          s.show('trashBag');
+          [PLASTIC, PLASTIC, PLASTIC].forEach((it, k) => setTimeout(() => s.toss(485 + k * 20, 410, 572, 420, it, 600), k * 220));
+          await s.w(1200);
+        },
+        apply(s) { s.show('trashPile'); },
+      },
+      pay(s) { s.show('recycling'); s.look(44); s.sparkle(44, 400); },
+    },
+    jacket: {
+      async ev(s) { await s.go(P.shops); },
+      good: {
+        async play(s) { await s.go(P.thrift); s.inside(true); await s.w(1100); s.wear('cool'); s.inside(false); s.sparkle(462, 330); s.jump(); await s.w(600); },
+      },
+      bad: {
+        async play(s) {
+          // a big cargo ship brings the new clothes from a faraway factory
+          const ship = s.vehicle('fx', SHIP, 900, 520, 1, 1.1);
+          ship.move(-300, 520, 7000, 'linear');
+          await s.go(P.mall); s.inside(true); await s.w(1300); s.wear('plain'); s.wear('bag'); s.inside(false); await s.w(900);
+        },
+      },
+      pay(s) { s.show('clothesRack'); s.look(505); s.sparkle(505, 340); },
+    },
+    trip: {
+      async ev(s) { s.wear('pack'); await s.go(P.home); },
+      good: {
+        async play(s) {
+          await s.go(P.station);
+          s.hide('trains');
+          const tr = s.vehicle('trainFx', TRAIN, -260, 316, 1, 0.95);
+          sfx('choo');
+          await tr.move(330, 316, 2600, 'ease-out');
+          s.inside(true); await s.w(900);
+          await tr.move(1500, 316, 3000, 'ease-in'); tr.remove(); s.show('trains');
+          s.away = P.station;    // back from Grandma's by train next time
+        },
+      },
+      bad: {
+        async play(s) {
+          await s.go(P.curbA);
+          const ride = s.vehicle('roadFx', car('#e63946'), -200, 457, 1);
+          await ride.move(340, 457, 1500, 'ease-out');
+          s.inside(true);
+          const jam = [430, 482, 534].map((x, k) => s.vehicle('roadFx', car(['#9aa5b1', '#ffb627', '#2fb35a'][k]), x, 457, 1));
+          [ride, ...jam].forEach((v) => v.puff(true));
+          await ride.move(378, 457, 700); sfx('honk'); await s.w(1500);
+          jam.forEach((v, k) => v.move(1150 + k * 60, 457, 2600, 'ease-in'));
+          await ride.move(1100, 457, 2700, 'ease-in'); ride.remove();
+          s.away = P.home;
+        },
+        apply(s) { s.traffic++; },
+      },
+      pay(s) { s.show('train2'); s.look(400); s.sparkle(400, 300); },
     },
     food: {
-      ev(s) { s.show('fruitpile'); },
-      good(s) { s.task(460, 418, () => { s.hide('fruitpile'); s.show('basket'); }); },
-      bad(s) { s.task(460, 418, () => { s.hide('fruitpile'); s.show('cores'); }); },
-      pay(s) { s.rain(3200); s.sparkle(505, 405); },
-    },
-    banana: {
-      ev(s) { s.show('bpSmall'); },
-      good(s) { s.task(346, 384, () => { s.hide('bpSmall'); s.show('bpSapling'); s.sparkle(300, 336); }); },
-      bad(s) { s.task(346, 384, () => { s.hide('bpSmall'); s.show('bpDead'); s.show('peel'); }); },
-      pay(s) { s.hide('bpSapling'); s.show('bpTree'); s.sparkle(300, 310); },
-    },
-    fishing: {
-      ev() {},
-      good(s) {   // a fishing rod: cast, wait, one fish jumps into the bucket
-        s.task(372, 430, () => {
-          s.show('rod');
-          setTimeout(() => s.toss(362, 486, 318, 424, FISH_SMALL, 700, () => s.sparkle(318, 420)), 900);
-        }, 2400);
+      async ev(s) { await s.go(P.garden); },
+      good: {
+        async play(s) { s.show('tacos'); s.sparkle(505, 400); await s.w(800); s.jump(); await s.w(700); },
       },
-      bad(s) {    // a giant net: throw it out, drag back tons of fish
-        s.task(372, 430, () => {
-          s.toss(362, 392, 300, 488, '<path d="M-18 -10 L18 -10 L14 10 L-14 10Z" fill="none" stroke="#4d3b2e" stroke-width="2"/><path d="M-16 -4 H16 M-15 3 H15 M-8 -10 V10 M0 -10 V10 M8 -10 V10" stroke="#4d3b2e" stroke-width="1.2"/>', 800,
-            () => { s.splash(300, 488); setTimeout(() => { s.show('net'); s.hide('fish'); s.murk += 0.08; }, 500); });
-        }, 2400);
+      bad: {
+        async play(s) { s.show('burger'); await s.w(900); s.look(98); s.show('cows'); s.sparkle(98, 410); await s.w(1600); },
+        apply(s) { s.show('cows'); },
       },
-      pay(s) { s.show('babyFish'); s.show('jumper'); s.sparkle(150, 450); },
-    },
-    compost: {
-      ev(s) { s.show('scraps'); },
-      good(s) { s.task(160, 416, () => { s.hide('scraps'); s.show('compost'); }); },
-      bad(s) { s.task(160, 416, () => { s.hide('scraps'); s.show('trash'); }); },
-      pay(s) { s.show('garden'); s.sparkle(140, 390); },
-    },
-    fire: {
-      ev(s) { s.flames(3, true); s.flames(4, true); },
-      good(s) {   // run to the fire with the bucket and throw the water
-        s.show('bucket');
-        s.task(440, 360, () => {
-          [0, 1, 2].forEach((k) => setTimeout(() => s.toss(440, 330, 470 + k * 30, 210 + k * 10, DROP, 500), k * 140));
-          setTimeout(() => { s.flames(3, false); s.flames(4, false); s.flash('smoke', 2200); }, 650);
-        }, 2000);
-      },
-      bad(s) { s.flames(3, false); s.flames(4, false); s.palm(3, 'burnt'); s.palm(4, 'burnt'); s.show('ash'); },
-      pay(s) { s.rain(3200); s.show('parrot'); },
-    },
-    firewood: { // the cold night
-      ev() {},
-      good(s) { s.task(272, 392, () => { s.show('campfire'); s.sparkle(240, 362); }, 0); },   // a small fire right by the cave; the monkey stays warm there
-      bad(s) {
-        s.task(560, 352, () => {
-          s.chop();
-          setTimeout(() => { s.show('bonfire'); s.show('darkSmoke'); s.palm(4, 'stump'); s.palm(5, 'stump'); s.smoke += 0.15; }, 700);
-        });
-      },
-      pay(s) { s.show('woodpile'); s.show('campfire'); s.sparkle(196, 356); },
-    },
-    water: {
-      ev(s) { s.show('heatGlow'); },
-      good(s) { s.hide('heatGlow'); s.task(522, 370, () => { s.show('barrel'); s.toss(560, 340, 600, 326, DROP, 400); }); },
-      bad(s) { s.hide('heatGlow'); s.task(522, 370, () => { s.jump(); s.splash(566, 342); s.q('pondWater').classList.add('dirty'); s.show('bubbles'); }); },
-      pay(s) { s.rain(3200); s.sparkle(624, 320); },
-    },
-    turtles: {
-      ev(s) { s.show('turtles'); },
-      good(s) { s.task(400, 400, () => { s.hide('turtles'); s.show('nest'); s.show('turtlesSwim'); }); }, // stays away and lets them nest
-      bad(s) { s.task(580, 410, () => { s.hide('turtles'); s.show('turtlesLeave'); }); },                  // shoos them away
-      pay(s) { s.show('babies'); s.sparkle(630, 400); },
+      pay(s) { s.show('veggieGarden'); s.look(746); s.sparkle(746, 420); },
     },
   };
 
-  const TIMES = ['morning', 'day', 'evening', 'night', 'eclipse'];
+  const TIMES = ['morning', 'day', 'evening', 'night'];
 
   function create(container) {
     const u = 's' + ++uid + '-';
     container.innerHTML = BACKDROP + buildSVG(u) + FX_LAYERS + buildTopSVG(u);
-    const svg = container.querySelector('svg.scene-main');      // the island drawing
+    const svg = container.querySelector('svg.scene-main');
     const q = (k) => container.querySelector(`[data-k="${k}"]`);
-    const land = q('land');
     container.insertAdjacentHTML('beforeend', '<div class="rain-fx" aria-hidden="true"></div>');
     // A random sky every game: sometimes clear, sometimes a few clouds drifting by
-    q('skyClouds').innerHTML = Array.from({ length: [0, 1, 1, 2, 2, 3, 4][Math.floor(Math.random() * 7)] }, () => {
-      const y = 40 + Math.random() * 130, sc = 0.6 + Math.random() * 0.7, dur = 90 + Math.random() * 70;
+    q('skyClouds').innerHTML = Array.from({ length: [0, 1, 1, 2, 2, 3][Math.floor(Math.random() * 6)] }, () => {
+      const y = 40 + Math.random() * 110, sc = 0.6 + Math.random() * 0.7, dur = 90 + Math.random() * 70;
       return `<g class="drift" style="animation-duration:${dur.toFixed(0)}s;animation-delay:${(-Math.random() * dur).toFixed(0)}s"><g transform="translate(0 ${y.toFixed(0)}) scale(${sc.toFixed(2)})"><g class="cloud"><circle cx="0" cy="0" r="22"/><circle cx="24" cy="-8" r="26"/><circle cx="50" cy="2" r="20"/><rect x="0" y="0" width="50" height="20"/></g></g></g>`;
     }).join('');
-    const monkey = q('monkey');
+    const wrap = q('walkerWrap'), walker = svg.querySelector('.walker'), monkey = q('monkey');
     let mood = '';
     let time = 'day';
-    let reactTimer = 0;
-    let bubbleTimer = 0;
-    let destroyed = false;
-    let deadCount = 0;
-    let badCount = 0;
-    let walkPos = [400, 400];
-    let walkTimer = 0;
-    let walkEnd = 0;
-    let taskId = 0;
-    let pendingJob = null;
-    let whaleAllowed = false;
-    const harmed = { sea: false, fish: false };
+    let reactTimer = 0, bubbleTimer = 0, walkTimer = 0, walkEnd = 0;
+    let walkPos = [...P.home];
+    let gen = 0;               // goes up whenever a new situation starts; old animations then stop
+    let pending = null;        // the lasting changes of the choice that is still playing
+    let climate = 1;
+    let level = 0;
+    const vehicles = [];
+    const buddies = [];
 
-    const visible = (el) => el && !el.classList.contains('hide') && !el.classList.contains('swept');
+    /* Camera: on narrow portrait screens (phones) the city is zoomed in and the view slides
+       sideways to follow Bobo. Sliding moves the pictures with the GPU, so it stays smooth. */
+    const svgs = container.querySelectorAll('svg.scene-main, svg.scene-top');
+    const CAM_W = 540;
+    let camW = 800, camFocus = 400;
+    function camTo(x, ms = 0) {
+      camFocus = x;
+      if (camW === 800) { container.style.setProperty('--camx', '0px'); return; }
+      const r = container.getBoundingClientRect();
+      const u = Math.min(r.width / camW, r.height / 500);
+      const base = (800 - camW) / 2, cx = clamp(x - camW / 2, 0, 800 - camW);
+      container.style.setProperty('--camt', Math.round(ms) + 'ms');
+      container.style.setProperty('--camx', (-(cx - base) * u).toFixed(1) + 'px');
+    }
+    function applyZoom() {
+      const r = container.getBoundingClientRect();
+      const want = container.classList.contains('scene-wrap') && r.height > 0 && r.width / r.height < 1.1 && r.width < 760 ? CAM_W : 800;
+      if (want !== camW) {
+        camW = want;
+        container.classList.toggle('zoomed', camW !== 800);
+        svgs.forEach((el) => el.setAttribute('viewBox', `${(800 - camW) / 2} 0 ${camW} 500`));
+        container.dispatchEvent(new Event('scenezoom', { bubbles: true }));
+      }
+      camTo(camFocus, 0);   // (the card below changes size a lot: keep looking at the same spot)
+    }
+    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(applyZoom).observe(container);
+    const CANCEL = { cancelled: true };
+    const guard = (g) => { if (g !== gen) throw CANCEL; };
+
+    const visible = (el) => el && !el.classList.contains('hide');
     function updateGlows() {
-      const dark = time === 'night' || time === 'evening' || time === 'eclipse';
+      const dark = time === 'night' || time === 'evening';
       container.querySelectorAll('[data-glow]').forEach((g) => {
-        g.classList.toggle('on', dark && !destroyed && visible(q(g.dataset.glow)));
+        g.classList.toggle('on', dark && (g.dataset.glow === 'lamps' || visible(q(g.dataset.glow))));
       });
     }
 
+    // back row = behind the houses; pavement = behind the cars on the road; bike lane = in front
+    const layerFor = (y) => q(y < BACK_Y ? 'backLayer' : y < ROAD_Y ? 'midLayer' : 'frontLayer');
+    /* Bobo walks to (x, y); resolves when there. */
+    function walkTo(x, y) {
+      const [cx, cy] = walkPos;
+      const dist = Math.hypot(x - cx, y - cy);
+      const ms = Math.max(300, Math.min(2000, dist * 5.5 / s.speed));
+      // switch layers at the start of a step (always in the side street, where nothing overlaps)
+      const layer = layerFor(y);
+      if (wrap.parentNode !== layer) layer.appendChild(wrap);
+      walkPos = [x, y];
+      walker.style.transitionDuration = ms + 'ms';
+      walker.style.transform = `translate(${x - 400}px, ${y - 400}px) scale(${depthK(y).toFixed(3)})`;
+      walkEnd = performance.now() + ms;
+      camTo(x, ms);
+      placeBubble(ms);
+      monkey.classList.toggle('walking', dist > 4);
+      clearTimeout(walkTimer);
+      return new Promise((done) => { walkTimer = setTimeout(() => { monkey.classList.remove('walking'); done(); }, ms); });
+    }
+    // Plan a route: between the back and front rows Bobo always goes through the side street
+    function route(from, to) {
+      const back = (p) => p[1] < BACK_Y;
+      if (back(from) === back(to)) return [to];
+      return back(from) ? [[P.gapB[0], P.gapB[1]], [P.gapF[0], P.gapF[1]], to] : [[P.gapF[0], P.gapF[1]], [P.gapB[0], P.gapB[1]], to];
+    }
+    function place([x, y]) {
+      walkPos = [x, y];
+      const layer = layerFor(y);
+      if (wrap.parentNode !== layer) layer.appendChild(wrap);
+      walker.style.transitionDuration = '0ms';
+      walker.style.transform = `translate(${x - 400}px, ${y - 400}px) scale(${depthK(y).toFixed(3)})`;
+      void walker.getBoundingClientRect();
+      walker.style.transitionDuration = '';
+      camTo(x, 0);
+    }
+
+    const WEAR = { pack: ['mPack', 'mStraps'], bike: ['mBike'], hat: ['mHat'], sweater: ['mSweater'], cool: ['mJacketCool'], plain: ['mJacketPlain'],
+      mud: ['mMud', 'mMudFace'], bottle: ['mBottle'], plastic: ['mPlastic'], glass: ['mGlass'], bag: ['mBag'] };
+
     const s = {
       q,
-      murk: 0,
-      smoke: 0,
+      speed: 1,
+      traffic: 0,
+      energyBad: 0,
+      renew: 0,
+      seaHurt: false,
+      away: null,
+      buddies,
       show(k) { const el = q(k); if (el) el.classList.remove('hide'); updateGlows(); },
       hide(k) { const el = q(k); if (el) el.classList.add('hide'); updateGlows(); },
       flash(k, ms) { s.show(k); setTimeout(() => s.hide(k), ms); },
-      palm(n, state) {
-        const p = q('palm' + n);
-        ['alive', 'stump', 'burnt'].forEach((st) => p.querySelector('.' + st).classList.toggle('hide', st !== state));
-        p.dataset.state = state;
+      wear(what, on = true) { WEAR[what].forEach((k) => q(k).classList.toggle('hide', !on)); },
+      inside(on) { walker.classList.toggle('inside', on); if (on) q('bubble').classList.add('hide'); },
+      place,
+      look(x) { camTo(x, 900); },
+      // wait, but stop if a new situation started meanwhile
+      async w(ms) { const g = gen; await sleep(ms); guard(g); },
+      async go(to) {
+        const g = gen;
+        for (const p of route(walkPos, to)) { await walkTo(p[0], p[1]); guard(g); }
       },
-      flames(n, on) { q('palm' + n).querySelector('.flames').classList.toggle('hide', !on); },
-      showCocos() {
-        for (let n = 0; n < 6; n++) {
-          const p = q('palm' + n);
-          if (p.dataset.state === 'alive') p.querySelector('.cocos').classList.remove('hide');
-        }
+      houseLights(on) { s.q('boboHouse').classList.toggle('lit', on); s.q('boboHouse').classList.toggle('lights-off', !on); s[on ? 'show' : 'hide']('houseLit'); s[on ? 'show' : 'hide']('tv'); },
+      energy(speed) {
+        const e = q('energy');
+        e.classList.remove('fast', 'slow');
+        e.classList.add(speed);
+        clearTimeout(s.energyTimer);
+        s.energyTimer = setTimeout(() => e.classList.remove('fast', 'slow'), 3500);
       },
-      /* walk to (x, y) in island coordinates; resolves when there */
-      walkTo(x, y) {
-        const w = svg.querySelector('.walker');
-        const [cx, cy] = walkPos;
-        const dist = Math.hypot(x - cx, y - cy);
-        const ms = Math.max(350, Math.min(1500, dist * 5.5));
-        walkPos = [x, y];
-        w.style.transitionDuration = ms + 'ms';
-        w.style.transform = `translate(${x - 400}px, ${y - 400}px)`;
-        walkEnd = performance.now() + ms;
-        placeBubble(ms);
-        monkey.classList.toggle('walking', dist > 4);
-        clearTimeout(walkTimer);
-        return new Promise((done) => { walkTimer = setTimeout(() => { monkey.classList.remove('walking'); done(); }, ms); });
+      burst() { s.flash('plantBurst', 2600); },
+      updatePlant() {
+        // how much smoke the power plant makes: more energy used = more smoke; sun + wind power = less
+        const lvl = clamp(1 + s.energyBad - s.renew, 0, 4);
+        [1, 2, 3, 4].forEach((n) => q('ps' + n).classList.toggle('hide', n !== lvl));
+        container.querySelector('.bd-haze').style.opacity = hazeFor();
       },
-      home() { return s.walkTo(400, 400); },
-      task(x, y, fn, stay = 1700) {
-        // If the player moves on before the monkey got there, finish the last job right away
-        // (so e.g. the fire always gets put out), then start walking to the new one.
-        if (pendingJob) { const job = pendingJob; pendingJob = null; job(); }
-        const id = ++taskId;
-        let jobDone;
-        s.lastTask = new Promise((resolve) => { jobDone = resolve; });   // resolves once the job is done
-        const job = () => { fn(); jobDone(); };
-        pendingJob = job;
-        s.walkTo(x, y).then(() => {
-          if (id !== taskId) return;
-          if (pendingJob === job) { pendingJob = null; job(); }   // (it may already have been done early)
-          if (stay) setTimeout(() => { if (id === taskId && !destroyed) s.home(); }, stay);  // stay = 0: stay there
-        });
+      vehicle(layer, inner, x, y, dir = 1, fixedScale = null) {
+        const g = document.createElementNS(NS, 'g');
+        g.innerHTML = `<g class="veh">${inner}</g>`;
+        g.classList.add('vehicle');
+        q(layer).appendChild(g);
+        const v = { g, x, y };
+        const k = () => fixedScale || depthK(y);
+        const set = () => { g.style.transform = `translate(${v.x}px, ${v.y}px) scale(${(k() * dir).toFixed(3)}, ${k().toFixed(3)})`; };
+        g.style.transition = 'none'; set(); void g.getBoundingClientRect();
+        v.move = (x2, y2, ms, ease = 'ease-in-out') => {
+          v.x = x2; v.y = y2;
+          if (v.cam) camTo(x2, ms);
+          g.style.transition = `transform ${ms}ms ${ease}`; set();
+          const p = s.w(ms); p.catch(() => {});   // (fine to not wait for it)
+          return p;
+        };
+        v.puff = (on) => g.classList.toggle('puffing', on);
+        v.remove = () => g.remove();
+        vehicles.push(v);
+        return v;
       },
-      finishJobs() { if (pendingJob) { const job = pendingJob; pendingJob = null; job(); } },
+      // a friend monkey who can walk around
+      buddy(fur, shirt, from, hat) {
+        const g = document.createElementNS(NS, 'g');
+        g.innerHTML = `<g class="mjump"><g transform="${MONKEY_FIT}">${buddy(fur, shirt, hat)}</g></g>`;
+        g.classList.add('buddy');
+        q('buddies').appendChild(g);
+        const b = { g, pos: from };
+        const set = (x, y, ms) => { g.style.transition = ms ? `transform ${ms}ms linear` : 'none'; g.style.transform = `translate(${x}px, ${y}px) scale(${depthK(y).toFixed(3)})`; };
+        set(from[0], from[1], 0); void g.getBoundingClientRect();
+        b.walk = (x, y) => {
+          const ms = Math.max(300, Math.hypot(x - b.pos[0], y - b.pos[1]) * 5.5);
+          b.pos = [x, y]; set(x, y, ms);
+          g.classList.add('walking');
+          const p = s.w(ms).finally(() => g.classList.remove('walking')); p.catch(() => {});
+          return p;
+        };
+        b.chop = () => restartAnim(g.querySelector('.mjump'), 'chop');
+        b.jump = () => restartAnim(g.querySelector('.mjump'), 'jump');
+        b.remove = () => { g.remove(); buddies.splice(buddies.indexOf(b), 1); };
+        buddies.push(b);
+        return b;
+      },
       chop() { restartAnim(svg.querySelector('.mjump'), 'chop'); },
       /* throw something in an arc from (x1,y1) to (x2,y2) */
       toss(x1, y1, x2, y2, inner, ms = 800, after = null) {
-        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        const g = document.createElementNS(NS, 'g');
         g.innerHTML = inner;
         q('fxTop').appendChild(g);
-        const peak = Math.min(y1, y2) - 70 - Math.abs(x2 - x1) * 0.15, t0 = performance.now();
+        const peak = Math.min(y1, y2) - 50 - Math.abs(x2 - x1) * 0.15, t0 = performance.now();
         const frame = (now) => {
           const k = Math.min(1, (now - t0) / ms);
           const x = x1 + (x2 - x1) * k;
@@ -611,24 +934,12 @@ const Scene = (() => {
         };
         requestAnimationFrame(frame);
       },
-      splash(x, y) {
-        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        g.setAttribute('transform', `translate(${x} ${y})`);
-        g.innerHTML = `<g class="splash"><ellipse rx="14" ry="4" fill="none" stroke="#e6f9ff" stroke-width="3"/><path d="M-8 -2 l-4 -10 M0 -3 v-14 M8 -2 l4 -10" stroke="#e6f9ff" stroke-width="3" stroke-linecap="round"/></g>`;
-        q('fxTop').appendChild(g);
-        setTimeout(() => g.remove(), 900);
-      },
-      addDead(n) {
-        deadCount = Math.min(6, deadCount + n);
-        for (let k = 0; k < deadCount; k++) s.show('dead' + k);
-      },
-      rain(ms) { setWeather('rain'); clearTimeout(s.rainTimer); s.rainTimer = setTimeout(() => setWeather('clear'), ms); },
       sparkle(x, y) {
-        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        const g = document.createElementNS(NS, 'g');
         g.setAttribute('transform', `translate(${x} ${y})`);
         g.innerHTML = `<g class="sparkle">${[0, 72, 144, 216, 288].map((a) =>
           `<g transform="rotate(${a})"><path d="M0 -14 l3 8 l8 1 l-6 5 l2 8 l-7 -4 l-7 4 l2 -8 l-6 -5 l8 -1z" fill="#fff36b" stroke="#ffb627" stroke-width="1"/></g>`).join('')}</g>`;
-        q('fx').appendChild(g);
+        q('fxTop').appendChild(g);
         setTimeout(() => g.remove(), 1300);
       },
       jump() { restartAnim(svg.querySelector('.mjump'), 'jump'); },
@@ -636,28 +947,56 @@ const Scene = (() => {
     };
 
     function restartAnim(el, cls) {
-      el.classList.remove('jump', 'droop');
+      el.classList.remove('jump', 'droop', 'chop');
       void el.getBoundingClientRect();
       el.classList.add(cls);
+    }
+
+    // Finish the last choice's lasting changes right away, and stop its animation
+    function finishPending() {
+      gen++;
+      if (pending) { const p = pending; pending = null; p(s); }
+    }
+    // A new situation: clear away the last one's props, friends and vehicles
+    function begin() {
+      finishPending();
+      vehicles.splice(0).forEach((v) => v.remove());
+      buddies.slice().forEach((b) => b.remove());
+      q('seaFx').innerHTML = ''; q('trainFx').innerHTML = '';
+      s.show('trains');
+      ['partyCloth', 'balloons', 'cake', 'platesReal', 'platesPlastic', 'sortBins', 'trashBag', 'tacos', 'burger', 'fan', 'acAir', 'steam', 'bathBubbles',
+        'toyBroken', 'toyFixed', 'toyNew', 'heatGlow', 'tv'].forEach(s.hide);
+      s.q('boboHouse').classList.remove('win-open', 'lit', 'lights-off');
+      s.hide('houseLit');
+      Object.keys(WEAR).forEach((w) => s.wear(w, false));
+      s.inside(false);
+      s.speed = 1;
+      if (s.away) { place(s.away); s.away = null; }
+      updateTraffic();
+    }
+    function updateTraffic() {
+      q('traffic2').classList.toggle('hide', s.traffic < 1);
+      q('traffic3').classList.toggle('hide', s.traffic < 2);
     }
 
     /* ── time of day + weather ── */
     function setTime(t) {
       if (!TIMES.includes(t)) t = 'day';
       time = t;
-      // Sky + sea colours (shared with the page background) and the tint over the island
-      // all come from CSS, so changing the time is just one attribute (cheap on phones).
       document.documentElement.dataset.time = t;
+      container.classList.toggle('heat-day', level >= 2 && (t === 'day'));
+      q('heatHaze').classList.toggle('hide', !(level >= 2 && t === 'day'));
       updateGlows();
     }
     function setWeather(w) {
-      const rainy = w === 'rain';
-      svg.classList.toggle('rainy', rainy);
-      container.classList.toggle('raining', rainy);
-      if (!rainy) container.classList.remove('storming');
+      const wet = w === 'rain' || w === 'storm';
+      svg.classList.toggle('rainy', wet);
+      container.classList.toggle('raining', wet);
+      container.classList.toggle('storming', w === 'storm');
+      container.classList.toggle('fx-storm', w === 'storm');
     }
 
-    /* ── monkey reactions + speech bubble ── */
+    /* ── reactions + speech bubble ── */
     function react(kind, ms = 2600) {
       clearTimeout(reactTimer);
       if (kind) monkey.dataset.react = kind; else delete monkey.dataset.react;
@@ -665,44 +1004,36 @@ const Scene = (() => {
       if (kind === 'sad') s.droop();
       if (kind && ms) reactTimer = setTimeout(() => delete monkey.dataset.react, ms);
     }
-    // Where the top of the monkey's head is (or will be), in island coordinates
-    function headTop() {
-      if (svg.classList.contains('flooded')) return [400, 400 - 192 - 66 * 0.85];
-      if (svg.classList.contains('stormy')) return [400 - 242, 400 - 72 - 66 * 0.45];
-      if (svg.classList.contains('dry')) return [530, 466 - 66];
-      return [walkPos[0], walkPos[1] - 66];
-    }
+    const headTop = () => [walkPos[0], walkPos[1] - 62 * depthK(walkPos[1])];
     let bubbleW = 120;
-    // Further back on the island (higher up) = a bit smaller, closer to the front = a bit bigger
-    const depthScale = (y) => Math.max(0.7, Math.min(1.15, 0.7 + (y - 320) / 130 * 0.45));
-    const bubbleXY = (hx, hy) => [Math.max(bubbleW / 2 + 6, Math.min(800 - bubbleW / 2 - 6, hx)), Math.max(62, hy - 10)];
+    const bubbleScale = (feetY) => clamp(depthK(feetY) * 1.05, 0.72, 1.1);
+    const bubbleXY = (hx, hy) => [Math.max(bubbleW / 2 + 6, Math.min(800 - bubbleW / 2 - 6, hx)), Math.max(62, hy - 8)];
     const bubbleTransform = (x, y, sc) => `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${sc.toFixed(3)})`;
-    // Glide the bubble to where the monkey's head will be, in the same time as the walk
     function placeBubble(ms = 0) {
       const b = q('bubble'), [hx, hy] = headTop();
       const [x, y] = bubbleXY(hx, hy);
       b.style.transition = ms ? `transform ${ms}ms ease-in-out, opacity .25s` : 'opacity .25s';
-      b.style.transform = bubbleTransform(x, y, depthScale(hy + 66));
+      b.style.transform = bubbleTransform(x, y, bubbleScale(walkPos[1]));
     }
-    // If the monkey is already walking when it starts talking, start the bubble above its head
-    // right now and let it travel along for the rest of the walk.
+    // If Bobo is already walking when talking, start the bubble above the head right now
+    // and let it travel along for the rest of the walk.
     function placeBubbleWhileWalking() {
       const left = walkEnd - performance.now();
-      if (left <= 30 || svg.classList.contains('flooded') || svg.classList.contains('stormy') || svg.classList.contains('dry')) { placeBubble(0); return; }
-      const w = svg.querySelector('.walker'), m = new DOMMatrixReadOnly(getComputedStyle(w).transform);
+      if (left <= 30) { placeBubble(0); return; }
+      const m = new DOMMatrixReadOnly(getComputedStyle(walker).transform);
       const b = q('bubble'), cx = 400 + m.m41, cy = 400 + m.m42;
-      const [x0, y0] = bubbleXY(cx, cy - 66);
+      const [x0, y0] = bubbleXY(cx, cy - 62 * m.d);
       b.style.transition = 'opacity .25s';
-      b.style.transform = bubbleTransform(x0, y0, depthScale(cy));
+      b.style.transform = bubbleTransform(x0, y0, bubbleScale(cy));
       void b.getBoundingClientRect();
       const [hx, hy] = headTop(), [x1, y1] = bubbleXY(hx, hy);
       b.style.transition = `transform ${Math.round(left)}ms ease-out, opacity .25s`;
-      b.style.transform = bubbleTransform(x1, y1, depthScale(hy + 66));
+      b.style.transform = bubbleTransform(x1, y1, bubbleScale(walkPos[1]));
     }
     function say(text, ms = 3000) {
       const b = q('bubble'), txt = q('bubbleText'), box = q('bubbleBox');
       clearTimeout(bubbleTimer);
-      if (!text) { b.classList.add('hide'); return; }
+      if (!text || walker.classList.contains('inside')) { b.classList.add('hide'); return; }
       txt.textContent = text;
       bubbleW = Math.min(480, txt.getComputedTextLength() + 28);
       box.setAttribute('x', -bubbleW / 2);
@@ -714,309 +1045,50 @@ const Scene = (() => {
     }
 
     function reset() {
-      svg.querySelectorAll('.pop, .fade').forEach((el) => {
-        const k = el.dataset.k;
-        if (!k) return;
-        const visibleAtStart = ['sticks', 'flowers', 'birds1', 'birds2', 'birds3', 'mHappy', 'haze', 'murk', 'sun'];
-        el.classList.toggle('hide', !visibleAtStart.includes(k));
+      gen++; pending = null;
+      svg.querySelectorAll('.pop[data-k], .fade[data-k]').forEach((el) => {
+        const visibleAtStart = ['birds1', 'birds2', 'birds3', 'mHappy', 'ps1', 'farFish', 'crabs', 'butterflies', 'songbirds', 'bees', 'seaTurtle'];
+        el.classList.toggle('hide', !visibleAtStart.includes(el.dataset.k));
       });
-      for (let n = 0; n < 6; n++) { s.palm(n, 'alive'); s.flames(n, false); q('palm' + n).querySelector('.cocos').classList.add('hide'); }
-      q('pondWater').classList.remove('dirty');
-      q('fish').classList.remove('hide');
-      q('fx').innerHTML = '';
-      svg.classList.remove('dry', 'stormy', 'flooded', 'burned', 'eclipse', 'coral-pale', 'coral-bleached');
-      q('fxTop').innerHTML = '';
-      container.classList.remove('fx-heat', 'fx-storm', 'storming', 'panned', 'eclipse');
-      taskId++; walkPos = [400, 400];
-      svg.querySelector('.walker').style.transform = '';
-      harmed.sea = false; harmed.fish = false;
-      s.murk = 0; s.smoke = 0; mood = ''; destroyed = false; deadCount = 0; badCount = 0;
+      q('fx').innerHTML = ''; q('fxTop').innerHTML = '';
+      Object.assign(s, { traffic: 0, energyBad: 0, renew: 0, seaHurt: false, away: null, speed: 1 });
+      begin();
+      place(P.home);
+      mood = '';
       setWeather('clear');
+      s.updatePlant();
     }
 
-    function setStats(h, i) {
-      const haze = Math.min(0.85, Math.max(0, (65 - i) / 65) * 0.75 + s.smoke).toFixed(2);
-      const murk = Math.min(0.75, ((100 - i) / 100) * 0.3 + s.murk).toFixed(2);
-      container.querySelector('.bd-haze').style.opacity = haze;
-      container.querySelector('.bd-murk').style.opacity = murk;
-      q('wadeMurk').setAttribute('opacity', murk);
-      ['birds1', 'birds2', 'birds3'].forEach((k, n) => q(k).classList.toggle('hide', i <= [25, 50, 75][n]));
-      q('flowers').classList.toggle('hide', i < 60);
-      // critters come and go with the island's health; a whale visits a really healthy island
-      q('crabs').classList.toggle('hide', i < 40 || destroyed);
-      q('frog').classList.toggle('hide', i < 50 || destroyed);
-      q('butterflies').classList.toggle('hide', i < 55 || destroyed);
-      q('bees').classList.toggle('hide', i < 65 || destroyed);
-      q('whale').classList.toggle('hide', !whaleAllowed || i < 88 || destroyed);
-      // fish and turtles live deeper too; they leave when the sea is polluted or overfished
-      q('farFish').classList.toggle('hide', i < 35 || harmed.fish);
-      q('deepFish').classList.toggle('hide', i < 45 || harmed.fish);
-      q('bigFish').classList.toggle('hide', i < 65 || harmed.fish || harmed.sea);
-      q('seaTurtle').classList.toggle('hide', i < 55 || harmed.sea);
-      svg.classList.toggle('unhealthy', i < 35);
-      // coral bleaches as the island gets sicker and more harmful choices pile up
-      const stress = (90 - i) + badCount * 8;  // starts colourful at the beginning of a game
-      svg.classList.toggle('coral-pale', stress >= 45 && stress < 80);
-      svg.classList.toggle('coral-bleached', stress >= 80);
+    const hazeFor = () => Math.min(0.6, [0, 0.14, 0.28, 0.42][level] + Math.max(0, s.energyBad - s.renew) * 0.04).toFixed(2);
+
+    /* The climate look. temp = how much warmer than the old normal (the game starts at +1.0 °C).
+       Cooler = green, birds, butterflies, fish. Hotter = dry and brown, bugs, the sea rises,
+       the coral bleaches and the animals leave. */
+    function setStats(h, temp) {
+      climate = temp;
+      level = temp < 1.4 ? 0 : temp < 1.9 ? 1 : temp < 2.4 ? 2 : 3;
+      [1, 2, 3].forEach((n) => svg.classList.toggle('clim-' + n, level >= n));
+      container.classList.toggle('clim-hot', level >= 3);
+      container.querySelector('.bd-haze').style.opacity = hazeFor();
+      q('seaRise').style.strokeWidth = [0, 10, 20, 30][level];
+      ['birds1', 'birds2', 'birds3'].forEach((k, n) => q(k).classList.toggle('hide', level > [1, 0, 0][n]));
+      q('butterflies').classList.toggle('hide', level >= 1);
+      q('bees').classList.toggle('hide', level >= 1);
+      q('songbirds').classList.toggle('hide', level >= 2);
+      q('crabs').classList.toggle('hide', level >= 2);
+      q('farFish').classList.toggle('hide', level >= 2);
+      q('fish').classList.toggle('hide', level >= 3);
+      q('seaTurtle').classList.toggle('hide', level >= 2 || s.seaHurt);
+      q('bugs1').classList.toggle('hide', level < 2);
+      q('bugs2').classList.toggle('hide', level < 3);
+      svg.classList.toggle('coral-pale', level === 2);
+      svg.classList.toggle('coral-bleached', level >= 3);
+      setTime(time);
       const m = h >= 60 ? 'mHappy' : h >= 30 ? 'mMeh' : 'mSad';
       if (m !== mood) {
         ['mHappy', 'mMeh', 'mSad'].forEach((k) => q(k).classList.toggle('hide', k !== m));
         mood = m;
       }
-    }
-
-    /* Disasters destroy everything on the island (the house, the cave home, trees, everything).
-       Storm: wind blows it away. Flood: a wave washes it away. Heat: a wildfire burns it.
-       Each thing is hit when the wind / wave / fire reaches it. The monkey always escapes. */
-    function destroyAll(type) {
-      destroyed = true;
-      updateGlows();
-      const box = svg.getBoundingClientRect(), ctm = land.getScreenCTM();
-      const things = svg.querySelectorAll('[data-k^="palm"], .pop[data-k], .veg, [data-k="flowers"], [data-k="darkSmoke"], [data-k="smoke"]');
-      const fires = [];
-      things.forEach((el) => {
-        if (el.classList.contains('hide')) return;
-        const r = el.getBoundingClientRect();
-        if (!r.width) return;
-        const x = (r.left + r.width / 2 - box.left) / box.width; // 0 = left edge, 1 = right edge
-        const rnd = Math.random();
-        let delay;
-        if (type === 'storm') {           // wind blows left → right, up into the sky
-          delay = 0.9 + x * 1.0 + rnd * 0.3;
-          el.style.setProperty('--dx', 1300 + rnd * 300 + 'px');
-          el.style.setProperty('--dy', -(180 + rnd * 260) + 'px');
-          el.style.setProperty('--rot', 360 + rnd * 540 + 'deg');
-          el.classList.add('swept');
-        } else if (type === 'flood') {    // the wave rolls right → left and drags things along
-          delay = 0.1 + (820 - x * 800) / 780 + rnd * 0.1;
-          el.style.setProperty('--dx', -(1400 + rnd * 300) + 'px');
-          el.style.setProperty('--dy', 40 + rnd * 80 + 'px');
-          el.style.setProperty('--rot', -(120 + rnd * 300) + 'deg');
-          el.classList.add('swept');
-        } else {                          // wildfire spreads from the hot side (right) to the left
-          delay = 0.4 + (1 - x) * 1.6 + rnd * 0.2;
-          el.classList.add('scorched');
-          if (ctm) {
-            const pt = svg.createSVGPoint();
-            pt.x = r.left + r.width / 2; pt.y = r.bottom;
-            const p = pt.matrixTransform(ctm.inverse());
-            fires.push(`<g transform="translate(${p.x.toFixed(0)} ${p.y.toFixed(0)}) scale(${Math.min(2.2, 0.8 + r.height / box.height * 6).toFixed(2)})"><g class="wildfire" style="--delay:${delay.toFixed(2)}s">${flame(0, 0, 1)}${flame(-12, 4, 0.7)}${flame(12, 4, 0.7)}</g></g>`);
-          }
-        }
-        el.style.setProperty('--delay', delay.toFixed(2) + 's');
-      });
-      if (fires.length) q('fx').insertAdjacentHTML('beforeend', fires.join(''));
-      ['birds1', 'birds2', 'birds3', 'parrot', 'butterflies', 'bees', 'crabs', 'frog', 'whale'].forEach(s.hide);
-    }
-
-    /* Super rare: a solar eclipse. The moon slides in front of the sun and it gets dark for a moment. */
-    function eclipse() {
-      const before = time;
-      svg.classList.add('eclipse');
-      container.classList.add('eclipse');
-      setTime('eclipse');
-      setTimeout(() => { svg.classList.remove('eclipse'); container.classList.remove('eclipse'); setTime(before); }, 7000);
-    }
-
-    /* Super rare: a MASSIVE pirate ship parks next to the island. A monkey captain and his
-       peg-legged first mate come ashore, carry off some loot, and the ship sails away to the right. */
-    const cannon = (x, y) => `<g transform="translate(${x} ${y})"><rect x="-2" y="-3.6" width="13" height="7.2" rx="3" fill="#2b2f36"/><circle cx="11" cy="0" r="3.2" fill="#1a1d22"/>
-        <circle cx="-1" cy="4" r="3.2" fill="#6b4423" stroke="#3d2614" stroke-width="1"/></g>`;
-    const SHIP = `<g class="ship-rock"><g transform="scale(2.6)">
-        <path d="M-74 -8 L74 -8 L60 22 L-62 22Z" fill="#6e3f1d"/><path d="M-74 -8 L74 -8 L71 -1 L-72 -1Z" fill="#4e2a12"/>
-        <path d="M-74 -14 H74 V-8 H-74Z" fill="#5a3518"/><path d="M-70 -14 V-8 M-50 -14 V-8 M-30 -14 V-8 M-10 -14 V-8 M10 -14 V-8 M30 -14 V-8 M50 -14 V-8 M70 -14 V-8" stroke="#3d2614" stroke-width="1.2"/>
-        <path d="M-70 4 H66" stroke="#f2c94c" stroke-width="2.2"/><path d="M-66 13 H62" stroke="#5a3518" stroke-width="1.2"/>
-        ${[-48, -26, -4, 18, 40].map((x) => `<rect x="${x - 4.5}" y="1" width="9" height="8" rx="1.5" fill="#2a1a0e"/><circle cx="${x}" cy="5" r="3.2" fill="#1a1d22" stroke="#555b63" stroke-width="1.2"/>`).join('')}
-        ${cannon(-46, -18)}${cannon(40, -18)}
-        <path d="M60 -8 L84 -16 L82 -10 L62 -2Z" fill="#6e3f1d"/>
-        <path d="M-16 -14 V-128 M28 -14 V-100" stroke="#4e2a12" stroke-width="3.5"/>
-        <path d="M-14 -120 Q20 -94 -14 -34Z" fill="#f4ecd8"/><path d="M-18 -116 Q-52 -88 -18 -38Z" fill="#efe4c8"/>
-        <path d="M30 -96 Q58 -74 30 -32Z" fill="#f4ecd8"/><path d="M-14 -104 Q2 -94 -14 -74 M30 -84 Q42 -74 30 -60" stroke="#d9cdb0" stroke-width="1.2" fill="none"/>
-        <g class="jolly-roger" transform="translate(-16 -128)">
-          <path d="M0 0 C10 -3 22 3 36 -1 L36 22 C22 26 10 19 0 22Z" fill="#14171c"/>
-          <path d="M8 16 L28 6 M8 6 L28 16" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
-          <circle cx="8" cy="6" r="1.8" fill="#fff"/><circle cx="28" cy="16" r="1.8" fill="#fff"/><circle cx="8" cy="16" r="1.8" fill="#fff"/><circle cx="28" cy="6" r="1.8" fill="#fff"/>
-          <circle cx="18" cy="9" r="6.2" fill="#fff"/><rect x="14" y="13" width="8" height="4.5" rx="1.2" fill="#fff"/>
-          <circle cx="15.6" cy="8.6" r="1.7" fill="#14171c"/><circle cx="20.4" cy="8.6" r="1.7" fill="#14171c"/><path d="M18 11 l-1 2 h2Z" fill="#14171c"/>
-          <path d="M15.5 14 v3 M18 14 v3 M20.5 14 v3" stroke="#14171c" stroke-width=".7"/>
-        </g>
-      </g></g>`;
-    const pirateMonkey = (captain) => `<g class="pm-bob">
-        <path d="M14 8 C32 10 36 -12 24 -18" stroke="#6b3f1e" stroke-width="5" fill="none" stroke-linecap="round"/>
-        <ellipse cx="-8" cy="22" rx="7" ry="5" fill="#6b3f1e"/>
-        ${captain ? '<ellipse cx="8" cy="22" rx="7" ry="5" fill="#6b3f1e"/>' : '<rect x="6" y="10" width="4.5" height="18" rx="2" fill="#a0673a" stroke="#6b4423" stroke-width="1"/>'}
-        <ellipse cx="0" cy="0" rx="18" ry="21" fill="${captain ? '#c0392b' : '#2f6fb5'}"/>
-        ${captain ? '<circle cx="-4" cy="-6" r="1.8" fill="#f2c94c"/><circle cx="-4" cy="2" r="1.8" fill="#f2c94c"/><circle cx="-4" cy="10" r="1.8" fill="#f2c94c"/><path d="M-18 -8 Q0 -2 18 -8" stroke="#f2c94c" stroke-width="2" fill="none"/>'
-                  : '<path d="M-16 -8 H16 M-18 1 H18 M-16 10 H16" stroke="#fff" stroke-width="3"/>'}
-        <path d="M-15 -8 Q-28 4 -20 16 M15 -8 Q28 4 20 16" stroke="${captain ? '#c0392b' : '#7a4a24'}" stroke-width="7" fill="none" stroke-linecap="round"/>
-        ${captain ? '<circle cx="-20" cy="17" r="4" fill="#7a4a24"/><rect x="16" y="14" width="8" height="5" rx="1.5" fill="#f2c94c"/><path d="M20 19 v5 q0 8 7 6 q4 -2 2 -7" stroke="#c9d1d9" stroke-width="2.8" fill="none" stroke-linecap="round"/>'
-                  : '<circle cx="-20" cy="17" r="4" fill="#7a4a24"/><circle cx="20" cy="17" r="4" fill="#7a4a24"/>'}
-        <g transform="translate(0 -32)">
-          <circle cx="-21" cy="0" r="8" fill="#7a4a24"/><circle cx="21" cy="0" r="8" fill="#7a4a24"/>
-          <circle cx="0" cy="0" r="21" fill="#7a4a24"/><ellipse cx="0" cy="7" rx="14" ry="11" fill="#e8c39e"/>
-          <circle cx="-6" cy="-3" r="7" fill="#e8c39e"/><circle cx="6" cy="-3" r="7" fill="#e8c39e"/>
-          <circle cx="-6" cy="-3" r="2.8" fill="#23313f"/>
-          ${captain ? '<circle cx="6" cy="-3" r="2.8" fill="#23313f"/>' : '<circle cx="6" cy="-3" r="5" fill="#23313f"/><path d="M-18 -10 L22 -2" stroke="#23313f" stroke-width="1.6"/>'}
-          <path d="M-6 10 Q0 15 6 10" stroke="#5a2d0c" stroke-width="2" fill="none" stroke-linecap="round"/>
-          ${captain ? '<path d="M-30 -10 Q0 -40 30 -10 Q0 -20 -30 -10Z" fill="#23313f"/><path d="M-30 -10 Q0 -20 30 -10" stroke="#f2c94c" stroke-width="2" fill="none"/><circle cx="0" cy="-22" r="3.4" fill="#fff"/>'
-                    : '<path d="M-20 -8 Q0 -30 20 -8 Q0 -14 -20 -8Z" fill="#e63946"/><path d="M18 -10 l10 6 l-4 -10Z" fill="#e63946"/>'}
-        </g>
-        <g class="pm-carry hide"><rect x="-13" y="-80" width="26" height="18" rx="3" fill="#c98f4f" stroke="#7a4a24" stroke-width="2"/><path d="M-13 -73 H13" stroke="#f2c94c" stroke-width="2"/></g>
-      </g>`;
-    const LOOT = ['basket', 'barrel', 'woodpile', 'caveLamp', 'pots', 'rod', 'bucket', 'fruitpile', 'compost', 'bin', 'caveBed', 'campfire'];
-    // The ship parks just right of the island (never overlapping it); its deck is at DECK.
-    const SHIP_X = 966, SHIP_Y = 372;
-    const DECK = [778, 354], LANDING = [714, 394], SHORE = [690, 394];
-    const ladderSVG = (() => {
-      const [x1, y1] = DECK, [x2, y2] = LANDING, len = Math.hypot(x2 - x1, y2 - y1);
-      const ux = (x2 - x1) / len, uy = (y2 - y1) / len, nx = -uy * 5, ny = ux * 5;
-      let rungs = '';
-      for (let d = 8; d < len - 2; d += 9) rungs += `M${(x1 + ux * d + nx).toFixed(1)} ${(y1 + uy * d + ny).toFixed(1)} L${(x1 + ux * d - nx).toFixed(1)} ${(y1 + uy * d - ny).toFixed(1)} `;
-      return `<g class="ladder"><path d="M${x1 + nx} ${y1 + ny} L${x2 + nx} ${y2 + ny} M${x1 - nx} ${y1 - ny} L${x2 - nx} ${y2 - ny}" stroke="#8b5a2b" stroke-width="3" stroke-linecap="round"/>
-        <path d="${rungs}" stroke="#c98f4f" stroke-width="2.4" stroke-linecap="round"/></g>`;
-    })();
-
-    function pirates() {
-      const wait = (ms) => new Promise((done) => setTimeout(done, ms));
-      s.finishJobs();
-      const ship = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      ship.innerHTML = SHIP;
-      q('shipLayer').appendChild(ship);
-      const sail = (from, to, ms) => new Promise((done) => {
-        const t0 = performance.now();
-        const frame = (now) => {
-          const k = Math.min(1, (now - t0) / ms), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
-          ship.setAttribute('transform', `translate(${(from + (to - from) * e).toFixed(1)} ${SHIP_Y})`);
-          if (k < 1) requestAnimationFrame(frame); else done();
-        };
-        requestAnimationFrame(frame);
-      });
-      // the ladder that swings down from the deck onto the beach
-      const ladder = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      ladder.innerHTML = ladderSVG;
-      ladder.style.transformOrigin = `${DECK[0]}px ${DECK[1]}px`;
-      ladder.classList.add('ladder-wrap', 'ladder-up');
-      q('fx').appendChild(ladder);
-      // the two pirate monkeys: the captain (hook hand) and the peg-legged first mate.
-      // They stand on deck (moving with the ship) until it's parked, then walk off onto the island.
-      const ON_DECK = [[-150, -64], [-108, -64]];   // spots on the deck, relative to the ship
-      const place = (p, x, y) => { p.inner.style.transition = 'none'; p.inner.style.transform = `translate(${x}px, ${y}px)`; void p.inner.getBoundingClientRect(); };
-      const crew = [true, false].map((captain, n) => {
-        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        g.innerHTML = `<g class="pirate-walker">${pirateMonkey(captain)}</g>`;
-        const p = { g, inner: g.firstChild, pos: [0, 0], deck: ON_DECK[n] };
-        ship.appendChild(g);
-        place(p, ...ON_DECK[n]);
-        return p;
-      });
-      const leaveShip = (p) => {        // same spot on screen, now walking on its own
-        const x = SHIP_X + p.deck[0], y = SHIP_Y + p.deck[1];
-        q('fx').appendChild(p.g);
-        place(p, x, y);
-        p.pos = [x, y];
-      };
-      const boardShip = (p) => {        // back on deck: ride away with the ship
-        ship.appendChild(p.g);
-        place(p, ...p.deck);
-      };
-      const walk = (p, x, y) => {
-        const ms = Math.max(250, Math.hypot(x - p.pos[0], y - p.pos[1]) * 4.5);
-        p.inner.style.transition = `transform ${ms}ms linear, opacity .4s`;
-        p.inner.style.transform = `translate(${x}px, ${y}px)`;
-        p.pos = [x, y];
-        p.inner.classList.add('pm-walking');
-        return wait(ms).then(() => p.inner.classList.remove('pm-walking'));
-      };
-      const down = async (p) => { await walk(p, DECK[0], DECK[1] - 20); await walk(p, LANDING[0], LANDING[1] - 20); await walk(p, SHORE[0], SHORE[1]); };
-      const up = async (p) => { await walk(p, LANDING[0], LANDING[1] - 20); await walk(p, DECK[0], DECK[1] - 20); await walk(p, SHIP_X + p.deck[0], SHIP_Y + p.deck[1]); };
-      const where = (k) => {
-        const el = q(k), r = el.getBoundingClientRect(), m = q('land').getScreenCTM();
-        if (!m || !r.width) return [400, 400];
-        const pt = svg.createSVGPoint(); pt.x = r.left + r.width / 2; pt.y = r.bottom;
-        const p = pt.matrixTransform(m.inverse());
-        return [p.x + 18, Math.min(440, Math.max(345, p.y - 14))];
-      };
-      const carry = (p, on) => p.inner.querySelector('.pm-carry').classList.toggle('hide', !on);
-      const grab = async (p, k) => {
-        await down(p);
-        const [x, y] = where(k);
-        await walk(p, x, y);
-        s.hide(k);
-        carry(p, true);
-        await wait(250);
-        await walk(p, SHORE[0], SHORE[1]);
-        await up(p);
-        carry(p, false);        // loot stowed on the ship
-        await wait(300);
-      };
-
-      react('scared', 0);
-      // look a bit to the right so the whole ship is in view: slide the pictures (cheap on phones)
-      const m0 = land.getScreenCTM();
-      container.style.setProperty('--pan', `${(-250 * (m0 ? m0.a : 1)).toFixed(1)}px`);
-      container.classList.add('panned');
-      return sail(1900, SHIP_X, 3200).then(async () => {
-        ladder.classList.remove('ladder-up'); // the ladder comes down
-        await wait(900);
-        crew.forEach(leaveShip);
-        // up to 4 things the monkey owns (or the coconuts if there's nothing else)
-        const stolen = LOOT.filter((k) => visible(q(k))).slice(0, 4);
-        if (!stolen.length) svg.querySelectorAll('.cocos:not(.hide)').forEach((c) => c.classList.add('hide'));
-        const jobs = [stolen.filter((_, n) => n % 2 === 0), stolen.filter((_, n) => n % 2 === 1)];
-        await Promise.all(crew.map(async (p, n) => { await wait(n * 700); for (const k of jobs[n]) await grab(p, k); }));
-        crew.forEach(boardShip);
-        ladder.classList.add('ladder-up');    // the ladder goes back up
-        await wait(900);
-        ladder.remove();
-        await sail(SHIP_X, 2000, 4000);       // sail back off to the right
-        ship.remove();
-        container.classList.remove('panned');
-        react('sad', 2600);
-      });
-    }
-
-    function disaster(type) {
-      const fx = q('fx');
-      s.finishJobs();
-      taskId++;
-      const w = svg.querySelector('.walker');
-      w.style.transitionDuration = '300ms';
-      w.style.transform = '';
-      walkPos = [400, 400];
-      container.classList.add('shake');
-      react('scared', 0);
-      monkey.classList.add('walking');
-      setTimeout(() => monkey.classList.remove('walking'), 1500);
-      if (type === 'flood') {
-        svg.classList.add('flooded');
-        fx.insertAdjacentHTML('beforeend', `
-          <rect class="flood-water" x="-3000" y="500" width="6800" height="3000" fill="#2b8fd0" opacity=".82"/>
-          <g class="flood-wave">
-            <path d="M820 520 C830 330 900 160 1040 140 C1160 125 1225 210 1185 262 C1165 212 1112 196 1082 226 C1052 256 1082 330 1160 400 L4000 400 L4000 520Z" fill="#2aa0e6"/>
-            <path d="M1040 142 C1150 128 1218 198 1187 258" stroke="#fff" stroke-width="12" fill="none" stroke-linecap="round"/>
-            <circle cx="1000" cy="170" r="9" fill="#fff"/><circle cx="975" cy="200" r="6" fill="#fff"/><circle cx="1210" cy="190" r="7" fill="#fff"/></g>`);
-        destroyAll('flood');
-      } else if (type === 'heat') {
-        svg.classList.add('dry', 'burned');
-        setTimeout(() => s.splash(530, 474), 1750);   // the monkey dives into the sea
-        q('heatGlow').classList.remove('hide');
-        container.classList.add('fx-heat');
-        q('fxTop').insertAdjacentHTML('beforeend', `
-          <g class="heat-lines"><path d="M120 300 q10 -15 0 -30 q-10 -15 0 -30 M300 290 q10 -15 0 -30 q-10 -15 0 -30 M520 300 q10 -15 0 -30 q-10 -15 0 -30 M700 290 q10 -15 0 -30 q-10 -15 0 -30"/></g>`);
-        q('pondWater').classList.add('dirty');
-        destroyAll('heat');
-      } else {
-        svg.classList.add('stormy');
-        setWeather('rain');
-        container.classList.add('storming');   // the darker storm cover replaces the rain cover
-        container.classList.add('fx-storm');
-        q('fxTop').insertAdjacentHTML('beforeend', `
-          <path class="bolt" d="M430 0 L400 110 L436 110 L390 240 L470 90 L432 90 L462 0Z" fill="#fff36b"/>
-          <g class="wind">${[90, 170, 250, 330, 410].map((y, k) =>
-            `<path style="animation-delay:${0.6 + k * 0.17}s" d="M-200 ${y} q60 -18 120 0 t120 0 t120 0"/>`).join('')}</g>`);
-        destroyAll('storm');
-      }
-      return new Promise((resolve) => setTimeout(() => { container.classList.remove('shake'); react('sad', 0); resolve(); }, 4300));
     }
 
     reset();
@@ -1027,28 +1099,30 @@ const Scene = (() => {
       setWeather,
       react,
       say,
-      event: (id) => ACTIONS[id].ev(s),
-      /* Plays what the choice does. Returns a promise that resolves when the animation
-         (walking there + doing the job + things flying/splashing) is finished. */
-      outcome: (id, good) => {
-        s.lastTask = null;
-        ACTIONS[id][good ? 'good' : 'bad'](s);
-        if (!good) {
-          badCount++;
-          s.addDead(1);  // every harmful choice makes the sea a bit sicker
-          if (id === 'plastic' || id === 'compost') harmed.sea = true;
-          if (id === 'fishing') harmed.fish = true;
-        }
-        const job = s.lastTask || Promise.resolve();
-        const settle = { plastic: 1500, fishing: 1600, fire: 1200, shelter: 1000, firewood: 1000 }[id] || 700;
-        return job.then(() => new Promise((done) => setTimeout(done, settle)));
+      /* Bobo goes to where the next situation happens. Resolves on arrival. */
+      event(id) {
+        begin();
+        const g = gen;
+        return ACTIONS[id].ev(s).catch((e) => { if (e !== CANCEL) throw e; }).then(() => g === gen);
       },
-      eclipse,
-      pirates,
-      finishJobs: () => s.finishJobs(),
-      allowWhale(on) { whaleAllowed = on; },
-      payoff: (id) => ACTIONS[id].pay(s),
-      disaster,
+      /* Plays what the choice does. Resolves when the animation is finished. */
+      outcome(id, good) {
+        const a = ACTIONS[id][good ? 'good' : 'bad'];
+        gen++;
+        const g = gen;
+        pending = a.apply || null;
+        return a.play(s).catch((e) => { if (e !== CANCEL) throw e; }).then(() => {
+          if (g === gen && pending) { const p = pending; pending = null; p(s); }
+          updateTraffic(); s.updatePlant();
+          return sleep(500);
+        });
+      },
+      finishJobs: finishPending,
+      payoff(id) { begin(); ACTIONS[id].pay(s); },
+      /* the end of the game: everyone goes home */
+      goHome() { begin(); return s.go(P.home).catch(() => {}); },
+      // for the title screen: a happy, clean city
+      showcase() { ['solarRoof', 'solarSchool', 'turbines', 'cyclists', 'shadeTrees', 'veggieGarden'].forEach(s.show); s.renew = 3; s.updatePlant(); },
       jump: s.jump,
       droop: s.droop,
     };

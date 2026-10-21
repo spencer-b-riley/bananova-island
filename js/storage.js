@@ -3,10 +3,10 @@
    the game still works – it just won't remember anything. */
 
 const Store = (() => {
-  const KEY = 'climateIsland.v1';
+  const KEY = 'bobosCity.v1';
   const MAX_GAMES = 50;
 
-  const blank = () => ({ games: [], ach: {}, stats: { disasters: {} }, settings: { lang: null, music: true, sfx: true } });
+  const blank = () => ({ games: [], ach: {}, settings: { lang: null, music: true, sfx: true } });
   const num = (v, d = 0) => (typeof v === 'number' && isFinite(v) ? v : d);
 
   function load() {
@@ -20,17 +20,12 @@ const Store = (() => {
         .filter((g) => g && typeof g === 'object')
         .slice(-MAX_GAMES)
         .map((g) => ({
-          d: num(g.d), n: String(g.n || '').slice(0, 12), e: String(g.e || ''),
-          h: num(g.h), i: num(g.i), g: num(g.g), c: num(g.c),
+          d: num(g.d), e: String(g.e || ''),
+          h: num(g.h), t: num(g.t, 1), g: num(g.g), c: num(g.c),
         }));
     }
     if (raw.ach && typeof raw.ach === 'object') {
       for (const k of Object.keys(raw.ach)) if (typeof raw.ach[k] === 'number') data.ach[k] = raw.ach[k];
-    }
-    // which natural disasters this player has seen (for the "Storm Chaser" mystery achievement)
-    const dis = raw.stats && raw.stats.disasters;
-    if (dis && typeof dis === 'object') {
-      for (const k of ['flood', 'heat', 'storm']) if (dis[k] === true) data.stats.disasters[k] = true;
     }
     const s = raw.settings || {};
     if (typeof s.lang === 'string') data.settings.lang = s.lang;

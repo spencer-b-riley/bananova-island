@@ -67,16 +67,9 @@ const Sound = (() => {
     },
     lose: (t) => [67, 66, 65, 64].forEach((n, k) => note(midi(n), t + k * 0.25, 0.4, { type: 'sawtooth', vol: 0.05 })),
     splash: (t) => noise(t, 0.6, { vol: 0.25, freq: 2500, to: 300 }),
-    pirate: (t) => [57, 60, 64, 62, 60, 57, 55, 57].forEach((n, k) => note(midi(n + 12), t + k * 0.16, 0.22, { type: 'square', vol: 0.06 })),
+    honk: (t) => { note(midi(64), t, 0.18, { type: 'square', vol: 0.07 }); note(midi(64), t + 0.24, 0.3, { type: 'square', vol: 0.07 }); },
+    choo: (t) => [0, 0.32].forEach((d) => { note(midi(76), t + d, 0.26, { type: 'triangle', vol: 0.12 }); note(midi(80), t + d, 0.26, { type: 'triangle', vol: 0.08 }); }),
     pop: (t) => note(midi(80), t, 0.12, { type: 'sine', vol: 0.2, to: midi(92) }),
-    flood: (t) => {
-      noise(t, 3.2, { vol: 0.45, freq: 300, to: 1800, attack: 1.2 });
-      note(midi(36), t, 3, { type: 'sine', vol: 0.3, attack: 0.8 });
-    },
-    heat: (t) => {
-      note(midi(40), t, 3.2, { type: 'sawtooth', vol: 0.05, attack: 1 });
-      note(midi(47), t + 0.2, 3, { type: 'sine', vol: 0.12, attack: 1, to: midi(43) });
-    },
     storm: (t) => {
       noise(t, 3.4, { vol: 0.15, freq: 4000, type: 'highpass', attack: 0.5 });
       noise(t + 0.9, 1.6, { vol: 0.6, freq: 400, to: 60 });
