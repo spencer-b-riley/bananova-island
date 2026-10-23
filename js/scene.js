@@ -135,59 +135,39 @@ const Scene = (() => {
   const coral = (x, y, type, col, sc = 1) => `<g transform="translate(${x} ${y}) scale(${sc})"><g class="coral c-${col}">${CORAL[type]}</g></g>`;
   // the long reef: a bumpy rock ridge all along the sea floor, covered in all kinds of coral
   const REEF_KINDS = ['staghorn', 'sponge', 'brain', 'table', 'anemone', 'whip', 'pillar', 'mushroom', 'fan', 'bubble', 'tube'];
-  const REEF = (() => {
-    // (the rock's top edge goes through these points, bumping up between them; corals stand a little below it)
-    const top = [];
-    for (let x = -12; x <= 812; x += 26) top.push([x, 614 + ((x + 12) * 3 % 5)]);
-    let ridge = `M-12 640 L${top[0][0]} ${top[0][1]}`;
-    for (let n = 1; n < top.length; n++) ridge += ` Q${top[n - 1][0] + 13} ${top[n - 1][1] - 8} ${top[n][0]} ${top[n][1]}`;
-    ridge += ` L${top[top.length - 1][0]} 640Z`;
-    const topAt = (x) => { const n = clamp(Math.floor((x + 12) / 26), 0, top.length - 2), f = (x - top[n][0]) / 26; return top[n][1] + (top[n + 1][1] - top[n][1]) * f; };
-    let corals = '';
-    for (let k = 0, x = 6; x < 796; k++, x += 22 + (k * 13 % 9)) {
-      const y = +(topAt(x) + 5).toFixed(1), sc = 0.42 + (k * 7 % 5) * 0.05;
-      corals += coral(+x.toFixed(1), +y.toFixed(1), REEF_KINDS[(k * 4) % REEF_KINDS.length], 'abcde'[(k * 3) % 5], sc);
+  // Corals scattered all over the shallow water around the island (the light "lagoon"): not right at the shore,
+  // not out in the deep (darker) water, and never where the bridges, their pillars or the pier are.
+  const LAGOON = { cx: 400, cy: 450, rx: 590, ry: 170 };
+  const SCATTER = (() => {
+    const inLagoon = (x, y) => ((x - LAGOON.cx) / LAGOON.rx) ** 2 + ((y - LAGOON.cy) / LAGOON.ry) ** 2 < 0.86;
+    const fromShore = (x, y) => Math.hypot(Math.max(-6 - x, 0, x - 806), Math.max(296 - y, 0, y - 534));   // (distance to the island)
+    const PILLARS = [-300, -200, -100, -10, 870, 960, 1060, 1160];
+    const clear = (x, y) => {
+      if ((x < 20 || x > 780) && y > 446 && y < 500) return false;                               // the road bridge
+      if (PILLARS.some((px) => x > px - 16 && x < px + 28) && ((y > 318 && y < 380) || (y > 470 && y < 560))) return false;   // its pillars
+      if (x > 684 && x < 742 && y > 490 && y < 590) return false;                                 // the harbour pier
+      return true;
+    };
+    let corals = '', weeds = '', k = 0;
+    for (let gy = 342; gy < 640; gy += 14) {
+      for (let gx = -230; gx < 1040; gx += 24) {
+        const n = gy * 7 + gx;
+        const x = gx + (rnd(n) - 0.5) * 18, y = gy + (rnd(n + 3) - 0.5) * 9;
+        if (!inLagoon(x, y) || fromShore(x, y) < 30 || !clear(x, y) || rnd(n + 7) < 0.15) continue;
+        const sc = +(0.24 + clamp((y - 340) / 290, 0, 1) * 0.32).toFixed(2);   // (smaller further back)
+        corals += coral(+x.toFixed(1), +y.toFixed(1), REEF_KINDS[k % REEF_KINDS.length], 'abcde'[(k * 3) % 5], sc);
+        if (k % 3 === 1) weeds += `<g transform="translate(${(x + 10 * sc / 0.4).toFixed(1)} ${y.toFixed(1)}) scale(${(sc / 0.4).toFixed(2)})"><g class="kelp" style="animation-delay:${(-k * 0.37 % 3).toFixed(2)}s;animation-duration:${3 + (k % 3) * 0.6}s">
+          <path d="M0 0 C-3 -6 3 -11 0 -18 M3 0 C6 -5 1 -9 4 -13" stroke="${k % 2 ? '#3f9b5f' : '#58b26e'}" stroke-width="2.2" fill="none" stroke-linecap="round"/></g></g>`;
+        k++;
+      }
     }
-    return `<path d="${ridge}" fill="#5b6470" opacity=".9"/><path d="${ridge}" fill="none" stroke="#6f7884" stroke-width="2" opacity=".5"/>${corals}`;
+    return { corals, weeds };
   })();
-  // The big reef also runs up both sides of the island, further out in the sea: it follows the island's outline
-  // (from the front corners up to just below the railway bridge), between the bridges' pillars, and is drawn
-  // behind the bridges (so they never cut through it)
-  const REEF_SIDES = (() => {
-    const sides = [
-      [[[56, 534], [14, 534], [-4, 502], [-6, 430]], [[-6, 430], [-8, 360], [0, 302], [34, 296]]],
-      [[[744, 534], [786, 534], [804, 502], [806, 430]], [[806, 430], [808, 360], [800, 302], [766, 296]]]];
-    const at = ([a, b, c, d], t) => [0, 1].map((i) => (1 - t) ** 3 * a[i] + 3 * (1 - t) ** 2 * t * b[i] + 3 * (1 - t) * t * t * c[i] + t ** 3 * d[i]);
-    let rock = '', corals = '', k = 0;
-    sides.forEach((segs, side) => {
-      const out = side === 0 ? -1 : 1, pts = [[side === 0 ? -10 : 810, 612]];   // (joins the reef in front)
-      segs.forEach((seg) => {
-        for (let n = 0; n <= 12; n++) {
-          const [x, y] = at(seg, n / 12);
-          const off = (side === 0 ? 44 : 30) + (y - 300) * 0.04;   // (in the open water between the island and the bridge pillars)
-          if (y > 338) pts.push([x + out * off, y + (y - 300) * 0.25]);
-        }
-      });
-      // (one smooth band of rock, wider where it's closer to us and narrower further back)
-      const half = (y) => 4 + Math.max(0, (y - 340) / 270) * 8;
-      const edge = (sgn) => pts.map(([x, y], n) => {
-        const [ax, ay] = pts[Math.max(0, n - 1)], [bx, by] = pts[Math.min(pts.length - 1, n + 1)];
-        const tl = Math.hypot(bx - ax, by - ay) || 1, nx = (by - ay) / tl, ny = -(bx - ax) / tl;
-        return [x + nx * half(y) * sgn, y + ny * half(y) * sgn];
-      });
-      const band = [...edge(1), ...edge(-1).reverse()];
-      rock += `<path d="M${band.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L')}Z" fill="#5b6470" stroke="#5b6470" stroke-width="3" stroke-linejoin="round" opacity=".9"/>`;
-      pts.slice(1).forEach(([x, y]) => {
-        const sc = 0.18 + Math.max(0, (y - 340) / 270) * 0.3;   // (smaller further back)
-        corals += coral(+x.toFixed(1), +(y + 1).toFixed(1), REEF_KINDS[(k++ * 5) % REEF_KINDS.length], 'abcde'[(k * 2) % 5], +sc.toFixed(2));
-      });
-    });
-    return rock + corals;
-  })();
-  // small seaweed swaying on the reef (it dies off when the sea gets too warm)
-  const SEAWEED = [40, 92, 150, 214, 268, 330, 388, 446, 512, 566, 628, 690, 748].map((x, k) =>
-    `<g transform="translate(${x} ${614 + (k * 3) % 5})"><g class="kelp" style="animation-delay:${(-k * 0.45).toFixed(2)}s;animation-duration:${3 + (k % 3) * 0.6}s">
-      <path d="M0 0 C-3 -6 3 -11 0 ${-16 - (k % 3) * 4} M3 0 C6 -5 1 -9 4 ${-12 - (k % 2) * 4}" stroke="${k % 2 ? '#3f9b5f' : '#58b26e'}" stroke-width="2.2" fill="none" stroke-linecap="round"/></g></g>`).join('');
+  // the deep water further out is darker (two soft steps)
+  const DEEP = [[1.12, 0.14], [1.32, 0.16]].map(([f, o]) => {
+    const rx = LAGOON.rx * f, ry = LAGOON.ry * f, l = LAGOON.cx - rx, r = LAGOON.cx + rx;
+    return `<path d="M-900 285 H1900 V1000 H-900Z M${l} ${LAGOON.cy} A${rx} ${ry} 0 1 0 ${r} ${LAGOON.cy} A${rx} ${ry} 0 1 0 ${l} ${LAGOON.cy}Z" fill="#06305a" opacity="${o}" fill-rule="evenodd"/>`;
+  }).join('');
 
   // Critters
   const butterfly = (x, y, col, d) => `<g transform="translate(${x} ${y}) scale(.6)"><g class="flutter" style="animation-delay:${d}s"><g class="bfly">
@@ -498,12 +478,14 @@ const Scene = (() => {
   <g data-k="boltsBack"></g>
   ${VOLCANO}
   <g data-k="boltsFar"></g>
-  <ellipse class="lagoon" cx="400" cy="446" rx="560" ry="140"/>
+  ${DEEP}<ellipse class="lagoon" cx="${LAGOON.cx}" cy="${LAGOON.cy}" rx="${LAGOON.rx}" ry="${LAGOON.ry}"/>
   <g data-k="farFish" class="fade"><g class="swim" style="animation-duration:60s;animation-delay:-10s"><g transform="translate(0 346) scale(.28)">${fish('#ffd23f')}</g></g>
     <g class="swim" style="animation-duration:66s;animation-delay:-25s"><g transform="translate(0 360) scale(.3)">${fish('#7ad3ff')}</g></g></g>
 
   <!-- bridges: the train and the road go across the sea to the other towns -->
-  <g data-k="reefSides" class="reef">${REEF_SIDES}</g>
+  <!-- corals and seaweed on the sea floor (under everything else in the sea) -->
+  <g data-k="reef" class="reef">${SCATTER.corals}</g>
+  <g data-k="seaweed" class="fade">${SCATTER.weeds}</g>
   ${piers(320, 50)}${piers(478, 70)}
 
   <!-- the island -->
@@ -815,8 +797,6 @@ const Scene = (() => {
   </g>
   <!-- when the sea gets too warm: plastic and dead fish floating -->
   ${item('seaJunk', 0, 0, `<g class="float">${deadFish(186, 552, 170)}${bottle(420, 566, 95, 1)}${deadFish(612, 556, 190)}<path d="M300 560 q6 -6 12 0 q-6 4 -12 0Z" fill="#e8eef2" opacity=".85"/></g>`, 'fade')}
-  <g data-k="reef" class="reef">${REEF}</g>
-  <g data-k="seaweed" class="fade">${SEAWEED}</g>
   <g data-k="fish">
     <g class="swim" style="animation-duration:34s"><g transform="translate(0 562) scale(.6)">${fish()}</g></g>
     <g class="swim" style="animation-delay:-14s;animation-duration:40s"><g transform="translate(0 574) scale(.45)">${fish('#ffd23f')}</g></g>
