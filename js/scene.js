@@ -263,7 +263,7 @@ const Scene = (() => {
       <path d="M-32 -8 Q-32 -19 -24 -19 L-16 -19 L-8 -31 L12 -31 L22 -19 L28 -19 Q34 -19 34 -11 L34 -6 L-32 -6Z" fill="${c}"/>
       <path d="M-5 -28 L3 -28 L3 -20 L-11 -20Z M7 -28 L11 -28 L18 -20 L7 -20Z" fill="#cfefff"/>
       ${driver ? monkeyHead(11, -23, fur) : ''}<g class="passenger">${back}</g>
-      <rect x="27" y="-16" width="6" height="4" rx="1" fill="#fff3a8"/><rect x="-32" y="-16" width="4" height="4" fill="#ff5b4a"/>
+      <rect x="27" y="-16" width="6" height="4" rx="1" fill="#fff3a8"/><rect x="-32" y="-16" width="4" height="4" fill="#ff5b4a"/><path class="beam" d="M33 -14 L80 -24 L80 -2Z"/>
       ${wheel(-17)}${wheel(17)}`;
   // more kinds of vehicles driving around town (all facing right, wheels on y = 0, each with a monkey driver)
   const van = (c, fur) => `${exhaust(-40)}
@@ -271,24 +271,24 @@ const Scene = (() => {
       <path d="M16 -34 H19 Q22 -33 24 -29 L28 -22 H16Z" fill="#cfefff"/>
       ${[-29, -16, -3].map((x) => `<rect x="${x}" y="-33" width="10" height="9" rx="1.5" fill="#cfefff"/>`).join('')}
       ${monkeyHead(21, -26, fur)}<path d="M-35 -17 H36" stroke="#fff" stroke-width="2" opacity=".45"/>
-      <rect x="31" y="-15" width="5" height="4" rx="1" fill="#fff3a8"/><rect x="-35" y="-15" width="3" height="4" fill="#ff5b4a"/>
+      <rect x="31" y="-15" width="5" height="4" rx="1" fill="#fff3a8"/><rect x="-35" y="-15" width="3" height="4" fill="#ff5b4a"/><path class="beam" d="M36 -13 L82 -23 L82 -1Z"/>
       ${wheel(-21)}${wheel(21)}`;
   const pickup = (c, fur) => `${exhaust(-38)}
       <path d="M-35 -7 V-21 H1 V-30 Q1 -34 5 -34 H15 L23 -22 Q34 -21 34 -12 V-7Z" fill="${c}"/>
       <path d="M6 -31 H14 L20 -23 H6Z" fill="#cfefff"/><rect x="-31" y="-28" width="13" height="7" rx="1" fill="#c98f4f" stroke="#8b5a2b" stroke-width="1"/>
       <rect x="-15" y="-26" width="9" height="5" rx="1" fill="#2fb35a"/>${monkeyHead(11, -24, fur)}
-      <rect x="29" y="-16" width="5" height="4" rx="1" fill="#fff3a8"/><rect x="-35" y="-16" width="3" height="4" fill="#ff5b4a"/>
+      <rect x="29" y="-16" width="5" height="4" rx="1" fill="#fff3a8"/><rect x="-35" y="-16" width="3" height="4" fill="#ff5b4a"/><path class="beam" d="M34 -14 L80 -24 L80 -2Z"/>
       ${wheel(-21, 7.5)}${wheel(21, 7.5)}`;
   const boxTruck = (c, fur) => `${exhaust(-46)}
       <rect x="-44" y="-42" width="52" height="35" rx="2" fill="#f7f7f7" stroke="#c8cdd3" stroke-width="1.5"/><path d="M-38 -27 h40" stroke="${c}" stroke-width="5"/>
       <path d="M9 -33 H22 L32 -20 Q36 -19 36 -12 V-7 H8 V-31Z" fill="${c}"/><path d="M13 -30 H21 L28 -21 H13Z" fill="#cfefff"/>${monkeyHead(20, -23, fur)}
-      <rect x="31" y="-15" width="5" height="4" rx="1" fill="#fff3a8"/>
+      <rect x="31" y="-15" width="5" height="4" rx="1" fill="#fff3a8"/><path class="beam" d="M36 -13 L82 -23 L82 -1Z"/>
       ${wheel(-31)}${wheel(-16)}${wheel(23)}`;
   const bus = (c, fur) => `${exhaust(-56)}
       <rect x="-54" y="-42" width="104" height="36" rx="6" fill="${c}"/>
       ${[-48, -34, -20, -6, 8, 22].map((x) => `<rect x="${x}" y="-37" width="11" height="12" rx="1.5" fill="#cfefff"/>`).join('')}
       <path d="M37 -37 H45 Q49 -37 49 -32 V-23 H37Z" fill="#cfefff"/>${monkeyHead(42, -29, fur)}
-      <path d="M-54 -19 H50" stroke="#fff" stroke-width="2.5" opacity=".7"/><rect x="45" y="-15" width="5" height="4" rx="1" fill="#fff3a8"/>
+      <path d="M-54 -19 H50" stroke="#fff" stroke-width="2.5" opacity=".7"/><rect x="45" y="-15" width="5" height="4" rx="1" fill="#fff3a8"/><path class="beam" d="M50 -13 L96 -23 L96 -1Z"/>
       ${wheel(-36)}${wheel(33)}`;
   const MODELS = { car: (c, fur) => car(c, fur), van, pickup, boxTruck, bus };
   // the family car: dad drives; mom, Bobo and the little sister sit in the back
@@ -393,7 +393,7 @@ const Scene = (() => {
       <path d="M-12 -50 C-30 -48 -36 -64 -28 -75" stroke="${fur}" stroke-width="5" fill="none" stroke-linecap="round"/>
       ${pack ? '<rect x="-28" y="-77" width="15" height="25" rx="5" fill="#ff6b4a"/><rect x="-28" y="-62" width="6" height="7" rx="2" fill="#e04f30"/>' : ''}
       <g transform="translate(-6 -44)"><g class="leg-b"><path d="M0 0 L12 12 L8 27" stroke="${fur}" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/><ellipse cx="10" cy="28" rx="5" ry="3" fill="${fur}" opacity=".75"/></g></g>
-      ${sideWheel(-27)}${sideWheel(27)}
+      ${sideWheel(-27)}${sideWheel(27)}<circle cx="23" cy="-33" r="2.6" fill="#fff3a8"/><path class="beam" d="M25 -32 L66 -42 L66 -20Z"/>
       <path d="M-27 -15 L0 -15 L-8 -38 Z M0 -15 L19 -38 L-8 -38 M27 -15 L19 -38 L17 -48 M12 -49 H23" stroke="#ff5b4a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
       <path d="M-15 -40 H-2" stroke="#23313f" stroke-width="4.5" stroke-linecap="round"/><circle cx="0" cy="-15" r="4" fill="#555b63"/>
       <ellipse cx="-5" cy="-55" rx="11" ry="15" transform="rotate(22 -5 -55)" fill="${shirt || fur}"/>
@@ -440,7 +440,7 @@ const Scene = (() => {
   const PARKED_BIKE = '<g transform="scale(.24)"><circle cx="-26" cy="-14" r="14" fill="none" stroke="#23313f" stroke-width="4"/><circle cx="26" cy="-14" r="14" fill="none" stroke="#23313f" stroke-width="4"/><path d="M-26 -14 L0 -14 L-8 -36 Z M0 -14 L18 -36 L-8 -36 M26 -14 L18 -36 L16 -44 M11 -45 H22 M-14 -38 H-2" stroke="#ff5b4a" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>';
   const rack = (x, y, k) => `<g transform="translate(${x} ${y})"><path d="M0 0 v-7 q0 -4 4 -4 q4 0 4 4 v7 M10 0 v-7 q0 -4 4 -4 q4 0 4 4 v7 M20 0 v-7 q0 -4 4 -4 q4 0 4 4 v7" stroke="#8a939d" stroke-width="1.6" fill="none"/>
       <g data-k="bikes_${k}" class="fade hide"><g transform="translate(7 0)">${PARKED_BIKE}</g><g data-k="bikes2_${k}" class="fade hide" transform="translate(17 0)">${PARKED_BIKE}</g><g data-k="bikes3_${k}" class="fade hide" transform="translate(27 0)">${PARKED_BIKE}</g></g></g>`;
-  const rider = (fur, shirt, x) => `<g class="tcar" data-lane="bike" data-x="${x}" data-model="bike" data-sc=".25" style="transform:translateX(${x}px)"><g transform="translate(0 466.5) scale(.25)">${sideRider(fur, shirt)}</g></g>`;
+  const rider = (fur, shirt, x) => `<g class="tcar" data-lane="bike" data-x="${x}" style="transform:translateX(${x}px)"><g transform="translate(0 466.5) scale(.25)">${sideRider(fur, shirt)}</g></g>`;
 
   // cars looping along the road (lane A goes left, lane B goes right), each with a happy monkey driver
   const LANE_A = 468, LANE_B = 477;
@@ -448,10 +448,8 @@ const Scene = (() => {
   const MODEL_SCALE = { car: 1.15, van: 1.2, pickup: 1.17, boxTruck: 1.45, bus: 1.45 };
   const MODEL_SIZE = { car: [-32, 34], van: [-35, 36], pickup: [-35, 34], boxTruck: [-44, 36], bus: [-54, 50] };   // (back and front, facing right)
   // a vehicle on the main road, starting at x (the traffic model drives it, see "Smart traffic")
-  const laneCar = (lane, c, x, fur, model = 'car') => {
-    const k = (lane === 'A' ? 0.92 : 0.96) * MODEL_SCALE[model];
-    return `<g class="tcar puffing" data-lane="${lane}" data-x="${x}" data-model="${model}" data-sc="${k}" style="transform:translateX(${x}px)"><g transform="translate(0 ${(lane === 'A' ? LANE_A : LANE_B) - 20}) scale(${lane === 'A' ? -k : k} ${k})">${MODELS[model](c, fur)}</g></g>`;
-  };
+  // (the traffic model picks each vehicle's kind and colour: mostly little cars, big ones only now and then)
+  const laneCar = (lane, x) => `<g class="tcar puffing" data-lane="${lane}" data-x="${x}" style="transform:translateX(${x}px)"><g></g></g>`;
 
   function buildSVG(u) {
     const piers = (y, h) => [-300, -200, -100, -10, 870, 960, 1060, 1160].map((x) =>
@@ -653,6 +651,7 @@ const Scene = (() => {
       <circle cx="-6" cy="-18" r="2.2" fill="#fff"/><circle cx="-1" cy="-19.5" r="2.2" fill="#f4f6f8"/><circle cx="5" cy="-18" r="2.2" fill="#fff"/><path d="M-26 0 q4 -6 9 -2 q3 2 6 0" stroke="#dfe5ea" stroke-width="3" fill="none" stroke-linecap="round"/>`)}
   </g>
   ${item('shadeTrees', 0, 0, `${tree(270, 434, 0.95)}${tree(608, 434, 0.9)}`)}
+  ${item('partyChairs', 0, 0, [462, 482, 528].map((x) => `<g transform="translate(${x} 420)"><rect x="-8" y="-21" width="16" height="3.4" rx="1.5" fill="#8b5a2b"/><path d="M-6.5 -18 V0 M6.5 -18 V0" stroke="#8b5a2b" stroke-width="2.4"/><rect x="-9" y="-3" width="18" height="3.4" rx="1" fill="#a0673a"/></g>`).join(''), 'fade')}
   <g class="garden">
     <path d="M466 420 H544 M472 420 L466 434 M538 420 L544 434 M476 420 V434 M534 420 V434" stroke="#8b5a2b" stroke-width="3.5"/>
     ${item('balloons', 0, 0, `<g class="balloon"><path d="M464 418 Q452 400 446 382" stroke="#fff" stroke-width="1.2" fill="none"/><ellipse cx="445" cy="373" rx="9" ry="11" fill="#ff5b4a"/></g>
@@ -765,12 +764,12 @@ const Scene = (() => {
   ${[100, 300, 500, 700].map((x) => `<g transform="translate(${x} 465.5) scale(.12)" opacity=".6"><circle cx="-28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><circle cx="28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><path d="M-28 0 L-6 0 L10 -18 L28 0" stroke="#fff" stroke-width="7" fill="none"/></g>`).join('')}
   <!-- cars, vans, a pickup, a delivery truck and a bus (more of them come when the family drives a lot) -->
   <!-- (the far lane is drawn first, so the near lane is always in front of it) -->
-  <g data-k="traffic">${laneCar('A', '#ff6fa8', 1060, '#a0673a')}${laneCar('A', '#ffb627', 160, '#7a4a24', 'bus')}</g>
-  <g data-k="traffic2" class="fade hide">${laneCar('A', '#7d5fff', 580, '#5c3a1e', 'pickup')}</g>
-  <g data-k="traffic3" class="fade hide">${laneCar('A', '#1fa7a0', -260, '#7a4a24', 'van')}</g>
-  <g data-k="trafficB">${laneCar('B', '#2f80ed', 466, '#5c3a1e', 'van')}</g>
-  <g data-k="traffic2B" class="fade hide">${laneCar('B', '#9aa5b1', -360, '#c08850', 'boxTruck')}</g>
-  <g data-k="traffic3B" class="fade hide">${laneCar('B', '#2fb35a', 949, '#a0673a')}${laneCar('B', '#e8a33d', 81, '#7a4a24', 'pickup')}</g>
+  <g data-k="traffic">${laneCar('A', 700)}</g>
+  <g data-k="traffic2" class="fade hide">${laneCar('A', -300)}</g>
+  <g data-k="traffic3" class="fade hide">${laneCar('A', 200)}</g>
+  <g data-k="trafficB">${laneCar('B', 250)}</g>
+  <g data-k="traffic2B" class="fade hide">${laneCar('B', 1000)}</g>
+  <g data-k="traffic3B" class="fade hide">${laneCar('B', -200)}</g>
   <g data-k="cyclists" class="fade hide">${rider('#8d8f94', '#ffd23f', 200)}</g>
   </g>
   <g data-k="roadFx"></g>
@@ -778,6 +777,7 @@ const Scene = (() => {
   <!-- the beach + the sea in front -->
   <g transform="translate(0 24)">
   <g class="pebbles">${PEBBLES}</g>
+  ${[110, 286, 520, 650].map((x) => lamp(x, 468)).join('')}
   ${item('beachTrash', 0, 0, `${bottle(612, 482, 80, 1.1)}${bottle(640, 480, -60, 1.1)}<path d="M582 482 l10 -3 l2 5Z" fill="#ff6fa8"/>`, 'fade')}
   ${item('beachTurtle', 652, 480, `<g class="float">${turtle(0, 0, 0.8)}</g>`)}
   <g data-k="crabs" class="fade">${crab(150, 484, 0)}${crab(470, 486, -5)}</g>
@@ -844,6 +844,7 @@ const Scene = (() => {
     <circle data-glow="houseLit" cx="386" cy="416" r="24" fill="url(#${u}glow)"/>
     <circle data-glow="lamps" cx="704" cy="294" r="14" fill="url(#${u}glow)"/>
     ${[[40, 326], [422, 326], [262, 348], [602, 348]].map(([x, y]) => `<circle data-glow="lamps" cx="${x}" cy="${y}" r="13" fill="url(#${u}glow)"/>`).join('')}
+    ${[110, 286, 520, 650].map((x) => `<circle data-glow="lamps" cx="${x + 14}" cy="440" r="20" fill="url(#${u}glow)"/>`).join('')}
   </g>
   <!-- lightning close by, up in the clouds (storms only; see strike() in the scene) -->
   <g data-k="boltsNear"></g>
@@ -870,7 +871,7 @@ const Scene = (() => {
 
   /* Where things are (x, y = where Bobo's feet are) */
   const P = {
-    home: [350, 454], door: [350, 450], friend: [166, 450], friend2: [62, 450], garden: [505, 454], vend: [650, 458], fountain: [676, 458],
+    home: [350, 454], door: [350, 450], seat: [482, 440], friend: [166, 450], friend2: [62, 450], garden: [505, 454], vend: [650, 458], fountain: [676, 458],
     school: [108, 365], shops: [517, 365], thrift: [462, 365], mall: [574, 365], station: [232, 326], pier: [716, 522], bin: [670, 506],
     curb: [350, 458], gapF: [232, 454], gapB: [232, 368], lane: [350, 487],
   };
@@ -1067,7 +1068,8 @@ const Scene = (() => {
         s.wear('hat'); s.show('partyCloth'); s.show('balloons'); s.show('cake');
         const a = s.buddy('golden', '#ffd23f', P.friend, '#2f80ed'), b = s.buddy('red', '#2fb35a', P.friend2, '#ffd23f');
         a.appear(); b.appear();
-        const ga = a.go([470, 452]), gb = b.go([542, 452]);
+        s.show('partyChairs');
+        const ga = a.go([462, 440]), gb = b.go([528, 440]);   // (everybody sits down at the table)
         ga.catch(() => {}); gb.catch(() => {});
         // Bobo's family comes to the party too
         const fam = s.family(P.door, ['dad', 'mom', 'sister']);
@@ -1075,6 +1077,7 @@ const Scene = (() => {
         const gf = fam.map(async (m, k) => { await s.w(300 * k); await m.go([[402, 456], [580, 456], [598, 458]][k]); });
         gf.forEach((g) => g.catch(() => {}));
         await s.travel(P.garden);
+        await s.go(P.seat);   // (Bobo sits on a chair, so everybody can see him above the cake)
         await Promise.all([ga, gb, ...gf]);
       },
       good: {
@@ -1180,7 +1183,7 @@ const Scene = (() => {
       pay(s) { s.reveal('train2', 400, 300); },
     },
     food: {
-      async ev(s) { await s.travel(P.garden); },
+      async ev(s) { await s.travel(P.garden); s.show('partyChairs'); await s.go(P.seat); },   // (lunch at the table: sitting down)
       good: {
         async play(s) { s.show('tacos'); s.sparkle(505, 420); await s.w(800); s.jump(); await s.w(700); },
       },
@@ -1259,16 +1262,27 @@ const Scene = (() => {
        Positions are measured along the direction of travel ("p"), so the same rules work for both lanes. */
     const LANES = { A: { dir: -1, v: 120, from: -1300, to: 500 }, B: { dir: 1, v: 138, from: -500, to: 1300 }, bike: { dir: 1, v: 55, from: -400, to: 1200 } };
     const ACCEL = 90, BRAKE = 360;
+    // calm traffic: mostly little cars; a van, a bus or a truck only now and then, and never two at once
+    const SMALL = ['car', 'car', 'car', 'pickup'], BIG = ['van', 'bus', 'boxTruck'];
+    const PAINT = ['#ff6fa8', '#2f80ed', '#ffb627', '#7d5fff', '#2fb35a', '#1fa7a0', '#e8a33d', '#9aa5b1'], FURS = ['#7a4a24', '#a0673a', '#5c3a1e', '#c08850'];
+    const pick = (list) => list[Math.floor(Math.random() * list.length)];
+    function setModel(c, model) {
+      const k = (c.lane === 'A' ? 0.92 : 0.96) * MODEL_SCALE[model], size = MODEL_SIZE[model];
+      c.el.firstElementChild.innerHTML = `<g transform="translate(0 ${(c.lane === 'A' ? LANE_A : LANE_B) - 20}) scale(${c.lane === 'A' ? -k : k} ${k})">${MODELS[model](pick(PAINT), pick(FURS))}</g>`;
+      c.model = model; c.big = BIG.includes(model); c.rear = size[0] * k; c.front = size[1] * k;
+    }
     const cars = [...container.querySelectorAll('.tcar')].map((el) => {
-      const lane = el.dataset.lane, L = LANES[lane], k = +el.dataset.sc, size = MODEL_SIZE[el.dataset.model] || [-30, 30], group = el.parentNode.closest('[data-k]');
-      return { el, lane, dir: L.dir, vmax: L.v, p: L.dir * +el.dataset.x, v: L.v, rear: size[0] * k, front: size[1] * k, group, on: !group.classList.contains('hide') };
+      const lane = el.dataset.lane, L = LANES[lane], group = el.parentNode.closest('[data-k]');
+      const c = { el, lane, dir: L.dir, vmax: L.v, p: L.dir * +el.dataset.x, v: L.v, rear: -10, front: 10, group, on: !group.classList.contains('hide') };
+      if (lane === 'bike') { c.rear = -30 * 0.25; c.front = 30 * 0.25; } else setModel(c, pick(SMALL));
+      return c;
     });
-    const zones = new Map();   // things the cars have to stop for: id → { lane, x1, x2 }
+    const zones = new Map();   // things the cars have to stop for: id → { lane, x1, x2 } (or a moving one: get() → [x1, x2, speed])
     const zoneP = (z) => {
-      const L = LANES[z.lane], xs = z.get ? z.get() : [z.x1, z.x2];
+      const L = LANES[z.lane], xs = z.get ? z.get() : [z.x1, z.x2, 0];
       if (!xs) return null;
       const a = L.dir * xs[0], b = L.dir * xs[1];
-      return [Math.min(a, b), Math.max(a, b)];
+      return [Math.min(a, b), Math.max(a, b), Math.max(0, L.dir * (xs[2] || 0))];
     };
     const stopDist = (c) => (c.v * c.v) / (2 * BRAKE) + 12;
     // is this stretch of a lane free (nobody in it, and nobody too close to stop before it)?
@@ -1276,15 +1290,18 @@ const Scene = (() => {
       const [a, b] = zoneP({ lane, x1, x2 });
       return cars.every((c) => !c.on || c.lane !== lane || c.p + c.rear > b || c.p + c.front < a - stopDist(c) - ahead);
     };
-    // a family car on the main road is an obstacle exactly where it is (the cars behind it slow down for it)
+    // a family car on the main road is an obstacle exactly where it is, at its speed (the cars behind it follow it)
     let famIds = 0;
     const EASE = { linear: (t) => t, 'ease-in': (t) => t * t, 'ease-out': (t) => 1 - (1 - t) ** 2, ease: (t) => 1 - (1 - t) ** 2,
       'ease-in-out': (t) => (t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) ** 2) };
     function trackOnRoad(v) {
       const id = 'car' + ++famIds;
-      const where = () => v.where();
-      zones.set(id + ':A', { lane: 'A', get: () => { const [x, y] = where(); return Math.abs(y - LANE_A) < 8 ? [x - 38, x + 38] : null; } });
-      zones.set(id + ':B', { lane: 'B', get: () => { const [x, y] = where(); return Math.abs(y - LANE_B) < 7 ? [x - 38, x + 38] : null; } });
+      const zone = (laneY) => () => {
+        const now = performance.now(), [x, y] = v.where(now), [xb] = v.where(now - 80);
+        return Math.abs(y - laneY) < 4.5 ? [x - 38, x + 38, (x - xb) / 0.08] : null;
+      };
+      zones.set(id + ':A', { lane: 'A', get: zone(LANE_A) });
+      zones.set(id + ':B', { lane: 'B', get: zone(LANE_B) });
       return id;
     }
     let lastTick = performance.now();
@@ -1305,17 +1322,21 @@ const Scene = (() => {
         const lz = [...zones.values()].filter((z) => z.lane === lane).map(zoneP).filter(Boolean);
         going.forEach((c, n) => {
           const nose = c.p + c.front;
-          let gap = Infinity;
-          if (n > 0) gap = going[n - 1].p + going[n - 1].rear - nose;
-          lz.forEach(([a, b]) => { if (nose <= a + 2) gap = Math.min(gap, a - nose); });   // (already in it? drive on through)
-          const want = c.v * 0.35 + 16;                      // a safe distance (more when faster)
-          const target = gap < want + 70 ? Math.max(0, c.vmax * (gap - 10) / (want + 60)) : c.vmax;
+          // whatever is closest ahead: the car in front, people crossing, the family car… and how fast it goes
+          let gap = Infinity, leadV = c.vmax;
+          if (n > 0) { gap = going[n - 1].p + going[n - 1].rear - nose; leadV = going[n - 1].v; }
+          lz.forEach(([a, b, zv]) => { if (nose <= a + 2 && a - nose < gap) { gap = a - nose; leadV = zv; } });   // (already in it? drive on through)
+          // keep a safe distance and otherwise just go as fast as the one in front (no stopping for nothing)
+          const want = 20 + c.v * 0.3;
+          const target = gap === Infinity ? c.vmax : clamp(leadV + (gap - want) * 1.6, 0, c.vmax);
           c.v = c.v < target ? Math.min(target, c.v + ACCEL * dt) : Math.max(target, c.v - BRAKE * dt);
-          if (gap < 8) c.v = 0;
+          if (gap < 5) c.v = Math.min(c.v, leadV, gap < 2 ? 0 : leadV);
           c.p += c.v * dt;
           if (c.p + c.rear > L.to) {                          // off-screen: come back round at the other end, behind the last car
             const last = going[going.length - 1];
-            c.p = Math.min(L.from, last && last !== c ? last.p + last.rear - c.front - 30 : L.from);
+            if (lane !== 'bike') setModel(c, !cars.some((o) => o !== c && o.on && o.big) && Math.random() < 0.1 ? pick(BIG) : pick(SMALL));
+            c.p = Math.min(L.from, last && last !== c ? last.p + last.rear - c.front - 40 : L.from);
+            c.shown = null;
           }
         });
         going.forEach((c) => {
@@ -1497,7 +1518,7 @@ const Scene = (() => {
       burst() { s.flash('plantBurst', 2600); },
       // The family car backs out of the driveway (seen from behind) and drives off along the street (dad drives)
       async carOut(back, heads = headBack(-5, '#6b4423'), toX = 232) {
-        await s.roadClear([['A', Math.min(toX, 434) - 20, 475]]);   // (dad looks, waits for a gap; the cars coming stop for him)
+        await s.roadClear([['A', Math.min(toX, 434) - (toX < 0 ? 330 : 100), 475]]);   // (dad looks both ways and goes when it's clear)
         s.hide('parkedCar');
         const r = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', heads)}</g>`, 434, 442, 1);
         r.carry(true);
@@ -1549,6 +1570,7 @@ const Scene = (() => {
         const look = { dad: '#2f80ed', mom: '#ff6fa8', sister: '#ffd23f' }, [fur] = FRIENDS[kind];
         const size = kind === 'sister' ? RIDE_SC * 0.76 : RIDE_SC;
         const g = document.createElementNS(NS, 'g');
+        g.classList.add('cv');
         g.innerHTML = `<g class="cv-side">${sideRider(fur, look[kind])}</g><g class="cv-back" style="display:none">${backRider(fur)}</g><g class="cv-front" style="display:none">${frontRider(fur, look[kind])}</g>`;
         const c = { g, x: at[0], y: at[1], dir: 1 };
         const set = (ms, ease) => {
@@ -1761,7 +1783,7 @@ const Scene = (() => {
           await leave; tr.remove(); s.show('trains');
         } else if (how === 'car') {
           s.hide('parkedCar'); place(P.home); s.inside(true, true);
-          await s.roadClear([['A', 400, 900]]);   // (the cars in that lane wait behind)
+          await s.roadClear([['A', 400, 1460]]);   // (nobody in front of us on the way in)
           const c = s.vehicle('roadFx', familyCar('#e63946'), 1400, LANE_A, -1);
           c.carry(true);
           await s.carPark(c, headBack(-6, '#6b4423') + headBack(0, '#a0703f', .9) + headBack(6, '#8b5a2b', .85));
@@ -1789,10 +1811,10 @@ const Scene = (() => {
         const set = () => { g.style.transform = `translate(${v.x}px, ${v.y}px) scale(${(k() * dir).toFixed(3)}, ${k().toFixed(3)})`; };
         g.style.transition = 'none'; set(); void g.getBoundingClientRect();
         // where it is right now (worked out from the move it's doing; the traffic needs this every frame)
-        v.where = () => {
+        v.where = (now = performance.now()) => {
           const m = v.path;
           if (!m) return [v.x, v.y];
-          const t = clamp((performance.now() - m.t0) / m.ms, 0, 1), e = (EASE[m.ease] || EASE['ease-in-out'])(t);
+          const t = clamp((now - m.t0) / m.ms, 0, 1), e = (EASE[m.ease] || EASE['ease-in-out'])(t);
           return [m.x0 + (m.x1 - m.x0) * e, m.y0 + (m.y1 - m.y0) * e];
         };
         v.move = (x2, y2, ms, ease = 'ease-in-out') => {
@@ -1938,7 +1960,7 @@ const Scene = (() => {
       buddies.slice().forEach((b) => { if (!b.keep) b.remove(); });
       q('seaFx').innerHTML = ''; q('trainFx').innerHTML = '';
       s.show('trains');
-      ['partyCloth', 'balloons', 'cake', 'platesReal', 'platesPlastic', 'sortBins', 'trashBag', 'tacos', 'burger', 'fan', 'acAir', 'steam', 'bathBubbles',
+      ['partyChairs', 'partyCloth', 'balloons', 'cake', 'platesReal', 'platesPlastic', 'sortBins', 'trashBag', 'tacos', 'burger', 'fan', 'acAir', 'steam', 'bathBubbles',
         'toyBroken', 'toyFixed', 'toyNew', 'boxClosed', 'heatGlow', 'tv'].forEach(s.hide);
       s.q('boboHouse').classList.remove('win-open', 'lit', 'lights-off');
       s.hide('houseLit');

@@ -540,6 +540,10 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .exhaust circle { fill: #9aa3ad; opacity: 0; }
 :is(.puffing, .moving) .exhaust circle { animation: exhaust 0.8s linear infinite; }
 :root:not([data-perf="high"]) .tcar .exhaust { display: none; }
+/* headlights: cars and bikes that are driving shine their lights in the evening and at night */
+.beam { fill: #fff6c4; opacity: 0; transition: opacity 1.5s; pointer-events: none; }
+:root[data-time="evening"] :is(.tcar, .moving, .cv, .to-school, .walker) .beam { opacity: 0.35; }
+:root:is([data-time="night"], [data-time="eclipse"]) :is(.tcar, .moving, .cv, .to-school, .walker) .beam { opacity: 0.65; }
 @keyframes exhaust { 0% { transform: translate(0, 0); opacity: 0.6; } 100% { transform: translate(-10px, -7px); opacity: 0; } }
 /* (the cars on the main road are driven by the traffic model in scene.js: see "Smart traffic") */
 .cow-gas .smoke { animation-name: gasRise; }
