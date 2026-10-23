@@ -464,8 +464,11 @@ const Scene = (() => {
   <rect x="26" y="366" width="612" height="11" class="road"/><path d="M30 371.5 H214 M250 371.5 H634" stroke="#fff" stroke-width="1.1" stroke-dasharray="8 7" opacity=".8"/>
   <rect x="218" y="324" width="28" height="134" class="road"/><path d="M232 328 V364 M232 380 V440" stroke="#fff" stroke-width="1.1" stroke-dasharray="7 6" opacity=".8"/>
   <!-- parking bays on the street (school, station, shops) and bike racks -->
-  <g class="bays" stroke="#fff" stroke-width="1.2" opacity=".85"><path d="M138 373.5 v4 M200 373.5 v4 M262 373.5 v4 M318 373.5 v4 M568 373.5 v4 M632 373.5 v4"/></g>
-  <g fill="#fff" opacity=".8" font-size="6" font-weight="900" font-family="Arial, sans-serif"><text x="166" y="377">P</text><text x="287" y="377">P</text><text x="597" y="377">P</text></g>
+  <g class="bays" stroke="#fff" stroke-width="1.2" opacity=".85"><path d="M138 373.5 v4 M200 373.5 v4 M262 373.5 v4 M318 373.5 v4"/></g>
+  <g fill="#fff" opacity=".8" font-size="6" font-weight="900" font-family="Arial, sans-serif"><text x="166" y="377">P</text><text x="287" y="377">P</text></g>
+  <!-- the shops' car park, right across the street from the thrift store and the mall -->
+  <rect x="482" y="377" width="112" height="19" rx="2" class="road"/><path d="M484 379 v15 M538 379 v15 M592 379 v15" stroke="#fff" stroke-width="1.2" opacity=".85"/>
+  <g fill="#fff" opacity=".8" font-size="7" font-weight="900" font-family="Arial, sans-serif" text-anchor="middle"><text x="511" y="393">P</text><text x="565" y="393">P</text></g>
   <!-- a little car park by the station, to the right of the little street -->
   <rect x="248" y="333" width="52" height="21" rx="2" class="road"/><path d="M250 335 v17 M298 335 v17" stroke="#fff" stroke-width="1.2" opacity=".85"/>
   <text x="274" y="351" text-anchor="middle" fill="#fff" opacity=".8" font-size="6" font-weight="900" font-family="Arial, sans-serif">P</text>
@@ -775,6 +778,7 @@ const Scene = (() => {
   };
   const BACK_Y = 400;   // above this line = the back row
   const CROSS_F = [232, 458], CROSS_B = [232, 494];   // the zebra crossing between the pavement and the beach
+  const HOME_ROUTE = [['A', 200, 460], ['B', 200, 460]];   // the main road between the little street and the driveway
   const ROAD_Y = 465;   // below this line = in front of the cars
 
   const DROP = '<path d="M0 -6 q-5 6 0 9 q5 -3 0 -9Z" fill="#7cc9ef"/>';
@@ -816,7 +820,9 @@ const Scene = (() => {
           ride.remove();
           const up = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', headBack(-5, '#6b4423') + headBack(5, '#8b5a2b', 0.85))}</g>`, 232, LANE_A, 1);
           up.carry(true); up.cam = true;
-          await up.move(232, 384, 1600, 'ease-in-out');                 // …up the little street (seen from behind)…
+          await up.move(232, LANE_A - 14, 400, 'ease-in');
+          s.roadFree();
+          await up.move(232, 384, 1200, 'ease-out');                    // …up the little street (seen from behind)…
           up.remove();
           // …left along the school street, and stop right at the school's front door
           const side = s.vehicle('backFx', car('#e63946', '#6b4423', monkeyHead(-3, -23, '#8b5a2b')), 232, 378, -1);
@@ -834,7 +840,9 @@ const Scene = (() => {
             side.remove();
             await back.move(232, 378, 1100, 'ease-in-out'); back.remove();
             const down = s.vehicle('roadFx', `<g transform="scale(.94)">${carFront('#e63946', '#6b4423')}</g>`, 232, 384, 1);
-            await down.move(232, LANE_B - 2, 1500, 'ease-in-out'); down.remove();   // …down the little street…
+            await down.move(232, LANE_A - 14, 1200, 'ease-out');                     // …down the little street…
+            await s.roadClear(HOME_ROUTE);                                            // (dad waits until the road is clear)
+            await down.move(232, LANE_B - 2, 500, 'ease-in-out'); down.remove();
             const home = s.vehicle('roadFx', familyCar('#e63946', ''), 232, LANE_B, 1);
             home.carry(true);
             await home.move(398, LANE_B, 900, 'ease-out');                          // …and home into the driveway
@@ -1061,9 +1069,11 @@ const Scene = (() => {
           await Promise.all([s.go([444, 456]), ...fam.map((m, k) => m.walk([410, 424, 458][k], 454))]);
           await Promise.all(fam.map((m) => m.enter()));
           s.inside(true);
-          const ride = await s.carOut(BACK_FAMILY, headBack(-6, '#6b4423') + headBack(0, '#a0703f', .9) + headBack(6, '#8b5a2b', .85));
+          const ride = await s.carOut(BACK_FAMILY, headBack(-6, '#6b4423') + headBack(0, '#a0703f', .9) + headBack(6, '#8b5a2b', .85), -150);
           sfx('honk'); await s.w(1200);
-          await ride.move(-650, LANE_A, 4200, 'ease-in'); ride.remove();   // (off over the bridge to Grandma's)
+          await ride.move(-160, LANE_A, 2600, 'ease-in');   // (off over the bridge to Grandma's)
+          s.roadFree();
+          await ride.move(-650, LANE_A, 1600, 'linear'); ride.remove();
           s.away = 'car';
         },
         apply(s) { s.traffic++; s.hide('parkedCar'); },
@@ -1143,22 +1153,31 @@ const Scene = (() => {
     let time = 'day';
     let reactTimer = 0, bubbleTimer = 0, walkTimer = 0, walkEnd = 0;
     let boltTimer = 0;        // (the next lightning strike while there's a storm)
-    let crossers = 0;         // (monkeys on the zebra crossing: the cars wait for them)
-    const crossing = (on) => {
-      const was = crossers > 0;
-      crossers = Math.max(0, crossers + (on ? 1 : -1));
-      container.classList.toggle('crossing', crossers > 0);
-      if (crossers > 0 && !was) {
-        // the traffic stops; a car that's already at the crossing pulls aside (fades away) so nobody gets hit
-        const m = svg.getScreenCTM().inverse();
-        container.querySelectorAll('.driveL, .driveR, .ride').forEach((c) => {
-          const r = c.getBoundingClientRect(), a = new DOMPoint(r.left, r.top).matrixTransform(m), b = new DOMPoint(r.right, r.bottom).matrixTransform(m);
-          if (b.x > CROSS_F[0] - 40 && a.x < CROSS_F[0] + 40) c.classList.add('yield');
-        });
-      }
-      if (crossers === 0) container.querySelectorAll('.yield').forEach((c) => c.classList.remove('yield'));
+    // Traffic rules: the cars driving around town stop while someone crosses the street or while the family car
+    // is on the main road; a car that's right in the way pulls aside (fades), so nobody ever bumps into anybody.
+    let stoppers = 0;
+    const trafficStop = (on) => {
+      stoppers = Math.max(0, stoppers + (on ? 1 : -1));
+      container.classList.toggle('crossing', stoppers > 0);
+      if (!stoppers) container.querySelectorAll('.yield').forEach((c) => c.classList.remove('yield'));
     };
-    const hooks = { carTrip: () => {} };   // (the game listens for car trips, see onCarTrip)
+    // the visible cars (and bikes) in some stretches of road: [['A' | 'B' | '*', fromX, toX], …]
+    const carsIn = (stretches) => {
+      const m = svg.getScreenCTM().inverse();
+      return [...container.querySelectorAll('.driveL, .driveR, .ride')].filter((c) => {
+        if (getComputedStyle(c).visibility === 'hidden' || c.classList.contains('yield')) return false;
+        const lane = c.classList.contains('driveL') ? 'A' : c.classList.contains('driveR') ? 'B' : 'bike';
+        const r = c.getBoundingClientRect(), a = new DOMPoint(r.left, r.top).matrixTransform(m), b = new DOMPoint(r.right, r.bottom).matrixTransform(m);
+        return stretches.some(([l, x1, x2]) => (l === '*' || l === lane) && b.x > Math.min(x1, x2) - 10 && a.x < Math.max(x1, x2) + 10);
+      });
+    };
+    const crossing = (on) => {
+      const was = stoppers > 0;
+      trafficStop(on);
+      if (on && !was) carsIn([['*', CROSS_F[0] - 40, CROSS_F[0] + 40]]).forEach((c) => c.classList.add('yield'));
+    };
+    const hooks = { carTrip: () => {} };
+    let roadHeld = 0;         // (the family car is on the main road: the other cars wait)   // (the game listens for car trips, see onCarTrip)
     let lineFor = () => '';   // (the game gives us Bobo's lines in the player's language, see setLines)
     let walkPos = [...P.home];
     let gen = 0;               // goes up whenever a new situation starts; old animations then stop
@@ -1312,7 +1331,8 @@ const Scene = (() => {
       },
       burst() { s.flash('plantBurst', 2600); },
       // The family car backs out of the driveway (seen from behind) and drives off along the street (dad drives)
-      async carOut(back, heads = headBack(-5, '#6b4423')) {
+      async carOut(back, heads = headBack(-5, '#6b4423'), toX = 232) {
+        await s.roadClear([['A', Math.min(toX, 434) - 20, 460], ['B', 400, 470]]);   // (dad looks, waits for a gap; the other cars wait for him)
         s.hide('parkedCar');
         const r = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', heads)}</g>`, 434, 442, 1);
         r.carry(true);
@@ -1331,6 +1351,7 @@ const Scene = (() => {
         r.carry(true);
         await r.move(434, 442, 1000, 'ease-in-out');
         s.show('parkedCar'); r.remove();
+        s.roadFree();   // (parked: the other cars can go again)
       },
       // dad comes out of the house to drive, or goes back in after parking
       async dadOut() { const d = s.family(P.door, ['dad'])[0]; d.appear(); await d.walk(412, 452); await d.enter(); },
@@ -1421,9 +1442,18 @@ const Scene = (() => {
       },
       rackFor(to) { return to[1] < 345 ? ['station', [318, 358]] : to[0] < 300 ? ['school', [137, 368]] : ['mall', [606, 370]]; },
       // where the family car parks: the station's car park (up the little street), or a bay on the street by the school / shops
-      bayFor(to) { return to[1] < 345 ? { x: 274, y: 346, station: true } : { x: to[0] < 300 ? 168 : 600, y: 378 }; },
+      bayFor(to) {
+        if (to[1] < 345) return { x: 274, y: 346, station: true };   // (up the little street to the station's car park)
+        if (to[0] < 300) return { x: 168, y: 378 };                   // (a bay on the street by the school)
+        return { x: to[0] < 520 ? 511 : 565, y: 392, lot: true };     // (the shops' car park, across from the shop)
+      },
       // where people stand when they get out of (or wait for) the parked car
-      outOf(bay, k) { return bay.station ? (k < 0 ? [bay.x + 30, bay.y - 3] : [bay.x - 32 - 14 * k, bay.y - 3]) : (k < 0 ? [bay.x + 10, 367] : [bay.x - 10 + 14 * k, 367]); },
+      outOf(bay, k) {
+        if (bay.lot) return k < 0 ? [bay.x + 32, bay.y - 3] : [bay.x - 32 - 14 * k, bay.y - 3];
+        return bay.station ? (k < 0 ? [bay.x + 30, bay.y - 3] : [bay.x - 32 - 14 * k, bay.y - 3]) : (k < 0 ? [bay.x + 10, 367] : [bay.x - 10 + 14 * k, 367]);
+      },
+      // the street the car drives along to get to that bay (the shops' car park is just off the school street)
+      streetY(bay) { return bay.station ? bay.y : 378; },
       // up the little street: to the school street, or all the way up to the station's car park
       upTo(bay) { return bay.station ? bay.y : 384; },
       async bikeThere(to, kinds, existing) {
@@ -1472,11 +1502,14 @@ const Scene = (() => {
         v.remove();
         const up = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', headBack(-5, '#6b4423') + headBack(5, '#8b5a2b', .85))}</g>`, 232, LANE_A, 1);
         up.carry(true); up.cam = true;
-        await up.move(232, s.upTo(bay), bay.station ? 2300 : 1500, 'ease-in-out');
+        await up.move(232, LANE_A - 14, 400, 'ease-in');
+        s.roadFree();                                 // (off the main road: the other cars can go again)
+        await up.move(232, s.upTo(bay), bay.station ? 2000 : 1200, 'ease-out');
         up.remove();
-        const side = s.vehicle('backFx', car('#e63946', '#6b4423', back), 232, bay.y, bay.x < 232 ? -1 : 1);
+        const side = s.vehicle('backFx', car('#e63946', '#6b4423', back), 232, s.streetY(bay), bay.x < 232 ? -1 : 1);
         side.carry(true); side.cam = true;
-        await side.move(bay.x, bay.y, Math.max(500, Math.abs(bay.x - 232) * 6), 'ease-out');
+        await side.move(bay.x, s.streetY(bay), Math.max(500, Math.abs(bay.x - 232) * 6), bay.lot ? 'ease-in-out' : 'ease-out');
+        if (bay.lot) await side.move(bay.x, bay.y, 600, 'ease-out');   // (pull into the car park)
         // parked: everybody gets out, so the car is empty (nobody waits inside)
         side.g.querySelector('.veh').innerHTML = car('#e63946', '#6b4423', '', false);
         side.cam = false; side.carry(false); side.keep = true;
@@ -1498,10 +1531,13 @@ const Scene = (() => {
           await v.move(232, LANE_A, 1200, 'ease-in-out'); v.remove();
           const up = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', headBack(-5, '#6b4423'))}</g>`, 232, LANE_A, 1);
           up.carry(true); up.cam = true;
-          await up.move(232, s.upTo(bay), bay.station ? 2300 : 1500, 'ease-in-out'); up.remove();
-          const side = s.vehicle('backFx', car('#e63946', '#6b4423', ''), 232, bay.y, bay.x < 232 ? -1 : 1);
+          await up.move(232, LANE_A - 14, 400, 'ease-in');
+          s.roadFree();
+          await up.move(232, s.upTo(bay), bay.station ? 2000 : 1200, 'ease-out'); up.remove();
+          const side = s.vehicle('backFx', car('#e63946', '#6b4423', ''), 232, s.streetY(bay), bay.x < 232 ? -1 : 1);
           side.cam = true;
-          await side.move(bay.x, bay.y, Math.max(500, Math.abs(bay.x - 232) * 6), 'ease-out');
+          await side.move(bay.x, s.streetY(bay), Math.max(500, Math.abs(bay.x - 232) * 6), bay.lot ? 'ease-in-out' : 'ease-out');
+          if (bay.lot) await side.move(bay.x, bay.y, 600, 'ease-out');
           side.cam = false;
           r = { car: side, bay, people: [] };
         }
@@ -1517,10 +1553,13 @@ const Scene = (() => {
         // back along the street, down the little street (coming towards us), along the main road and up the driveway
         const side = s.vehicle('backFx', car('#e63946', '#6b4423', back), r.bay.x, r.bay.y, r.bay.x < 232 ? 1 : -1);
         side.carry(true); side.cam = true;
-        await side.move(232, r.bay.y, Math.max(500, Math.abs(r.bay.x - 232) * 6), 'ease-in-out'); side.remove();
+        if (r.bay.lot) await side.move(r.bay.x, s.streetY(r.bay), 600, 'ease-in-out');   // (out of the car park)
+        await side.move(232, s.streetY(r.bay), Math.max(500, Math.abs(r.bay.x - 232) * 6), 'ease-in-out'); side.remove();
         const down = s.vehicle('roadFx', `<g transform="scale(.94)">${carFront('#e63946', '#6b4423')}</g>`, 232, s.upTo(r.bay), 1);
         down.cam = true;
-        await down.move(232, LANE_B - 2, r.bay.station ? 2300 : 1500, 'ease-in-out'); down.remove();
+        await down.move(232, LANE_A - 14, r.bay.station ? 2000 : 1200, 'ease-out');   // (down to the main road… and stop)
+        await s.roadClear(HOME_ROUTE);                                                   // (wait for a gap, then the cars wait for us)
+        await down.move(232, LANE_B - 2, 500, 'ease-in-out'); down.remove();
         const home = s.vehicle('roadFx', familyCar('#e63946', back), 232, LANE_B, 1);
         home.carry(true); home.cam = true;
         await s.carPark(home, headBack(-5, '#6b4423') + headBack(5, '#8b5a2b', .85));
@@ -1555,6 +1594,7 @@ const Scene = (() => {
           await leave; tr.remove(); s.show('trains');
         } else if (how === 'car') {
           s.hide('parkedCar'); place(P.home); s.inside(true, true);
+          await s.roadClear([['A', 400, 900], ['B', 400, 470]]);   // (the cars ahead make room)
           const c = s.vehicle('roadFx', familyCar('#e63946'), 1400, LANE_A, -1);
           c.carry(true);
           await s.carPark(c, headBack(-6, '#6b4423') + headBack(0, '#a0703f', .9) + headBack(6, '#8b5a2b', .85));
@@ -1646,6 +1686,14 @@ const Scene = (() => {
         return b;
       },
       chop() { restartAnim(svg.querySelector('.mjump'), 'chop'); },
+      // The family car wants to drive on the main road: wait (up to a few seconds) for a gap in those
+      // stretches of road, then stop the other cars until roadFree(). A car still in the way pulls aside.
+      async roadClear(stretches) {
+        for (let k = 0; k < 20 && carsIn(stretches).length; k++) await s.w(200);
+        roadHeld++; trafficStop(true);
+        carsIn(stretches).forEach((c) => c.classList.add('yield'));
+      },
+      roadFree() { if (roadHeld > 0) { roadHeld--; trafficStop(false); } },
       // a friend walks back home by themselves and goes in (it keeps going while the next scene starts)
       walkHome(b) {
         const homes = { golden: P.friend, red: P.friend2 };
@@ -1703,6 +1751,7 @@ const Scene = (() => {
     // A new situation: clear away the last one's props, friends and vehicles
     function begin() {
       finishPending();
+      while (roadHeld > 0) s.roadFree();   // (a cut-short drive never leaves the traffic waiting)
       vehicles.splice(0).forEach((v) => { if (v.keep) vehicles.push(v); else v.remove(); });
       if (s.away !== 'car' && !(s.remote && s.remote.car)) s.show('parkedCar');   // (the family car is home, unless it's out)
       buddies.slice().forEach((b) => { if (!b.keep) b.remove(); });
