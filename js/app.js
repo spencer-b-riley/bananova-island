@@ -296,6 +296,7 @@
       newDay.push(turn > 0 && !later.length);
       now = turn === 0 ? Math.min(...ok) : later.length ? Math.min(...later) : Math.min(...ok);
       times.push(DAY[now]);
+      if (turn === 0) now = Math.max(now, 1);   // (school takes the morning: what comes next happens later in the day)
     });
     G = {
       seq, made: [], times, newDay, weather: [],
@@ -440,12 +441,20 @@
     cardWait();
     sayLine(() => '');
     if (G.newDay[turn]) toast('sun', t('newDay'));
-    scene.setTime(G.times[turn]);
-    scene.setWeather(G.weather[turn]);
-    if (G.weather[turn] === 'storm') Sound.play('storm');
-    if (newSky) {             // the sky changes first (and finishes) before anything else moves…
-      await wait(Perf.tier === 'low' ? 1400 : 3000);
+    if (turn === 1 && scene.atSchool()) {
+      // the school day goes by first: Bobo goes in, the sun moves on, and later school's out
+      await scene.schoolDay(G.times[turn]);
       if (G !== game) return;
+      scene.setWeather(G.weather[turn]);
+      if (G.weather[turn] === 'storm') Sound.play('storm');
+    } else {
+      scene.setTime(G.times[turn]);
+      scene.setWeather(G.weather[turn]);
+      if (G.weather[turn] === 'storm') Sound.play('storm');
+      if (newSky) {             // the sky changes first (and finishes) before anything else moves…
+        await wait(Perf.tier === 'low' ? 1400 : 3000);
+        if (G !== game) return;
+      }
     }
     // …then Bobo goes to where the new situation happens…
     await Promise.race([scene.event(ch.id), wait(30000)]);
@@ -742,14 +751,17 @@
   $('#langSel').addEventListener('change', (e) => setLang(e.target.value));
 
   // If nobody taps for a while during a question, Bobo asks if the player is still there
-  // and asks for help (a different line each time).
-  const IDLE_FIRST = 14000, IDLE_AGAIN = 16000;
-  let idleTimer = 0, lastIdle = -1;
+  // and asks for help (a different line each time). Between two reminders there's always a little pause
+  // (3–5 s after the last bubble is gone), and a reminder never talks over another bubble.
+  const IDLE_FIRST = 14000;
+  const readMs = (text) => clamp(1500 + text.length * 80, 3000, 7000);   // (as long as the bubble stays, see scene.say)
+  let idleTimer = 0, lastIdle = -1, idleNext = IDLE_FIRST;
   function idleCheck() {
     clearTimeout(idleTimer);
     idleTimer = setTimeout(() => {
       const waiting = G && !G.ending && scene && document.querySelector('#card:not(.card-wait) [data-good]');
-      if (waiting) {
+      if (waiting && scene.speaking()) idleNext = 3000 + Math.random() * 2000;   // (someone's talking: try a bit later)
+      else if (waiting) {
         const lines = L().say.idle;
         let k;
         do { k = Math.floor(Math.random() * lines.length); } while (lines.length > 1 && k === lastIdle);
@@ -757,11 +769,12 @@
         scene.react('think', 2600);
         scene.jump();
         scene.say(lines[k]);
-      }
+        idleNext = readMs(lines[k]) + 3000 + Math.random() * 2000;
+      } else idleNext = IDLE_FIRST;
       idleCheck();
-    }, idleTimer ? IDLE_AGAIN : IDLE_FIRST);
+    }, idleNext);
   }
-  ['pointerdown', 'keydown'].forEach((ev) => window.addEventListener(ev, () => { idleTimer = 0; idleCheck(); }));
+  ['pointerdown', 'keydown'].forEach((ev) => window.addEventListener(ev, () => { idleNext = IDLE_FIRST; idleCheck(); }));
   idleCheck();
 
   // Browsers only allow sound after the first tap/click.

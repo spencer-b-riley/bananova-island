@@ -136,12 +136,16 @@ const Scene = (() => {
   // the long reef: a bumpy rock ridge all along the sea floor, covered in all kinds of coral
   const REEF_KINDS = ['staghorn', 'sponge', 'brain', 'table', 'anemone', 'whip', 'pillar', 'mushroom', 'fan', 'bubble', 'tube'];
   const REEF = (() => {
-    let ridge = 'M-12 640 L-12 618';
-    for (let x = -12; x <= 786; x += 26) ridge += ` Q${x + 13} ${606 + (x * 7 % 9)} ${x + 26} ${616 + (x * 3 % 5)}`;
-    ridge += ' L812 640Z';
+    // (the rock's top edge goes through these points, bumping up between them; corals stand a little below it)
+    const top = [];
+    for (let x = -12; x <= 812; x += 26) top.push([x, 614 + ((x + 12) * 3 % 5)]);
+    let ridge = `M-12 640 L${top[0][0]} ${top[0][1]}`;
+    for (let n = 1; n < top.length; n++) ridge += ` Q${top[n - 1][0] + 13} ${top[n - 1][1] - 8} ${top[n][0]} ${top[n][1]}`;
+    ridge += ` L${top[top.length - 1][0]} 640Z`;
+    const topAt = (x) => { const n = clamp(Math.floor((x + 12) / 26), 0, top.length - 2), f = (x - top[n][0]) / 26; return top[n][1] + (top[n + 1][1] - top[n][1]) * f; };
     let corals = '';
-    for (let k = 0, x = 26; x < 780; k++, x += 24 + (k * 13 % 11)) {
-      const y = 612 + (k * 5 % 6), sc = 0.42 + (k * 7 % 5) * 0.05;
+    for (let k = 0, x = 6; x < 796; k++, x += 22 + (k * 13 % 9)) {
+      const y = +(topAt(x) + 5).toFixed(1), sc = 0.42 + (k * 7 % 5) * 0.05;
       corals += coral(+x.toFixed(1), +y.toFixed(1), REEF_KINDS[(k * 4) % REEF_KINDS.length], 'abcde'[(k * 3) % 5], sc);
     }
     return `<path d="${ridge}" fill="#5b6470" opacity=".9"/><path d="${ridge}" fill="none" stroke="#6f7884" stroke-width="2" opacity=".5"/>${corals}`;
@@ -164,14 +168,18 @@ const Scene = (() => {
           if (y > 338) pts.push([x + out * off, y + (y - 300) * 0.25]);
         }
       });
-      // (the rock is wider where it's closer to us, narrower further back)
-      pts.slice(1).forEach(([x, y], n) => {
-        const [px, py] = pts[n], w = 7 + Math.max(0, (y - 340) / 270) * 13;
-        rock += `<path d="M${px.toFixed(1)} ${py.toFixed(1)} L${x.toFixed(1)} ${y.toFixed(1)}" stroke="#66707c" stroke-width="${w.toFixed(1)}" stroke-linecap="round" opacity=".75"/>`;
+      // (one smooth band of rock, wider where it's closer to us and narrower further back)
+      const half = (y) => 4 + Math.max(0, (y - 340) / 270) * 8;
+      const edge = (sgn) => pts.map(([x, y], n) => {
+        const [ax, ay] = pts[Math.max(0, n - 1)], [bx, by] = pts[Math.min(pts.length - 1, n + 1)];
+        const tl = Math.hypot(bx - ax, by - ay) || 1, nx = (by - ay) / tl, ny = -(bx - ax) / tl;
+        return [x + nx * half(y) * sgn, y + ny * half(y) * sgn];
       });
+      const band = [...edge(1), ...edge(-1).reverse()];
+      rock += `<path d="M${band.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L')}Z" fill="#5b6470" stroke="#5b6470" stroke-width="3" stroke-linejoin="round" opacity=".9"/>`;
       pts.slice(1).forEach(([x, y]) => {
-        const sc = 0.26 + Math.max(0, (y - 340) / 270) * 0.26;   // (smaller further back)
-        corals += coral(+x.toFixed(1), +(y - 4).toFixed(1), REEF_KINDS[(k++ * 5) % REEF_KINDS.length], 'abcde'[(k * 2) % 5], +sc.toFixed(2));
+        const sc = 0.18 + Math.max(0, (y - 340) / 270) * 0.3;   // (smaller further back)
+        corals += coral(+x.toFixed(1), +(y + 1).toFixed(1), REEF_KINDS[(k++ * 5) % REEF_KINDS.length], 'abcde'[(k * 2) % 5], +sc.toFixed(2));
       });
     });
     return rock + corals;
@@ -391,7 +399,7 @@ const Scene = (() => {
   const MONKEY_SC = 0.4;   // how big a monkey is in the city (smaller than a car, much smaller than a truck or a bus)
   const MONKEY_FIT = `translate(0 ${-30 * MONKEY_SC}) scale(${MONKEY_SC})`;   // Bobo-sized, standing on the origin
   const HEAD_H = 100 * MONKEY_SC;   // (from the feet to the top of the head)
-  const RIDE_SC = 0.27;             // a monkey on a bike (the same size as a walking monkey)
+  const RIDE_SC = 0.35;             // a monkey on a bike (the same size as a walking monkey)
   // A monkey riding a bike, seen from the side (faces right; the wheels touch the ground at y = 0).
   // shirt = null: just fur with a light belly (Bobo). The legs pedal and the wheels turn.
   const sideWheel = (x) => `<g transform="translate(${x} -15)"><circle r="15" fill="none" stroke="#23313f" stroke-width="4"/>
@@ -444,10 +452,10 @@ const Scene = (() => {
         <circle r="13" fill="${fur}"/><ellipse cx="0" cy="4" rx="9" ry="7" fill="#e8c39e"/><circle cx="-4" cy="-2" r="4.4" fill="#e8c39e"/><circle cx="4" cy="-2" r="4.4" fill="#e8c39e"/>
         <circle cx="-3.6" cy="-2" r="1.8" fill="#23313f"/><circle cx="3.6" cy="-2" r="1.8" fill="#23313f"/><path d="M-4.5 5 Q0 9.5 4.5 5" stroke="#5a2d0c" stroke-width="1.6" fill="none" stroke-linecap="round"/></g></g>`;
   // a small parked bike (side view) for the bike racks
-  const PARKED_BIKE = '<g transform="scale(.24)"><circle cx="-26" cy="-14" r="14" fill="none" stroke="#23313f" stroke-width="4"/><circle cx="26" cy="-14" r="14" fill="none" stroke="#23313f" stroke-width="4"/><path d="M-26 -14 L0 -14 L-8 -36 Z M0 -14 L18 -36 L-8 -36 M26 -14 L18 -36 L16 -44 M11 -45 H22 M-14 -38 H-2" stroke="#ff5b4a" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>';
+  const PARKED_BIKE = '<g transform="scale(.29)"><circle cx="-26" cy="-14" r="14" fill="none" stroke="#23313f" stroke-width="4"/><circle cx="26" cy="-14" r="14" fill="none" stroke="#23313f" stroke-width="4"/><path d="M-26 -14 L0 -14 L-8 -36 Z M0 -14 L18 -36 L-8 -36 M26 -14 L18 -36 L16 -44 M11 -45 H22 M-14 -38 H-2" stroke="#ff5b4a" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>';
   const rack = (x, y, k) => `<g transform="translate(${x} ${y})"><path d="M0 0 v-7 q0 -4 4 -4 q4 0 4 4 v7 M10 0 v-7 q0 -4 4 -4 q4 0 4 4 v7 M20 0 v-7 q0 -4 4 -4 q4 0 4 4 v7" stroke="#8a939d" stroke-width="1.6" fill="none"/>
       <g data-k="bikes_${k}" class="fade hide"><g transform="translate(7 0)">${PARKED_BIKE}</g><g data-k="bikes2_${k}" class="fade hide" transform="translate(17 0)">${PARKED_BIKE}</g><g data-k="bikes3_${k}" class="fade hide" transform="translate(27 0)">${PARKED_BIKE}</g></g></g>`;
-  const rider = (fur, shirt, x) => `<g class="tcar" data-lane="bike" data-x="${x}" style="transform:translateX(${x}px)"><g transform="translate(0 466.5) scale(.25)">${sideRider(fur, shirt)}</g></g>`;
+  const rider = (fur, shirt, x) => `<g class="tcar" data-lane="bike" data-x="${x}" style="transform:translateX(${x}px)"><g transform="translate(0 466.5) scale(.32)">${sideRider(fur, shirt)}</g></g>`;
 
   // cars looping along the road (lane A goes left, lane B goes right), each with a happy monkey driver
   const LANE_A = 468, LANE_B = 477;
@@ -859,9 +867,7 @@ const Scene = (() => {
   <!-- lightning close by, up in the clouds (storms only; see strike() in the scene) -->
   <g data-k="boltsNear"></g>
   <g data-k="bubble" class="bubble hide"><g class="bubble-in">
-    <rect data-k="bubbleBox" x="-60" y="-37" width="120" height="31" rx="12" fill="#fff" stroke="#23313f" stroke-width="2.2"/>
-    <path d="M-7 -6.6 L0 6 L7 -6.6" fill="#fff" stroke="#23313f" stroke-width="2.4" stroke-linejoin="round"/>
-    <rect x="-5.6" y="-8.4" width="11.2" height="3.8" fill="#fff"/>
+    <path data-k="bubbleBox" d="" fill="#fff" stroke="#23313f" stroke-width="2.2" stroke-linejoin="round"/>
     <text data-k="bubbleText" x="0" y="-16" text-anchor="middle" font-size="16.5" font-weight="800" fill="#23313f"></text>
   </g></g>
 </svg>`;
@@ -1284,7 +1290,7 @@ const Scene = (() => {
     const cars = [...container.querySelectorAll('.tcar')].map((el) => {
       const lane = el.dataset.lane, L = LANES[lane], group = el.parentNode.closest('[data-k]');
       const c = { el, lane, dir: L.dir, vmax: L.v, p: L.dir * +el.dataset.x, v: L.v, rear: -10, front: 10, group, on: !group.classList.contains('hide') };
-      if (lane === 'bike') { c.rear = -30 * 0.25; c.front = 30 * 0.25; } else setModel(c, pick(SMALL));
+      if (lane === 'bike') { c.rear = -30 * 0.32; c.front = 30 * 0.32; } else setModel(c, pick(SMALL));
       return c;
     });
     const zones = new Map();   // things the cars have to stop for: id → { lane, x1, x2 } (or a moving one: get() → [x1, x2, speed])
@@ -1342,12 +1348,14 @@ const Scene = (() => {
           c.v = c.v < target ? Math.min(target, c.v + ACCEL * dt) : Math.max(target, c.v - BRAKE * dt);
           if (gap < 5) c.v = Math.min(c.v, leadV, gap < 2 ? 0 : leadV);
           c.p += c.v * dt;
-          if (c.p + c.rear > L.to) {                          // off-screen: come back round at the other end, behind the last car
-            const last = going[going.length - 1];
-            if (lane !== 'bike') setModel(c, !cars.some((o) => o !== c && o.on && o.big) && Math.random() < 0.1 ? pick(BIG) : pick(SMALL));
-            c.p = Math.min(L.from, last && last !== c ? last.p + last.rear - c.front - 40 : L.from);
-            c.shown = null;
-          }
+        });
+        // off-screen: come back round at the other end, behind the last car. (Only after everybody has moved:
+        // otherwise the car behind would see it as "the car in front" for a moment and stop dead.)
+        going.filter((c) => c.p + c.rear > L.to).forEach((c) => {
+          const rest = going.filter((o) => o !== c && o.p + o.rear <= L.to), last = rest[rest.length - 1];
+          if (lane !== 'bike') setModel(c, !cars.some((o) => o !== c && o.on && o.big) && Math.random() < 0.1 ? pick(BIG) : pick(SMALL));
+          c.p = Math.min(L.from, last ? last.p + last.rear - c.front - 40 : L.from);
+          c.shown = null;
         });
         going.forEach((c) => {
           const x = (c.dir * c.p).toFixed(1);
@@ -2090,12 +2098,18 @@ const Scene = (() => {
     // keep the bubble inside the part of the city that's on screen (phones see only a slice of it)
     // The bubble always sits right above Bobo's head (its tail points at him). Only if the text box would stick out
     // of the screen does the box slide a little to the side, while the tail stays above his head.
+    // the bubble's outline: a rounded box with the tail (pointing down at Bobo, at x = 0) as one shape
+    const bubbleShape = (w, dx) => {
+      const l = -w / 2 + dx, r = w / 2 + dx, t = -37, b = -6, R = 12, tx = clamp(0, l + R + 8, r - R - 8);
+      return `M${l + R} ${t} H${r - R} Q${r} ${t} ${r} ${t + R} V${b - R} Q${r} ${b} ${r - R} ${b} H${tx + 7} L${tx} ${b + 12} L${tx - 7} ${b}`
+        + ` H${l + R} Q${l} ${b} ${l} ${b - R} V${t + R} Q${l} ${t} ${l + R} ${t}Z`;
+    };
     const viewLeft = () => (vb[2] === 800 ? 0 : clamp(camFocus - vb[2] / 2, 0, 800 - vb[2]));
     const bubbleXY = (hx, hy) => {
       const left = viewLeft(), right = left + vb[2];
       const cx = Math.max(left + bubbleW / 2 + 6, Math.min(right - bubbleW / 2 - 6, hx));
       const lim = Math.max(0, bubbleW / 2 - 16), dx = clamp(cx - hx, -lim, lim);
-      q('bubbleBox').setAttribute('x', -bubbleW / 2 + dx);
+      q('bubbleBox').setAttribute('d', bubbleShape(bubbleW, dx));
       q('bubbleText').setAttribute('x', dx);
       return [hx, hy - 8];
     };
@@ -2132,8 +2146,7 @@ const Scene = (() => {
       if (!text || walker.classList.contains('inside') || !onScreen) { b.classList.add('hide'); return; }
       txt.textContent = text;
       bubbleW = Math.min(420, txt.getComputedTextLength() + 22);
-      box.setAttribute('x', -bubbleW / 2);
-      box.setAttribute('width', bubbleW);
+      box.setAttribute('d', bubbleShape(bubbleW, 0));
       placeBubbleWhileWalking();
       b.classList.remove('hide');
       restartAnim(b.querySelector('.bubble-in'), 'jump');
@@ -2227,6 +2240,19 @@ const Scene = (() => {
       finishJobs: finishPending,
       setMode: (m) => { s.mode = m; },   // 'bike' or 'car': how Bobo gets around town
       setLines: (fn) => { lineFor = fn; },
+      // Is Bobo at the school door (after getting there in the morning)?
+      atSchool: () => Math.hypot(walkPos[0] - P.school[0], walkPos[1] - P.school[1]) < 30,
+      speaking: () => !q('bubble').classList.contains('hide'),
+      // The school day goes by: Bobo goes in, the sun moves to later in the day, and after a while he comes out
+      async schoolDay(t) {
+        s.inside(true);
+        await sleep(1200);
+        setTime(t);
+        await sleep(5000);
+        s.inside(false); s.jump();
+        say(lineFor('schoolOut'));
+        await sleep(1500);
+      },
       onCarTrip: (fn) => { hooks.carTrip = fn; },   // fn() whenever Bobo gets into the car for a trip around town   // fn(key) → that speech bubble line in the current language
       /* A reward 2 turns later (if Bobo was away on a trip, Bobo comes back first) */
       payoff(id) {
