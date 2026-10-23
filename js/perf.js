@@ -38,10 +38,10 @@ const Perf = (() => {
     if (cores <= 2 || mem <= 2) t = 'low';
     // weak graphics chips (older Android phones, old laptop graphics)
     if (/Mali-(4|T[0-7])|PowerVR|Adreno \(TM\) [2-5]\d\d|Intel\(R\) HD Graphics( [2-5]\d{2,3})?$|GMA|SwiftShader|llvmpipe/i.test(gpu)) t = 'low';
-    // iPhones all say "Apple GPU", so use the screen: small / older models start lowest
+    // iPhones all say "Apple GPU", so use the screen: very small / old models start lowest
     if (iOS) {
       const w = Math.min(screen.width, screen.height);
-      t = w <= 375 ? 'low' : 'mid';
+      t = w <= 320 ? 'low' : 'mid';
     }
     // very big screens with a high pixel density mean lots of pixels to redraw
     if (screen.width * screen.height * (devicePixelRatio || 1) ** 2 > 9e6 && t === 'high') t = 'mid';
@@ -56,19 +56,21 @@ const Perf = (() => {
     listeners.forEach((fn) => fn(t));
   }
 
-  // Watch the frame rate. About 2 seconds below ~45 frames a second = step down one level.
+  // Watch the frame rate (after the first few seconds of loading). About 3 seconds below ~33 frames a
+  // second = step down from 'high' to 'mid'; only a device that really struggles (below ~22 fps) goes 'low'.
   function watch() {
     let last = performance.now(), frames = 0, sum = 0, slowWindows = 0;
+    const start = performance.now();
     const loop = (now) => {
       const dt = now - last;
       last = now;
-      if (!document.hidden && dt < 400) {         // (ignore pauses, e.g. the tab was in the background)
+      if (!document.hidden && dt < 400 && now - start > 4000) {   // (ignore loading and pauses, e.g. the tab was in the background)
         sum += dt;
         frames++;
         if (frames >= 60) {
           const avg = sum / frames;                  // ms per frame: 16 = 60 fps, 33 = 30 fps
-          slowWindows = avg > 22 ? slowWindows + 1 : 0;
-          if (slowWindows >= 2 && tier !== 'low') {
+          slowWindows = avg > (tier === 'high' ? 30 : 45) ? slowWindows + 1 : 0;
+          if (slowWindows >= 3 && tier !== 'low') {
             set(ORDER[ORDER.indexOf(tier) - 1]);
             slowWindows = 0;
           }

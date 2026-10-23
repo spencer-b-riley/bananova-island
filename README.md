@@ -27,7 +27,7 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
 - Green choices are often better right away (biking to school with friends, a cheaper and cooler
   thrift jacket, swapping toys with a friend, cooling down in the shade)
 - A living city: Bobo's street with the school, skyscrapers, a thrift store, a mall, houses, a park,
-  a power plant, trees, a train line and a road with bridges to other towns, cars (each with a
+  a power plant, trees, a train line and a road with bridges to other towns, cars, vans, pickups, a delivery truck and a bus (each with a
   happy monkey driver), trains, cyclists and sailboats. Far away there's a volcano island whose
   trees and animals also come and go with the climate.
 - Bobo really goes places: bikes or rides to school, takes the
@@ -60,7 +60,8 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
 - Animation scaler (`js/perf.js`): to go easy on graphics chips, most devices start with fewer
   little extras (only strong ones like Apple M-chips or gaming graphics cards get everything). It
   guesses from the CPU, memory, graphics chip and iPhone screen size, then watches the real frame
-  rate and switches off more animations as soon as the device struggles. Big changes happen one at a time (the sky changes first, then Bobo moves).
+  rate and switches off little extras (flapping wings, swaying plants) if the device struggles. The
+  animals always stay and keep moving: they show how healthy the island is. Big changes happen one at a time (the sky changes first, then Bobo moves).
 - All icons are our own drawings (`js/icons.js`), no emoji
 - A recap of every decision with "Did you know?" facts, then simple takeaways. The first time,
   players tick "I read this" on every card before going on; after that the recap can be skipped

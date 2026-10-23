@@ -216,6 +216,32 @@ const Scene = (() => {
       ${driver ? monkeyHead(11, -23, fur) : ''}<g class="passenger">${back}</g>
       <rect x="27" y="-16" width="6" height="4" rx="1" fill="#fff3a8"/><rect x="-32" y="-16" width="4" height="4" fill="#ff5b4a"/>
       ${wheel(-17)}${wheel(17)}`;
+  // more kinds of vehicles driving around town (all facing right, wheels on y = 0, each with a monkey driver)
+  const van = (c, fur) => `${exhaust(-40)}
+      <path d="M-35 -7 V-33 Q-35 -38 -30 -38 H15 Q21 -38 25 -31 L31 -21 Q36 -20 36 -12 V-7Z" fill="${c}"/>
+      <path d="M16 -34 H19 Q22 -33 24 -29 L28 -22 H16Z" fill="#cfefff"/>
+      ${[-29, -16, -3].map((x) => `<rect x="${x}" y="-33" width="10" height="9" rx="1.5" fill="#cfefff"/>`).join('')}
+      ${monkeyHead(21, -26, fur)}<path d="M-35 -17 H36" stroke="#fff" stroke-width="2" opacity=".45"/>
+      <rect x="31" y="-15" width="5" height="4" rx="1" fill="#fff3a8"/><rect x="-35" y="-15" width="3" height="4" fill="#ff5b4a"/>
+      ${wheel(-21)}${wheel(21)}`;
+  const pickup = (c, fur) => `${exhaust(-38)}
+      <path d="M-35 -7 V-21 H1 V-30 Q1 -34 5 -34 H15 L23 -22 Q34 -21 34 -12 V-7Z" fill="${c}"/>
+      <path d="M6 -31 H14 L20 -23 H6Z" fill="#cfefff"/><rect x="-31" y="-28" width="13" height="7" rx="1" fill="#c98f4f" stroke="#8b5a2b" stroke-width="1"/>
+      <rect x="-15" y="-26" width="9" height="5" rx="1" fill="#2fb35a"/>${monkeyHead(11, -24, fur)}
+      <rect x="29" y="-16" width="5" height="4" rx="1" fill="#fff3a8"/><rect x="-35" y="-16" width="3" height="4" fill="#ff5b4a"/>
+      ${wheel(-21, 7.5)}${wheel(21, 7.5)}`;
+  const boxTruck = (c, fur) => `${exhaust(-46)}
+      <rect x="-44" y="-42" width="52" height="35" rx="2" fill="#f7f7f7" stroke="#c8cdd3" stroke-width="1.5"/><path d="M-38 -27 h40" stroke="${c}" stroke-width="5"/>
+      <path d="M9 -33 H22 L32 -20 Q36 -19 36 -12 V-7 H8 V-31Z" fill="${c}"/><path d="M13 -30 H21 L28 -21 H13Z" fill="#cfefff"/>${monkeyHead(20, -23, fur)}
+      <rect x="31" y="-15" width="5" height="4" rx="1" fill="#fff3a8"/>
+      ${wheel(-31)}${wheel(-16)}${wheel(23)}`;
+  const bus = (c, fur) => `${exhaust(-56)}
+      <rect x="-54" y="-42" width="104" height="36" rx="6" fill="${c}"/>
+      ${[-48, -34, -20, -6, 8, 22].map((x) => `<rect x="${x}" y="-37" width="11" height="12" rx="1.5" fill="#cfefff"/>`).join('')}
+      <path d="M37 -37 H45 Q49 -37 49 -32 V-23 H37Z" fill="#cfefff"/>${monkeyHead(42, -29, fur)}
+      <path d="M-54 -19 H50" stroke="#fff" stroke-width="2.5" opacity=".7"/><rect x="45" y="-15" width="5" height="4" rx="1" fill="#fff3a8"/>
+      ${wheel(-36)}${wheel(33)}`;
+  const MODELS = { car: (c, fur) => car(c, fur), van, pickup, boxTruck, bus };
   // the family car: dad drives; mom, Bobo and the little sister sit in the back
   const BACK_FAMILY = `<g transform="translate(-8.6 -22.5) scale(.62)">${monkeyHead(0, 0, '#a0703f')}</g><g transform="translate(-3.6 -22.5) scale(.66)">${monkeyHead(0, 0, '#8b5a2b')}</g><g transform="translate(1 -21.5) scale(.5)">${monkeyHead(0, 0, '#b07a44')}</g>`;
   const familyCar = (c, back = BACK_FAMILY) => car(c, '#6b4423', back);
@@ -366,9 +392,9 @@ const Scene = (() => {
 
   // cars looping along the road (lane A goes left, lane B goes right), each with a happy monkey driver
   const LANE_A = 468, LANE_B = 477;
-  const laneCar = (lane, c, dur, d, fur) => lane === 'A'
-    ? `<g class="driveL puffing" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 ${LANE_A - 20}) scale(-.92 .92)">${car(c, fur)}</g></g>`
-    : `<g class="driveR puffing" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 ${LANE_B - 20}) scale(.96)">${car(c, fur)}</g></g>`;
+  const laneCar = (lane, c, dur, d, fur, model = 'car') => lane === 'A'
+    ? `<g class="driveL puffing" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 ${LANE_A - 20}) scale(-.92 .92)">${MODELS[model](c, fur)}</g></g>`
+    : `<g class="driveR puffing" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 ${LANE_B - 20}) scale(.96)">${MODELS[model](c, fur)}</g></g>`;
 
   function buildSVG(u) {
     const piers = (y, h) => [-300, -200, -100, -10, 870, 960, 1060, 1160].map((x) =>
@@ -673,9 +699,10 @@ const Scene = (() => {
   <path d="M-800 437.5 H1800 M-800 459.5 H1800" stroke="#c8cdd3" stroke-width="2"/>
   <rect x="-800" y="459" width="2600" height="9" fill="#4c9a6a"/><path d="M-800 459.5 H1800" stroke="#fff" stroke-width="1.6"/><path d="M-800 468 H1800" stroke="#c8cdd3" stroke-width="2"/>
   ${[100, 300, 500, 700].map((x) => `<g transform="translate(${x} 465.5) scale(.12)" opacity=".6"><circle cx="-28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><circle cx="28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><path d="M-28 0 L-6 0 L10 -18 L28 0" stroke="#fff" stroke-width="7" fill="none"/></g>`).join('')}
-  <g data-k="traffic">${laneCar('A', '#ff6fa8', 15, -2, '#a0673a')}${laneCar('B', '#2f80ed', 13, -7, '#5c3a1e')}</g>
-  <g data-k="traffic2" class="fade hide">${laneCar('A', '#ffb627', 15, -9.5, '#7a4a24')}${laneCar('B', '#9aa5b1', 13, -1, '#c08850')}</g>
-  <g data-k="traffic3" class="fade hide">${laneCar('A', '#7d5fff', 15, -6, '#5c3a1e')}${laneCar('B', '#2fb35a', 13, -10.5, '#a0673a')}${laneCar('A', '#1fa7a0', 15, -13, '#7a4a24')}</g>
+  <!-- cars, vans, a pickup, a delivery truck and a bus (more of them come when the family drives a lot) -->
+  <g data-k="traffic">${laneCar('A', '#ff6fa8', 15, -2, '#a0673a')}${laneCar('B', '#2f80ed', 13, -7, '#5c3a1e', 'van')}${laneCar('A', '#ffb627', 15, -9.5, '#7a4a24', 'bus')}</g>
+  <g data-k="traffic2" class="fade hide">${laneCar('B', '#9aa5b1', 13, -1, '#c08850', 'boxTruck')}${laneCar('A', '#7d5fff', 15, -6, '#5c3a1e', 'pickup')}</g>
+  <g data-k="traffic3" class="fade hide">${laneCar('B', '#2fb35a', 13, -10.5, '#a0673a')}${laneCar('A', '#1fa7a0', 15, -13, '#7a4a24', 'van')}${laneCar('B', '#e8a33d', 13, -4.2, '#7a4a24', 'pickup')}</g>
   <g data-k="cyclists" class="fade hide">${rider('#8d8f94', '#ffd23f', -3, 16)}</g>
   </g>
   <g data-k="roadFx"></g>
