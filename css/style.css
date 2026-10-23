@@ -537,7 +537,13 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 @keyframes exhaust { 0% { transform: translate(0, 0); opacity: 0.6; } 100% { transform: translate(-10px, -7px); opacity: 0; } }
 /* monkeys on the zebra crossing: the cars (and bikes) wait for them; one right at the crossing makes way */
 .yield { opacity: 0 !important; transition: opacity 0.3s; }
-.crossing :is([data-k="traffic"], [data-k="traffic2"], [data-k="traffic3"], [data-k="cyclists"]) * { animation-play-state: paused !important; }
+.crossing [data-k="cyclists"] * { animation-play-state: paused !important; }
+/* hidden cars keep driving (invisibly), so when more cars show up they're still nicely spaced in their lane */
+[data-k^="traffic"].hide :is(.driveL, .driveR) { animation-play-state: running !important; }
+/* the cars in a lane always stop together (so nobody bumps into the car ahead): for people on the
+   zebra crossing (both lanes), or for the family car in its lane (the other lane keeps driving) */
+.scene-wrap.crossing [data-k^="traffic"] :is(.driveL, .driveR),
+.scene-wrap.hold-A [data-k^="traffic"] .driveL, .scene-wrap.hold-B [data-k^="traffic"] .driveR { animation-play-state: paused !important; }
 .cow-gas .smoke { animation-name: gasRise; }
 @keyframes gasRise { 0% { transform: translate(0, 0) scale(0.4); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translate(-6px, -40px) scale(1.4); opacity: 0; } }
 /* electricity flowing along the wire from the power plant */
@@ -769,6 +775,14 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 
 /* seagulls flying right-to-left; the hawk glides slowly across, flapping now and then */
 .fly.left { animation-name: flyLeft; }
+/* birds drift up and down as they fly, each at its own height and pace */
+.alt { animation: alt 9s ease-in-out infinite alternate; }
+@keyframes alt { from { transform: translateY(calc(var(--alt, 20px) * -1)); } to { transform: translateY(var(--alt, 20px)); } }
+/* an airplane crosses the sky only now and then (most of the time it's far off-screen) */
+.plane { animation: plane 150s linear infinite; }
+.plane.left { animation-name: planeLeft; }
+@keyframes plane { 0% { transform: translateX(-300px); } 22%, 100% { transform: translateX(1150px); } }
+@keyframes planeLeft { 0% { transform: translateX(1150px); } 22%, 100% { transform: translateX(-300px); } }
 @keyframes flyLeft { from { transform: translateX(1150px); } to { transform: translateX(-350px); } }
 .hawk-fly { animation: flyLeft 48s linear infinite; animation-delay: -12s; }
 /* the title screen: calm, just a few birds */

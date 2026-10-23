@@ -88,8 +88,15 @@ const Scene = (() => {
       <path d="M-15 1 C-11 -3 2 -4.5 9 -2 C13 -0.5 14 1.5 11 2.6 C3 4.8 -8 4.2 -15 2.6 L-21 2Z" fill="#fff"/><path d="M-15 1.4 L-21 2 L-15 2.8Z" fill="#9aa3ad"/>
       <circle cx="10" cy="-2" r="3.4" fill="#fff"/><path d="M13 -2.4 L18.5 -1.2 L13 0Z" fill="#f2c94c"/><circle cx="17" cy="-1" r=".7" fill="#e63946"/><circle cx="11" cy="-2.8" r=".8" fill="#23313f"/>
       ${gullWing(GULL_NEAR, '#eef1f4', '#2b2f36', '#9aa3ad')}</g>`;
-  const gullFlight = (k, y, sc, dur, delay, left = false) =>
-    `<g data-k="birds${k}" class="fade"><g class="fly${left ? ' left' : ''}" style="animation-duration:${dur}s;animation-delay:${delay}s"><g transform="translate(0 ${y}) scale(${left ? -sc : sc} ${sc})"><g class="soar">${gull.replace(/<animate /g, `<animate begin="${delay}s" `)}</g></g></g></g>`;
+  // (alt = how far up and down the bird drifts while it flies, and how slowly: so they don't all fly on one line)
+  const gullFlight = (k, y, sc, dur, delay, left = false, alt = [24, 9]) =>
+    `<g data-k="birds${k}" class="fade"><g class="fly${left ? ' left' : ''}" style="animation-duration:${dur}s;animation-delay:${delay}s"><g class="alt" style="--alt:${alt[0]}px;animation-duration:${alt[1]}s;animation-delay:${-alt[1] * 0.4}s"><g transform="translate(0 ${y}) scale(${left ? -sc : sc} ${sc})"><g class="soar">${gull.replace(/<animate /g, `<animate begin="${delay}s" `)}</g></g></g></g></g>`;
+  // an airliner, far away and high up (with a white trail); it only comes by now and then
+  const PLANE = `<path d="M-34 -1 H-190" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".45"/>
+      <path d="M-30 0 Q-30 -5 -24 -5 H22 Q30 -5 34 0 Q30 4 22 4 H-24 Q-30 4 -30 0Z" fill="#f4f6f8" stroke="#c8cdd3" stroke-width="1"/>
+      <path d="M-4 -2 L-14 -15 H-8 L8 -2Z" fill="#cfd8e0"/><path d="M-4 2 L-12 12 H-6 L8 2Z" fill="#b8c4cf"/>
+      <path d="M-26 -4 L-32 -14 H-26 L-18 -4Z" fill="#2f80ed"/><path d="M26 -3 Q30 -2 31 0 H24Z" fill="#9fd3f3"/>
+      ${[-16, -10, -4, 2, 8, 14].map((x) => `<circle cx="${x}" cy="-1" r="1" fill="#9fd3f3"/>`).join('')}`;
 
   const tree = (x, y, sc = 1) => `<g transform="translate(${x} ${y}) scale(${sc})"><g class="tree">
       <path d="M-4 0 L-3 -30 L3 -30 L4 0Z" fill="#9b6a3c"/>
@@ -409,9 +416,12 @@ const Scene = (() => {
   <g class="camera">
 
   <g data-k="skyClouds"></g>
-  ${gullFlight(1, 150, 0.5, 30, -4)}${gullFlight(2, 250, 0.28, 40, -20, true)}${gullFlight(3, 548, 0.6, 26, -11)}
+  <!-- airplanes now and then, high up (far away, so they're small) -->
+  <g class="plane" style="animation-duration:150s;animation-delay:-120s"><g transform="translate(0 112) scale(.32)">${PLANE}</g></g>
+  <g class="plane left" style="animation-duration:210s;animation-delay:-40s"><g transform="translate(0 138) scale(-.22 .22)">${PLANE}</g></g>
+  ${gullFlight(1, 128, 0.5, 30, -4, false, [30, 11])}${gullFlight(2, 228, 0.28, 40, -20, true, [18, 8])}${gullFlight(3, 540, 0.6, 26, -11, false, [14, 6])}
   <!-- one hawk circling high above the city -->
-  <g data-k="hawk" class="fade"><g class="hawk-fly"><g transform="translate(0 130) scale(-0.55 0.55)"><g class="soar">${HAWK}</g></g></g></g>
+  <g data-k="hawk" class="fade"><g class="hawk-fly"><g class="alt" style="--alt:40px;animation-duration:17s"><g transform="translate(0 165) scale(-0.55 0.55)"><g class="soar">${HAWK}</g></g></g></g></g>
 
   <g class="waves"><path d="M-260 320 q15 -8 30 0 q15 8 30 0 M900 318 q15 -8 30 0 q15 8 30 0 M-120 480 q15 -8 30 0 q15 8 30 0 M960 490 q15 -8 30 0 q15 8 30 0 M120 560 q15 -8 30 0 q15 8 30 0 M560 580 q15 -8 30 0 q15 8 30 0"/></g>
   <g data-k="seaFx"></g>
@@ -805,7 +815,7 @@ const Scene = (() => {
   };
   const BACK_Y = 400;   // above this line = the back row
   const CROSS_F = [232, 458], CROSS_B = [232, 494];   // the zebra crossing between the pavement and the beach
-  const HOME_ROUTE = [['A', 200, 460], ['B', 200, 460]];   // the main road between the little street and the driveway
+  const HOME_ROUTE = [['A', 180, 290], ['B', 60, 460]];   // from the little street across lane A, then along lane B
   const ROAD_Y = 465;   // below this line = in front of the cars
 
   const DROP = '<path d="M0 -6 q-5 6 0 9 q5 -3 0 -9Z" fill="#7cc9ef"/>';
@@ -870,6 +880,7 @@ const Scene = (() => {
             await down.move(232, LANE_A - 14, 1200, 'ease-out');                     // …down the little street…
             await s.roadClear(HOME_ROUTE);                                            // (dad waits until the road is clear)
             await down.move(232, LANE_B - 2, 500, 'ease-in-out'); down.remove();
+            s.roadFree('A');   // (across lane A: those cars can go again)
             const home = s.vehicle('roadFx', familyCar('#e63946', ''), 232, LANE_B, 1);
             home.carry(true);
             await home.move(398, LANE_B, 900, 'ease-out');                          // …and home into the driveway
@@ -1180,13 +1191,13 @@ const Scene = (() => {
     let time = 'day';
     let reactTimer = 0, bubbleTimer = 0, walkTimer = 0, walkEnd = 0;
     let boltTimer = 0;        // (the next lightning strike while there's a storm)
-    // Traffic rules: the cars driving around town stop while someone crosses the street or while the family car
-    // is on the main road; a car that's right in the way pulls aside (fades), so nobody ever bumps into anybody.
+    // Traffic rules: the cars driving around town stop while someone crosses the street, and the cars in one
+    // lane wait while the family car drives in it; a car right in the way pulls aside (fades), so nobody bumps.
     let stoppers = 0;
     const trafficStop = (on) => {
       stoppers = Math.max(0, stoppers + (on ? 1 : -1));
       container.classList.toggle('crossing', stoppers > 0);
-      if (!stoppers) container.querySelectorAll('.yield').forEach((c) => c.classList.remove('yield'));
+      if (!stoppers && !held.A && !held.B) container.querySelectorAll('.yield').forEach((c) => c.classList.remove('yield'));
     };
     // the visible cars (and bikes) in some stretches of road: [['A' | 'B' | '*', fromX, toX], …]
     const carsIn = (stretches) => {
@@ -1204,7 +1215,8 @@ const Scene = (() => {
       if (on && !was) carsIn([['*', CROSS_F[0] - 40, CROSS_F[0] + 40]]).forEach((c) => c.classList.add('yield'));
     };
     const hooks = { carTrip: () => {} };
-    let roadHeld = 0;         // (the family car is on the main road: the other cars wait)   // (the game listens for car trips, see onCarTrip)
+    const held = { A: false, B: false };   // (lanes where the cars wait for the family car)
+    const holdLane = (lane, on) => { held[lane] = on; container.classList.toggle('hold-' + lane, on); };   // (the game listens for car trips, see onCarTrip)
     let lineFor = () => '';   // (the game gives us Bobo's lines in the player's language, see setLines)
     let walkPos = [...P.home];
     let gen = 0;               // goes up whenever a new situation starts; old animations then stop
@@ -1359,7 +1371,7 @@ const Scene = (() => {
       burst() { s.flash('plantBurst', 2600); },
       // The family car backs out of the driveway (seen from behind) and drives off along the street (dad drives)
       async carOut(back, heads = headBack(-5, '#6b4423'), toX = 232) {
-        await s.roadClear([['A', Math.min(toX, 434) - 20, 460], ['B', 400, 470]]);   // (dad looks, waits for a gap; the other cars wait for him)
+        await s.roadClear([['A', Math.min(toX, 434) - 20, 640]]);   // (dad looks, waits for a gap; the cars in that lane wait for him)
         s.hide('parkedCar');
         const r = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', heads)}</g>`, 434, 442, 1);
         r.carry(true);
@@ -1373,6 +1385,7 @@ const Scene = (() => {
       async carPark(v, heads = headBack(-5, '#6b4423')) {
         const lane = v.y;
         await v.move(434, lane, Math.max(600, Math.abs(v.x - 434) * 2.2), 'ease-out');
+        if (lane === LANE_B) await s.roadClear([['A', 400, 470]]);   // (across lane A into the driveway)
         v.remove();
         const r = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', heads)}</g>`, 434, lane, 1);
         r.carry(true);
@@ -1587,6 +1600,7 @@ const Scene = (() => {
         await down.move(232, LANE_A - 14, r.bay.station ? 2000 : 1200, 'ease-out');   // (down to the main road… and stop)
         await s.roadClear(HOME_ROUTE);                                                   // (wait for a gap, then the cars wait for us)
         await down.move(232, LANE_B - 2, 500, 'ease-in-out'); down.remove();
+        s.roadFree('A');   // (across lane A: those cars can go again)
         const home = s.vehicle('roadFx', familyCar('#e63946', back), 232, LANE_B, 1);
         home.carry(true); home.cam = true;
         await s.carPark(home, headBack(-5, '#6b4423') + headBack(5, '#8b5a2b', .85));
@@ -1621,7 +1635,7 @@ const Scene = (() => {
           await leave; tr.remove(); s.show('trains');
         } else if (how === 'car') {
           s.hide('parkedCar'); place(P.home); s.inside(true, true);
-          await s.roadClear([['A', 400, 900], ['B', 400, 470]]);   // (the cars ahead make room)
+          await s.roadClear([['A', 400, 900]]);   // (the cars in that lane wait behind)
           const c = s.vehicle('roadFx', familyCar('#e63946'), 1400, LANE_A, -1);
           c.carry(true);
           await s.carPark(c, headBack(-6, '#6b4423') + headBack(0, '#a0703f', .9) + headBack(6, '#8b5a2b', .85));
@@ -1713,14 +1727,18 @@ const Scene = (() => {
         return b;
       },
       chop() { restartAnim(svg.querySelector('.mjump'), 'chop'); },
-      // The family car wants to drive on the main road: wait (up to a few seconds) for a gap in those
-      // stretches of road, then stop the other cars until roadFree(). A car still in the way pulls aside.
+      // The family car wants to drive in some stretches of the main road: wait (up to a few seconds) for a
+      // gap there, then the cars in just those lanes wait for it until roadFree(lane) (the other lane keeps
+      // going). A car still in the way pulls aside. Every car in a lane waits together, so nobody bumps.
       async roadClear(stretches) {
         for (let k = 0; k < 20 && carsIn(stretches).length; k++) await s.w(200);
-        roadHeld++; trafficStop(true);
+        stretches.forEach(([lane]) => holdLane(lane, true));
         carsIn(stretches).forEach((c) => c.classList.add('yield'));
       },
-      roadFree() { if (roadHeld > 0) { roadHeld--; trafficStop(false); } },
+      roadFree(lane = null) {
+        (lane ? [lane] : ['A', 'B']).forEach((l) => holdLane(l, false));
+        if (!held.A && !held.B && !stoppers) container.querySelectorAll('.yield').forEach((c) => c.classList.remove('yield'));
+      },
       // a friend walks back home by themselves and goes in (it keeps going while the next scene starts)
       walkHome(b) {
         const homes = { golden: P.friend, red: P.friend2 };
@@ -1778,7 +1796,7 @@ const Scene = (() => {
     // A new situation: clear away the last one's props, friends and vehicles
     function begin() {
       finishPending();
-      while (roadHeld > 0) s.roadFree();   // (a cut-short drive never leaves the traffic waiting)
+      s.roadFree();   // (a cut-short drive never leaves the traffic waiting)
       vehicles.splice(0).forEach((v) => { if (v.keep) vehicles.push(v); else v.remove(); });
       if (s.away !== 'car' && !(s.remote && s.remote.car)) s.show('parkedCar');   // (the family car is home, unless it's out)
       buddies.slice().forEach((b) => { if (!b.keep) b.remove(); });

@@ -18,7 +18,9 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
   the sea from the pier (stop him and use the bin, or let him). Eating green is never about eating less.
 - Bobo bikes on the bike lane on the houses' side of the road, so he never rides into the cars, and
   cars stop whenever someone walks over the zebra crossing. The family car always waits for a gap
-  before driving onto the main road (and the other cars wait for it), so nothing ever bumps.
+  before driving onto the main road, and only the cars in its lane wait for it (the other lane keeps
+  going). Every car in a lane always moves and stops together, so nothing ever bumps.
+- Seagulls and the hawk drift up and down at different heights, and now and then an airplane flies by.
 - Parking: a bay by the school, a little car park by the station and one for the shops (right across
   the street from the thrift store and the mall). Bike racks at home, the school, the station and the mall.
 - How Bobo gets to school decides how the family gets around for the rest of the game. With the
