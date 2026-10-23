@@ -771,9 +771,10 @@ const Scene = (() => {
       good: {
         async play(s) {
           // there's a traffic jam on the roads… and Bobo just bikes right past it
-          const jam = s.jamStart(QUEUE_A, QUEUE_B, false);
+          const jam = s.jamStart(QUEUE_A, QUEUE_B, false);   // (the cars drive in as Bobo heads out)
           await s.go([300, 456]);              // Bobo's bike is in the rack by the house
-          s.hide('bikes_home'); s.wear('bike'); await s.w(150);
+          s.hide('bikes_home'); s.wear('bike');
+          await jam.ready; await s.w(150);
           // along the bike lane past all the cars, up the little street (seen from behind) to the bike rack at school
           await s.ridePath([[300, 487], [232, 487], [232, 374], [137, 370]]);
           s.wear('bike', false); s.show('bikes_school'); await s.w(150);
@@ -786,15 +787,15 @@ const Scene = (() => {
       },
       bad: {
         async play(s) {
-          // dad drives Bobo in the family car: out of the driveway…
+          // as Bobo and dad head out, a traffic jam builds up all over the city
+          const jam = s.jamStart(QUEUE_A, QUEUE_B);
           await s.go([444, 456]);
           await s.dadOut();
           s.inside(true);
+          await jam.ready;                     // (dad waits for a gap, then backs out of the driveway into the jam)
           const ride = await s.carOut(monkeyHead(-3, -23, '#8b5a2b'), headBack(-5, '#6b4423') + headBack(5, '#8b5a2b', 0.85));
           ride.cam = true;
-          // …into a traffic jam that fills the whole city
-          const jam = s.jamStart(QUEUE_A, QUEUE_B);
-          sfx('honk'); await s.w(1200); sfx('honk'); await s.w(1200);
+          sfx('honk'); await s.w(1200);
           let carGone;
           s.jamGo(jam, new Promise((done) => { carGone = done; }));   // (the cars by the shops wait for dad's car to leave)
           await ride.move(232, LANE_A, 202 / JAM_SPEED, 'linear');     // along the street to the little street…
@@ -1045,12 +1046,13 @@ const Scene = (() => {
         async play(s) {
           // everybody gets into the family car in the driveway
           const fam = s.buddies.slice();
+          const jam = s.jamStart(QUEUE_A, QUEUE_B);   // (the traffic builds up as they head out)
           await Promise.all([s.go([444, 456]), ...fam.map((m, k) => m.walk([410, 424, 458][k], 454))]);
           await Promise.all(fam.map((m) => m.enter()));
           s.inside(true);
+          await jam.ready;
           const ride = await s.carOut(BACK_FAMILY, headBack(-6, '#6b4423') + headBack(0, '#a0703f', .9) + headBack(6, '#8b5a2b', .85));
-          const jam = s.jamStart(QUEUE_A, QUEUE_B);
-          sfx('honk'); await s.w(1200); sfx('honk'); await s.w(1200);
+          sfx('honk'); await s.w(1200);
           s.jamGo(jam);
           await ride.move(-650, LANE_A, (ride.x + 650) / JAM_SPEED, 'linear'); ride.remove();   // (same speed as the jam, so it stays in the queue)
           s.jamEnd();
@@ -1456,19 +1458,40 @@ const Scene = (() => {
       },
       setMode(m) { s.mode = m; },
       // A traffic jam across the whole city: the normal traffic stops and queues of cars fill both lanes
+      // A traffic jam builds up: the cars drive in and stop in long queues (jam.ready = everybody's stopped)
       jamStart(qa, qb, little = true) {
         container.classList.add('jammed');
         const kinds = ['#ffb627', '#9aa5b1', '#7d5fff', '#2fb35a', '#ff6fa8', '#2f80ed', '#e8a33d'], furs = ['#7a4a24', '#a0673a', '#5c3a1e', '#c08850'];
-        const a = qa.map((x, k) => s.vehicle('roadFx', car(kinds[k % 7], furs[k % 4]), x, LANE_A, -1).fadeIn());
-        const b = qb.map((x, k) => s.vehicle('roadFx', car(kinds[(k + 3) % 7], furs[(k + 1) % 4]), x, LANE_B, 1).fadeIn());
-        // the street in front of the school and the shops (behind the houses)
-        const c = [618, 572, 526, 480, 434, 388, 342, 296].map((x, k) => s.vehicle('backFx', car(kinds[(k + 5) % 7], furs[(k + 2) % 4]), x, 374, -1).fadeIn());
-        c.forEach((v, k) => { v.color = kinds[(k + 5) % 7]; v.fur = furs[(k + 2) % 4]; });
-        // the little street up to the station (cars seen from behind)
-        const d = little ? [[232, 444], [232, 412]].map(([x, y], k) => s.vehicle('roadFx', `<g transform="scale(.94)">${carRear(kinds[(k + 1) % 7], headBack(-5, furs[k]))}</g>`, x, y, 1).fadeIn()) : [];
-        d.forEach((v, k) => { v.color = kinds[(k + 1) % 7]; v.fur = furs[k]; });
+        const IN = 3000, FAR = 1150;   // (every car on the main road starts far off-screen, so they all drive in together)
+        // the main road: lane A comes in from the right, lane B from the left, braking together like one long line
+        const a = qa.map((x, k) => s.vehicle('roadFx', car(kinds[k % 7], furs[k % 4]), x + FAR, LANE_A, -1));
+        const b = qb.map((x, k) => s.vehicle('roadFx', car(kinds[(k + 3) % 7], furs[(k + 1) % 4]), x - FAR, LANE_B, 1));
+        a.forEach((v, k) => v.move(qa[k], LANE_A, IN, 'ease-out'));
+        b.forEach((v, k) => v.move(qb[k], LANE_B, IN, 'ease-out'));
+        // the street in front of the school and the shops (behind the houses): the cars turn in at its right end
+        // one after another, at the same speed, so they all stop at the same moment
+        const slots = [618, 572, 526, 480, 434, 388, 342, 296], END = 650, speed = (END - 296) / IN;
+        const c = slots.map((x, k) => s.vehicle('backFx', car(kinds[(k + 5) % 7], furs[(k + 2) % 4]), END, 374, -1));
+        c.forEach((v, k) => { v.color = kinds[(k + 5) % 7]; v.fur = furs[(k + 2) % 4]; v.g.style.opacity = '0'; });
+        c.forEach((v, k) => (async () => {
+          await s.w((slots.length - 1 - k) * 46 / speed);   // (the front car goes first)
+          v.fadeIn();
+          await v.move(slots[k], 374, (END - slots[k]) / speed, 'linear');
+        })().catch(() => {}));
+        // the little street up to the station (cars seen from behind): they turn in once the main road has stopped
+        const d = little ? [[232, 444], [232, 412]].map(([x, y], k) => s.vehicle('roadFx', `<g transform="scale(.94)">${carRear(kinds[(k + 1) % 7], headBack(-5, furs[k]))}</g>`, x, 456, 1)) : [];
+        d.forEach((v, k) => { v.color = kinds[(k + 1) % 7]; v.fur = furs[k]; v.g.style.opacity = '0'; });
+        const ready = (async () => {
+          await s.w(IN);
+          await Promise.all(d.map(async (v, k) => {
+            await s.w((d.length - 1 - k) * 350);
+            v.fadeIn();
+            await v.move(232, [444, 412][k], 600 + k * 250, 'ease-out');
+          }));
+        })();
+        ready.catch(() => {});
         [...a, ...b, ...c, ...d].forEach((v) => v.puff(true));
-        return { a, b, c, d, little };
+        return { a, b, c, d, little, ready };
       },
       // everybody drives on again, all at the same speed (so nobody bumps into anybody)
       jamGo({ a, b, c, d, little }, waitFor = null) {
