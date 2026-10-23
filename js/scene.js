@@ -106,7 +106,7 @@ const Scene = (() => {
       <circle cx="-12" cy="-8" r="11" class="bush-d"/><circle cx="11" cy="-9" r="12" class="bush-d"/><circle cx="0" cy="-16" r="13" class="bush-l"/>
       <circle cx="-10" cy="-12" r="2" class="berry"/><circle cx="8" cy="-17" r="2" class="berry"/></g>`;
   // street lamp; flip = the arm points left
-  const lamp = (x, y, flip) => `<g transform="translate(${x} ${y}) scale(${flip ? -1 : 1} 1)"><path d="M0 0 V-44 Q0 -52 8 -52 H11" stroke="#4a5563" stroke-width="3" fill="none"/>
+  const lamp = (x, y, flip, sc = 1) => `<g transform="translate(${x} ${y}) scale(${flip ? -sc : sc} ${sc})"><path d="M0 0 V-44 Q0 -52 8 -52 H11" stroke="#4a5563" stroke-width="3" fill="none"/>
       <rect x="8" y="-55" width="11" height="5" rx="2" fill="#4a5563"/><rect x="9.5" y="-51" width="8" height="3" rx="1" class="lampbulb"/></g>`;
 
   // Coral reef in the sea in front of the city; it bleaches when the sea gets too warm
@@ -143,22 +143,19 @@ const Scene = (() => {
       <circle cx="-12" cy="-3" r="3.5" fill="#ff6b4a"/><circle cx="12" cy="-3" r="3.5" fill="#ff6b4a"/></g></g>`;
   // A hawk/eagle gliding high above the city: broad wings with spread "finger" feathers at the tips,
   // a few slow, deep flaps and then a long glide
-  const hawkWingD = ([wx, wy], [tx, ty]) => {
-    const len = Math.hypot(tx - wx, ty - wy) || 1, dx = (tx - wx) / len, dy = (ty - wy) / len, nx = dy, ny = -dx;
-    const p = (a, b) => `${f1(tx - dx * a + nx * b)} ${f1(ty - dy * a + ny * b)}`;
-    return `M3 -2 Q${f1(wx)} ${f1(wy)} ${f1(tx)} ${f1(ty)} L${p(4, 1.5)} L${p(1, 3.5)} L${p(5, 4.5)} L${p(2, 6.5)} L${p(7, 7.5)} L${p(4, 10)} L${p(11, 10)} Q${f1(wx + nx * 12)} ${f1(wy + ny * 12)} -6 4Z`;
-  };
-  const HAWK_NEAR = { up: [[-8, -16], [-24, -30]], mid: [[-13, -7], [-38, -8]], down: [[-9, 5], [-22, 20]] };
-  const HAWK_FAR = { up: [[-6, -16], [-19, -28]], mid: [[-11, -9], [-32, -11]], down: [[-7, 3], [-17, 15]] };
-  const HAWK_SEQ = ['mid', 'up', 'down', 'up', 'down', 'mid', 'mid'], HAWK_T = '0;.08;.18;.28;.38;.5;1';
+  // a broad hawk wing (shoulder at 0,0, pointing back), with the feather "fingers" at the tip
+  const HAWK_WING = 'M0 0 C-6 -6 -18 -9 -30 -8 L-33 -11 L-32.5 -7.5 L-36.5 -8.5 L-34.5 -5.5 L-38.5 -5 L-34.5 -2.6 L-37.5 -1 L-31 .4 C-22 3 -10 4.2 0 3Z';
+  const HAWK_T = '0;.1;.22;.34;.46;.6;1';   // (two slow flaps, then a long glide)
+  const tilt = (vals) => `<animateTransform attributeName="transform" type="rotate" dur="6s" repeatCount="indefinite" calcMode="spline" values="${vals}" keyTimes="${HAWK_T}" keySplines="${Array(6).fill('.45 0 .55 1').join(';')}"/>`;
   const HAWK = `<g class="hawk-side">
-      <path d="${hawkWingD(...HAWK_FAR.mid)}" fill="#5a3a1e">${morph(hawkWingD, HAWK_FAR, HAWK_SEQ, 6, HAWK_T)}</path>
+      <g transform="translate(1 -3)"><g>${tilt('34;50;16;46;18;34;34')}<path d="${HAWK_WING}" fill="#5a3a1e" transform="scale(.82 .7)"/></g></g>
       <path d="M-16 1 L-29 -2.5 L-30 2 L-28 6 L-16 3.5Z" fill="#a0673a"/><path d="M-27 -1.5 L-27.5 4.5 M-23 -0.5 L-23.5 4.5" stroke="#5a3a1e" stroke-width="1.2"/>
       <path d="M-17 1 C-11 -4.5 4 -6 12 -3.5 C16 -2 18 0.5 15.5 2.5 C8 5.5 -6 5 -16 3.5Z" fill="#7a4e2a"/>
       <path d="M1 2.2 C7 3.8 12 2.8 15 1.2 C12 -1 6 -1 1 2.2Z" fill="#ead8b8"/>
       <circle cx="14" cy="-3.6" r="4.2" fill="#f4f1ea"/><path d="M17.6 -4.8 Q21.6 -4.2 20.4 -1.2 L17.8 -1.8Z" fill="#f2c94c" stroke="#8a6a1e" stroke-width=".5"/>
       <circle cx="15.4" cy="-4.4" r="1.1" fill="#ffd23f"/><circle cx="15.6" cy="-4.4" r=".55" fill="#23313f"/><path d="M13 -6.4 L17 -5.6" stroke="#6b5a4a" stroke-width="1"/>
-      <path d="${hawkWingD(...HAWK_NEAR.mid)}" fill="#8a5a33" stroke="#4a2e16" stroke-width=".7">${morph(hawkWingD, HAWK_NEAR, HAWK_SEQ, 6, HAWK_T)}</path></g>`;
+      <g transform="translate(2 -1)"><g>${tilt('24;40;4;36;6;24;24')}<path d="${HAWK_WING}" fill="#8a5a33" stroke="#4a2e16" stroke-width=".7"/>
+        <path d="M-6 -1 C-14 -3 -22 -3 -29 -2 M-6 1.5 C-14 0 -21 0 -28 .5" stroke="#5a3a1e" stroke-width=".7" fill="none" opacity=".7"/></g></g></g>`;
   // A pigeon on the pavement that pecks at the ground (faces left; feet at 0,0)
   const pigeon = (x, y, flip, d) => `<g transform="translate(${x} ${y}) scale(${flip ? -0.6 : 0.6} .6)"><g class="pigeon-walk" style="animation-delay:${d}s"><g class="peck" style="animation-delay:${d * 0.7}s">
       <path d="M-1.5 -1 v1.6 M1.6 -1 v1.6" stroke="#e8573f" stroke-width="1"/>
@@ -339,7 +336,10 @@ const Scene = (() => {
   // Eclipse glasses (dark lenses), shown only during a solar eclipse
   const SHADES = `<g class="shades"><path d="M-18 -9 h14 v7 q-7 6 -14 0Z M4 -9 h14 v7 q-7 6 -14 0Z" fill="#14171c" stroke="#ffd23f" stroke-width="1.6"/>
       <path d="M-4 -7 h8 M-18 -8 l-8 -3 M18 -8 l8 -3" stroke="#ffd23f" stroke-width="2"/></g>`;
-  const MONKEY_FIT = 'translate(0 -18.6) scale(.62)';    // Bobo-sized, standing on the origin
+  const MONKEY_SC = 0.46;   // how big a monkey is in the city (smaller than a car, much smaller than a truck or a bus)
+  const MONKEY_FIT = `translate(0 ${-30 * MONKEY_SC}) scale(${MONKEY_SC})`;   // Bobo-sized, standing on the origin
+  const HEAD_H = 100 * MONKEY_SC;   // (from the feet to the top of the head)
+  const RIDE_SC = 0.31;             // a monkey on a bike (the same size as a walking monkey)
   // A monkey riding a bike, seen from the side (faces right; the wheels touch the ground at y = 0).
   // shirt = null: just fur with a light belly (Bobo). The legs pedal and the wheels turn.
   const sideWheel = (x) => `<g transform="translate(${x} -15)"><circle r="15" fill="none" stroke="#23313f" stroke-width="4"/>
@@ -392,16 +392,21 @@ const Scene = (() => {
         <circle r="13" fill="${fur}"/><ellipse cx="0" cy="4" rx="9" ry="7" fill="#e8c39e"/><circle cx="-4" cy="-2" r="4.4" fill="#e8c39e"/><circle cx="4" cy="-2" r="4.4" fill="#e8c39e"/>
         <circle cx="-3.6" cy="-2" r="1.8" fill="#23313f"/><circle cx="3.6" cy="-2" r="1.8" fill="#23313f"/><path d="M-4.5 5 Q0 9.5 4.5 5" stroke="#5a2d0c" stroke-width="1.6" fill="none" stroke-linecap="round"/></g></g>`;
   // a small parked bike (side view) for the bike racks
-  const PARKED_BIKE = '<g transform="scale(.36)"><circle cx="-26" cy="-14" r="14" fill="none" stroke="#23313f" stroke-width="4"/><circle cx="26" cy="-14" r="14" fill="none" stroke="#23313f" stroke-width="4"/><path d="M-26 -14 L0 -14 L-8 -36 Z M0 -14 L18 -36 L-8 -36 M26 -14 L18 -36 L16 -44 M11 -45 H22 M-14 -38 H-2" stroke="#ff5b4a" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>';
+  const PARKED_BIKE = '<g transform="scale(.28)"><circle cx="-26" cy="-14" r="14" fill="none" stroke="#23313f" stroke-width="4"/><circle cx="26" cy="-14" r="14" fill="none" stroke="#23313f" stroke-width="4"/><path d="M-26 -14 L0 -14 L-8 -36 Z M0 -14 L18 -36 L-8 -36 M26 -14 L18 -36 L16 -44 M11 -45 H22 M-14 -38 H-2" stroke="#ff5b4a" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>';
   const rack = (x, y, k) => `<g transform="translate(${x} ${y})"><path d="M0 0 v-7 q0 -4 4 -4 q4 0 4 4 v7 M10 0 v-7 q0 -4 4 -4 q4 0 4 4 v7 M20 0 v-7 q0 -4 4 -4 q4 0 4 4 v7" stroke="#8a939d" stroke-width="1.6" fill="none"/>
       <g data-k="bikes_${k}" class="fade hide"><g transform="translate(7 0)">${PARKED_BIKE}</g><g data-k="bikes2_${k}" class="fade hide" transform="translate(17 0)">${PARKED_BIKE}</g><g data-k="bikes3_${k}" class="fade hide" transform="translate(27 0)">${PARKED_BIKE}</g></g></g>`;
-  const rider = (fur, shirt, d, dur) => `<g class="ride" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 466.5) scale(.38)">${sideRider(fur, shirt)}</g></g>`;
+  const rider = (fur, shirt, x) => `<g class="tcar" data-lane="bike" data-x="${x}" data-model="bike" data-sc=".29" style="transform:translateX(${x}px)"><g transform="translate(0 466.5) scale(.29)">${sideRider(fur, shirt)}</g></g>`;
 
   // cars looping along the road (lane A goes left, lane B goes right), each with a happy monkey driver
   const LANE_A = 468, LANE_B = 477;
-  const laneCar = (lane, c, dur, d, fur, model = 'car') => lane === 'A'
-    ? `<g class="driveL puffing" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 ${LANE_A - 20}) scale(-.92 .92)">${MODELS[model](c, fur)}</g></g>`
-    : `<g class="driveR puffing" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 ${LANE_B - 20}) scale(.96)">${MODELS[model](c, fur)}</g></g>`;
+  // (big vehicles are drawn bigger: a bus or a delivery truck is much taller than a monkey)
+  const MODEL_SCALE = { car: 1, van: 1.05, pickup: 1.02, boxTruck: 1.25, bus: 1.25 };
+  const MODEL_SIZE = { car: [-32, 34], van: [-35, 36], pickup: [-35, 34], boxTruck: [-44, 36], bus: [-54, 50] };   // (back and front, facing right)
+  // a vehicle on the main road, starting at x (the traffic model drives it, see "Smart traffic")
+  const laneCar = (lane, c, x, fur, model = 'car') => {
+    const k = (lane === 'A' ? 0.92 : 0.96) * MODEL_SCALE[model];
+    return `<g class="tcar puffing" data-lane="${lane}" data-x="${x}" data-model="${model}" data-sc="${k}" style="transform:translateX(${x}px)"><g transform="translate(0 ${(lane === 'A' ? LANE_A : LANE_B) - 20}) scale(${lane === 'A' ? -k : k} ${k})">${MODELS[model](c, fur)}</g></g>`;
+  };
 
   function buildSVG(u) {
     const piers = (y, h) => [-300, -200, -100, -10, 870, 960, 1060, 1160].map((x) =>
@@ -453,13 +458,13 @@ const Scene = (() => {
   <!-- far back: skyscrapers and the power plant -->
   <g class="towers">
     <rect x="286" y="190" width="40" height="124" fill="#8fb3d9"/><rect x="286" y="190" width="40" height="8" fill="#6f93b9"/>
-    ${[0, 1, 2, 3, 4, 5, 6, 7].map((r) => `<rect class="win" x="292" y="${204 + r * 13}" width="10" height="7"/><rect class="win" x="310" y="${204 + r * 13}" width="10" height="7"/>`).join('')}
+    ${[0, 1, 2, 3, 4, 5, 6, 7].map((r) => `<rect class="win${(r * 3 + 2) % 5 < 2 ? ' unlit' : ''}" x="292" y="${204 + r * 13}" width="10" height="7"/><rect class="win${(r * 3 + 4) % 5 < 2 ? ' unlit' : ''}" x="310" y="${204 + r * 13}" width="10" height="7"/>`).join('')}
     <rect x="332" y="140" width="52" height="174" fill="#f2c94c"/><path d="M332 140 L358 118 L384 140Z" fill="#e0a92f"/><path d="M358 118 V100" stroke="#e0a92f" stroke-width="3"/>
-    ${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((r) => `<rect class="win" x="339" y="${152 + r * 14}" width="10" height="8"/><rect class="win" x="353" y="${152 + r * 14}" width="10" height="8"/><rect class="win" x="367" y="${152 + r * 14}" width="10" height="8"/>`).join('')}
+    ${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((r) => `<rect class="win${(r * 3 + 6) % 5 < 2 ? ' unlit' : ''}" x="339" y="${152 + r * 14}" width="10" height="8"/><rect class="win${(r * 3 + 8) % 5 < 2 ? ' unlit' : ''}" x="353" y="${152 + r * 14}" width="10" height="8"/><rect class="win${(r * 3 + 10) % 5 < 2 ? ' unlit' : ''}" x="367" y="${152 + r * 14}" width="10" height="8"/>`).join('')}
     <rect x="390" y="172" width="46" height="142" fill="#ff9f80"/><rect x="390" y="172" width="46" height="6" fill="#e9805e"/>
-    ${[0, 1, 2, 3, 4, 5, 6, 7, 8].map((r) => `<rect class="win" x="397" y="${186 + r * 14}" width="12" height="8"/><rect class="win" x="417" y="${186 + r * 14}" width="12" height="8"/>`).join('')}
+    ${[0, 1, 2, 3, 4, 5, 6, 7, 8].map((r) => `<rect class="win${(r * 3 + 12) % 5 < 2 ? ' unlit' : ''}" x="397" y="${186 + r * 14}" width="12" height="8"/><rect class="win${(r * 3 + 14) % 5 < 2 ? ' unlit' : ''}" x="417" y="${186 + r * 14}" width="12" height="8"/>`).join('')}
     <rect x="442" y="222" width="34" height="92" fill="#9fd8c9"/>
-    ${[0, 1, 2, 3, 4, 5].map((r) => `<rect class="win" x="448" y="${232 + r * 13}" width="9" height="7"/><rect class="win" x="462" y="${232 + r * 13}" width="9" height="7"/>`).join('')}
+    ${[0, 1, 2, 3, 4, 5].map((r) => `<rect class="win${(r * 3 + 16) % 5 < 2 ? ' unlit' : ''}" x="448" y="${232 + r * 13}" width="9" height="7"/><rect class="win${(r * 3 + 18) % 5 < 2 ? ' unlit' : ''}" x="462" y="${232 + r * 13}" width="9" height="7"/>`).join('')}
     ${item('solarTowers', 0, 0, `<g transform="translate(334 132) scale(.5)">${solar(14, 6)}</g><g transform="translate(392 164)">${solar(9, 4)}</g>`, 'fade')}
   </g>
   <!-- energy: electricity flows from the power plant to the city along the wire -->
@@ -485,7 +490,7 @@ const Scene = (() => {
   <g data-k="trains"><g class="trainrun" style="animation-duration:26s;animation-delay:-6s"><g transform="translate(0 316) scale(.95)">${TRAIN}</g></g>
     <g data-k="train2" class="fade hide"><g class="trainrun back" style="animation-duration:26s;animation-delay:-19s"><g transform="translate(0 316) scale(-.95 .95)">${TRAIN}</g></g></g></g>
   <g data-k="trainFx"></g>
-  <g class="station">
+  <g class="station closed">
     <rect x="188" y="321" width="90" height="9" fill="#c9c2b0"/><path d="M188 321 H278" stroke="#fff" stroke-width="2" opacity=".6"/>
     <path d="M196 321 V292 M270 321 V292" stroke="#6b5a4a" stroke-width="3"/><path d="M182 292 H284 L278 284 H188Z" fill="#e63946"/>
     <rect x="220" y="294" width="26" height="9" rx="2" fill="#2f80ed"/><path d="M226 300 h14" stroke="#fff" stroke-width="2"/>
@@ -503,12 +508,16 @@ const Scene = (() => {
   <g class="bays" stroke="#fff" stroke-width="1.2" opacity=".85"><path d="M138 373.5 v4 M200 373.5 v4 M262 373.5 v4 M318 373.5 v4"/></g>
   <g fill="#fff" opacity=".8" font-size="6" font-weight="900" font-family="Arial, sans-serif"><text x="166" y="377">P</text><text x="287" y="377">P</text></g>
   <!-- the shops' car park, right across the street from the thrift store and the mall -->
-  <rect x="482" y="377" width="112" height="19" rx="2" class="road"/><path d="M484 379 v15 M538 379 v15 M592 379 v15" stroke="#fff" stroke-width="1.2" opacity=".85"/>
+  <rect x="482" y="375" width="112" height="21" class="road"/><path d="M538 380 v14" stroke="#fff" stroke-width="1.2" opacity=".85"/>
   <g fill="#fff" opacity=".8" font-size="7" font-weight="900" font-family="Arial, sans-serif" text-anchor="middle"><text x="511" y="393">P</text><text x="565" y="393">P</text></g>
   <!-- a little car park by the station, to the right of the little street -->
-  <rect x="248" y="333" width="52" height="21" rx="2" class="road"/><path d="M250 335 v17 M298 335 v17" stroke="#fff" stroke-width="1.2" opacity=".85"/>
+  <rect x="244" y="333" width="56" height="21" class="road"/>
   <text x="274" y="351" text-anchor="middle" fill="#fff" opacity=".8" font-size="6" font-weight="900" font-family="Arial, sans-serif">P</text>
   ${rack(126, 365, 'school')}${rack(306, 356, 'station')}${rack(596, 365, 'mall')}
+  <!-- street lights along the street at the back -->
+  ${lamp(184, 362, true, 0.7)}${lamp(412, 362, false, 0.7)}${lamp(252, 384, false, 0.7)}${lamp(612, 384, true, 0.7)}
+  <!-- floodlight fixtures in front of the school and the shops (they light up the buildings at night) -->
+  <g fill="#4a5563">${[70, 146, 444, 486, 540, 610, 200, 266].map((x) => `<rect x="${x - 3}" y="${x > 190 && x < 270 ? 327 : 359}" width="6" height="3" rx="1"/>`).join('')}</g>
   <!-- road signs: school crossing, which way to the station, parking at the mall -->
   <g class="signs">
     <path d="M196 362 V340" stroke="#6b7280" stroke-width="1.8"/><path d="M196 330 L204 338 L196 346 L188 338Z" fill="#ffd23f" stroke="#23313f" stroke-width="1"/><circle cx="194" cy="335.5" r="1.4" fill="#23313f"/><circle cx="198.5" cy="336.5" r="1.2" fill="#23313f"/><path d="M194 337 v4 M198.5 338 v3.4" stroke="#23313f" stroke-width="1.4"/>
@@ -518,7 +527,7 @@ const Scene = (() => {
   ${item('recycling', 368, 362, `<rect x="-24" y="-34" width="48" height="34" rx="3" fill="#2fb35a"/><path d="M-28 -34 H28 L24 -41 H-24Z" fill="#23863e"/>
       <g transform="translate(0 -18)" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"><path d="M-7 5 A8 8 0 0 1 -5 -7"/><path d="M5 -7 A8 8 0 0 1 8 4"/><path d="M4 8 A8 8 0 0 1 -7 7"/></g>
       <rect x="-22" y="-7" width="11" height="7" fill="#2f80ed"/><rect x="-6" y="-7" width="11" height="7" fill="#ffd23f"/><rect x="10" y="-7" width="11" height="7" fill="#9aa5b1"/>`)}
-  <g class="school">
+  <g class="school closed">
     <rect x="40" y="312" width="136" height="50" fill="#ffcf5a"/><rect x="36" y="306" width="144" height="7" rx="2" fill="#c98f4f"/>
     <path d="M90 306 V290 L108 276 L126 290 V306Z" fill="#ffcf5a" stroke="#c98f4f" stroke-width="3"/><circle cx="108" cy="292" r="7" fill="#fff" stroke="#23313f" stroke-width="1.5"/><path d="M108 292 V287 M108 292 h4" stroke="#23313f" stroke-width="1.5"/>
     ${[50, 70, 136, 156].map((x) => `<rect class="win" x="${x}" y="320" width="13" height="12" rx="1"/><rect class="win" x="${x}" y="337" width="13" height="11" rx="1"/>`).join('')}
@@ -528,7 +537,7 @@ const Scene = (() => {
     ${item('solarSchool', 46, 296, solar(10, 3), 'fade')}
     ${item('swapBox', 74, 362, `<rect x="-12" y="-14" width="24" height="14" rx="2" fill="#c98f4f" stroke="#8b5a2b" stroke-width="1.5"/><circle cx="-5" cy="-17" r="4" fill="#ff5b4a"/><rect x="0" y="-22" width="8" height="8" fill="#2f80ed"/><path d="M-9 -7 h18" stroke="#fff" stroke-width="2"/>`)}
   </g>
-  <g class="thrift">
+  <g class="thrift closed">
     <rect x="424" y="324" width="76" height="38" fill="#b388ff"/><rect x="420" y="308" width="84" height="15" rx="3" fill="#7e57c2"/>
     <path d="M454 320 q8 -9 16 0 M462 311 v4" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M450 320 h24" stroke="#fff" stroke-width="2.2"/>
     ${[0, 1, 2, 3, 4, 5, 6].map((k) => `<path d="M${422 + k * 12} 323 h12 v6 q-6 5 -12 0Z" fill="${k % 2 ? '#fff' : '#ff6fa8'}"/>`).join('')}
@@ -536,7 +545,7 @@ const Scene = (() => {
     <rect x="455" y="338" width="16" height="24" fill="#5e35b1"/><rect class="win" x="476" y="336" width="18" height="18" rx="2"/>
     ${item('clothesRack', 505, 362, `<path d="M-14 0 V-24 H14 V0" stroke="#6b5a4a" stroke-width="2" fill="none"/><path d="M-11 -24 l-2 4 v12 h8 v-12 l-2 -4Z" fill="#ff6fa8"/><path d="M-1 -24 l-2 4 v12 h8 v-12 l-2 -4Z" fill="#ffd23f"/><path d="M8 -24 l-2 4 v12 h7 v-12 l-2 -4Z" fill="#2f80ed"/>`)}
   </g>
-  <g class="mall">
+  <g class="mall closed">
     <rect x="514" y="300" width="120" height="62" fill="#8fb3d9"/><rect x="510" y="294" width="128" height="8" rx="2" fill="#6f93b9"/>
     <rect x="548" y="304" width="52" height="15" rx="4" fill="#ff5b4a"/><path d="M566 309 h16 l-2 8 h-12Z M569 309 q5 -7 10 0" fill="none" stroke="#fff" stroke-width="2"/>
     ${[520, 538, 600, 618].map((x) => `<rect class="win" x="${x}" y="324" width="12" height="14" rx="1"/>`).join('')}
@@ -551,8 +560,8 @@ const Scene = (() => {
       <g class="cow-gas">${puffs(660, 340, 3, 5, '#a6b48a', 3)}</g>`)}
 
   <!-- the bike group (a reward): Bobo's two friends ride to school together -->
-  <g data-k="bikeFriends" class="fade hide"><g class="to-school"><g transform="translate(0 376) scale(-.27 .27)">${sideRider('#d4a24c', '#ffd23f')}</g>
-    <g transform="translate(26 377) scale(-.27 .27)">${sideRider('#b0602e', '#2fb35a')}</g></g></g>
+  <g data-k="bikeFriends" class="fade hide"><g class="to-school"><g transform="translate(0 376) scale(-.2 .2)">${sideRider('#d4a24c', '#ffd23f')}</g>
+    <g transform="translate(22 377) scale(-.2 .2)">${sideRider('#b0602e', '#2fb35a')}</g></g></g>
   <g data-k="backFx"></g>
   <!-- Bobo walks here while in the back row (so the houses stay in front of Bobo) -->
   <g data-k="backLayer"></g>
@@ -686,7 +695,7 @@ const Scene = (() => {
       <g class="r r-think"><circle cx="4" cy="13" r="2.8" fill="#5a2d0c"/><text x="28" y="-22" font-size="24" font-weight="900" fill="#2f80ed">?</text></g>
     </g>
   </g></g></g></g>
-    <g data-k="mRide" class="fade hide"><g class="ride-dir" transform="scale(.42 .42)"><g class="rv-back">${backRider('#8b5a2b')}</g><g class="rv-front" style="display:none">${frontRider('#8b5a2b', null, true)}</g></g></g>
+    <g data-k="mRide" class="fade hide"><g class="ride-dir" transform="scale(${RIDE_SC} ${RIDE_SC})"><g class="rv-back">${backRider('#8b5a2b')}</g><g class="rv-front" style="display:none">${frontRider('#8b5a2b', null, true)}</g></g></g>
   </g></g></g>
   <g data-k="buddies"></g>
   <!-- the table top and what's on it are drawn in front of Bobo (Bobo stands behind the table) -->
@@ -707,13 +716,19 @@ const Scene = (() => {
   <g transform="translate(0 20)">
   <rect x="-800" y="438" width="2600" height="21" class="road"/><path d="M-800 448.5 H1800" stroke="#fff" stroke-width="2" stroke-dasharray="14 12" opacity=".8"/>
   <path d="M-800 437.5 H1800 M-800 459.5 H1800" stroke="#c8cdd3" stroke-width="2"/>
+  <!-- the zebra crossing in front of Bobo's house (to the beach) -->
+  <g fill="#fff" opacity=".92">${[439.5, 444, 448.5, 453, 457.5, 462].map((y) => `<rect x="313" y="${y}" width="34" height="2.6"/>`).join('')}</g>
   <rect x="-800" y="459" width="2600" height="9" fill="#4c9a6a"/><path d="M-800 459.5 H1800" stroke="#fff" stroke-width="1.6"/><path d="M-800 468 H1800" stroke="#c8cdd3" stroke-width="2"/>
   ${[100, 300, 500, 700].map((x) => `<g transform="translate(${x} 465.5) scale(.12)" opacity=".6"><circle cx="-28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><circle cx="28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><path d="M-28 0 L-6 0 L10 -18 L28 0" stroke="#fff" stroke-width="7" fill="none"/></g>`).join('')}
   <!-- cars, vans, a pickup, a delivery truck and a bus (more of them come when the family drives a lot) -->
-  <g data-k="traffic">${laneCar('A', '#ff6fa8', 15, -2, '#a0673a')}${laneCar('B', '#2f80ed', 13, -7, '#5c3a1e', 'van')}${laneCar('A', '#ffb627', 15, -9.5, '#7a4a24', 'bus')}</g>
-  <g data-k="traffic2" class="fade hide">${laneCar('B', '#9aa5b1', 13, -1, '#c08850', 'boxTruck')}${laneCar('A', '#7d5fff', 15, -6, '#5c3a1e', 'pickup')}</g>
-  <g data-k="traffic3" class="fade hide">${laneCar('B', '#2fb35a', 13, -10.5, '#a0673a')}${laneCar('A', '#1fa7a0', 15, -13, '#7a4a24', 'van')}${laneCar('B', '#e8a33d', 13, -4.2, '#7a4a24', 'pickup')}</g>
-  <g data-k="cyclists" class="fade hide">${rider('#8d8f94', '#ffd23f', -3, 16)}</g>
+  <!-- (the far lane is drawn first, so the near lane is always in front of it) -->
+  <g data-k="traffic">${laneCar('A', '#ff6fa8', 1060, '#a0673a')}${laneCar('A', '#ffb627', 160, '#7a4a24', 'bus')}</g>
+  <g data-k="traffic2" class="fade hide">${laneCar('A', '#7d5fff', 580, '#5c3a1e', 'pickup')}</g>
+  <g data-k="traffic3" class="fade hide">${laneCar('A', '#1fa7a0', -260, '#7a4a24', 'van')}</g>
+  <g data-k="trafficB">${laneCar('B', '#2f80ed', 466, '#5c3a1e', 'van')}</g>
+  <g data-k="traffic2B" class="fade hide">${laneCar('B', '#9aa5b1', -360, '#c08850', 'boxTruck')}</g>
+  <g data-k="traffic3B" class="fade hide">${laneCar('B', '#2fb35a', 949, '#a0673a')}${laneCar('B', '#e8a33d', 81, '#7a4a24', 'pickup')}</g>
+  <g data-k="cyclists" class="fade hide">${rider('#8d8f94', '#ffd23f', 200)}</g>
   </g>
   <g data-k="roadFx"></g>
 
@@ -777,13 +792,17 @@ const Scene = (() => {
   function buildTopSVG(u) {
     return `
 <svg class="scene-top" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-  <defs><radialGradient id="${u}glow"><stop offset="0" stop-color="#fff2a8" stop-opacity=".95"/><stop offset=".35" stop-color="#ffcf5a" stop-opacity=".55"/><stop offset="1" stop-color="#ffb03a" stop-opacity="0"/></radialGradient></defs>
+  <defs><linearGradient id="${u}flood" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff4c2" stop-opacity=".7"/><stop offset="1" stop-color="#fff4c2" stop-opacity="0"/></linearGradient><radialGradient id="${u}glow"><stop offset="0" stop-color="#fff2a8" stop-opacity=".95"/><stop offset=".35" stop-color="#ffcf5a" stop-opacity=".55"/><stop offset="1" stop-color="#ffb03a" stop-opacity="0"/></radialGradient></defs>
   <g class="glows">
     <circle data-glow="lamps" cx="199" cy="398" r="20" fill="url(#${u}glow)"/>
     <circle data-glow="lamps" cx="476" cy="398" r="20" fill="url(#${u}glow)"/>
     <circle data-glow="houseLit" cx="314" cy="416" r="24" fill="url(#${u}glow)"/>
     <circle data-glow="houseLit" cx="386" cy="416" r="24" fill="url(#${u}glow)"/>
     <circle data-glow="lamps" cx="704" cy="294" r="14" fill="url(#${u}glow)"/>
+    ${[[174, 326], [422, 326], [262, 348], [602, 348]].map(([x, y]) => `<circle data-glow="lamps" cx="${x}" cy="${y}" r="13" fill="url(#${u}glow)"/>`).join('')}
+    <!-- floodlights on the school, the shops and the station (night only) -->
+    ${[[70, 362, 300], [146, 362, 300], [444, 362, 304], [486, 362, 304], [540, 362, 292], [610, 362, 292], [200, 330, 286], [266, 330, 286]].map(([x, y, top]) =>
+      `<path data-glow="flood" class="flood-light" d="M${x - 4} ${y} L${x - 30} ${top} H${x + 30} L${x + 4} ${y}Z" fill="url(#${u}flood)"/>`).join('')}
   </g>
   <!-- lightning close by, up in the clouds (storms only; see strike() in the scene) -->
   <g data-k="boltsNear"></g>
@@ -814,8 +833,8 @@ const Scene = (() => {
     curb: [350, 458], gapF: [232, 454], gapB: [232, 368], lane: [350, 487],
   };
   const BACK_Y = 400;   // above this line = the back row
-  const CROSS_F = [232, 458], CROSS_B = [232, 494];   // the zebra crossing between the pavement and the beach
-  const HOME_ROUTE = [['A', 180, 290], ['B', 60, 460]];   // from the little street across lane A, then along lane B
+  const CROSS_F = [330, 458], CROSS_B = [330, 494];   // the zebra crossing between the pavement and the beach
+  const HOME_ROUTE = [['A', 195, 270], ['B', 195, 470]];   // from the little street across lane A, then along lane B
   const ROAD_Y = 465;   // below this line = in front of the cars
 
   const DROP = '<path d="M0 -6 q-5 6 0 9 q5 -3 0 -9Z" fill="#7cc9ef"/>';
@@ -1191,32 +1210,71 @@ const Scene = (() => {
     let time = 'day';
     let reactTimer = 0, bubbleTimer = 0, walkTimer = 0, walkEnd = 0;
     let boltTimer = 0;        // (the next lightning strike while there's a storm)
-    // Traffic rules: the cars driving around town stop while someone crosses the street, and the cars in one
-    // lane wait while the family car drives in it; a car right in the way pulls aside (fades), so nobody bumps.
-    let stoppers = 0;
-    const trafficStop = (on) => {
-      stoppers = Math.max(0, stoppers + (on ? 1 : -1));
-      container.classList.toggle('crossing', stoppers > 0);
-      if (!stoppers && !held.A && !held.B) container.querySelectorAll('.yield').forEach((c) => c.classList.remove('yield'));
+    /* ── Smart traffic ──
+       Every vehicle on the main road (and the cyclist on the far bike lane) is driven here, a little every
+       frame: it speeds up to its lane's speed, keeps a safe distance to whatever is ahead (the car in front,
+       people on the zebra crossing, the family car pulling out) and brakes and starts again smoothly.
+       Positions are measured along the direction of travel ("p"), so the same rules work for both lanes. */
+    const LANES = { A: { dir: -1, v: 120, from: -1300, to: 500 }, B: { dir: 1, v: 138, from: -500, to: 1300 }, bike: { dir: 1, v: 55, from: -400, to: 1200 } };
+    const ACCEL = 90, BRAKE = 360;
+    const cars = [...container.querySelectorAll('.tcar')].map((el) => {
+      const lane = el.dataset.lane, L = LANES[lane], k = +el.dataset.sc, size = MODEL_SIZE[el.dataset.model] || [-30, 30], group = el.parentNode.closest('[data-k]');
+      return { el, lane, dir: L.dir, vmax: L.v, p: L.dir * +el.dataset.x, v: L.v, rear: size[0] * k, front: size[1] * k, group, on: !group.classList.contains('hide') };
+    });
+    const zones = new Map();   // things the cars have to stop for: id → { lane, x1, x2 }
+    const zoneP = (z) => { const L = LANES[z.lane]; const a = L.dir * z.x1, b = L.dir * z.x2; return [Math.min(a, b), Math.max(a, b)]; };
+    const stopDist = (c) => (c.v * c.v) / (2 * BRAKE) + 12;
+    // is this stretch of a lane free (nobody in it, and nobody too close to stop before it)?
+    const laneFree = (lane, x1, x2) => {
+      const [a, b] = zoneP({ lane, x1, x2 });
+      return cars.every((c) => !c.on || c.lane !== lane || c.p + c.rear > b || c.p + c.front < a - stopDist(c));
     };
-    // the visible cars (and bikes) in some stretches of road: [['A' | 'B' | '*', fromX, toX], …]
-    const carsIn = (stretches) => {
-      const m = svg.getScreenCTM().inverse();
-      return [...container.querySelectorAll('.driveL, .driveR, .ride')].filter((c) => {
-        if (getComputedStyle(c).visibility === 'hidden' || c.classList.contains('yield')) return false;
-        const lane = c.classList.contains('driveL') ? 'A' : c.classList.contains('driveR') ? 'B' : 'bike';
-        const r = c.getBoundingClientRect(), a = new DOMPoint(r.left, r.top).matrixTransform(m), b = new DOMPoint(r.right, r.bottom).matrixTransform(m);
-        return stretches.some(([l, x1, x2]) => (l === '*' || l === lane) && b.x > Math.min(x1, x2) - 10 && a.x < Math.max(x1, x2) + 10);
+    let lastTick = performance.now();
+    function tick(now) {
+      const dt = Math.min(0.05, (now - lastTick) / 1000);
+      lastTick = now;
+      if (!svg.isConnected) return;
+      Object.keys(LANES).forEach((lane) => {
+        const L = LANES[lane];
+        const list = cars.filter((c) => c.lane === lane);
+        list.forEach((c) => {
+          // (hidden extra traffic, also on the slowest devices, isn't on the road at all)
+          const on = !c.group.classList.contains('hide') && !(/^traffic[23]/.test(c.group.dataset.k) && document.documentElement.dataset.perf === 'low');
+          if (on && !c.on) { c.p = L.from - 300; c.v = L.v; }   // (more traffic: it drives in from off-screen)
+          c.on = on;
+        });
+        const going = list.filter((c) => c.on).sort((a, b) => b.p - a.p);
+        const lz = [...zones.values()].filter((z) => z.lane === lane).map(zoneP);
+        going.forEach((c, n) => {
+          const nose = c.p + c.front;
+          let gap = Infinity;
+          if (n > 0) gap = going[n - 1].p + going[n - 1].rear - nose;
+          lz.forEach(([a, b]) => { if (nose <= a + 2) gap = Math.min(gap, a - nose); });   // (already in it? drive on through)
+          const want = c.v * 0.35 + 16;                      // a safe distance (more when faster)
+          const target = gap < want + 70 ? Math.max(0, c.vmax * (gap - 10) / (want + 60)) : c.vmax;
+          c.v = c.v < target ? Math.min(target, c.v + ACCEL * dt) : Math.max(target, c.v - BRAKE * dt);
+          if (gap < 8) c.v = 0;
+          c.p += c.v * dt;
+          if (c.p + c.rear > L.to) {                          // off-screen: come back round at the other end, behind the last car
+            const last = going[going.length - 1];
+            c.p = Math.min(L.from, last && last !== c ? last.p + last.rear - c.front - 30 : L.from);
+          }
+        });
+        list.forEach((c) => { c.el.style.transform = `translateX(${(c.dir * c.p).toFixed(1)}px)`; });
       });
-    };
-    const crossing = (on) => {
-      const was = stoppers > 0;
-      trafficStop(on);
-      if (on && !was) carsIn([['*', CROSS_F[0] - 40, CROSS_F[0] + 40]]).forEach((c) => c.classList.add('yield'));
-    };
-    const hooks = { carTrip: () => {} };
-    const held = { A: false, B: false };   // (lanes where the cars wait for the family car)
-    const holdLane = (lane, on) => { held[lane] = on; container.classList.toggle('hold-' + lane, on); };   // (the game listens for car trips, see onCarTrip)
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    // wait (at most ~6 s) until these stretches of road are free, then the cars stop before them until let go
+    async function claimRoad(id, stretches, wait = sleep) {
+      for (let k = 0; k < 40 && !stretches.every(([l, x1, x2]) => laneFree(l, x1, x2)); k++) await wait(150);
+      stretches.forEach(([lane, x1, x2], n) => zones.set(`${id}:${n}`, { lane, x1, x2 }));
+    }
+    const freeRoad = (id) => [...zones.keys()].forEach((k) => { if (k === id || k.startsWith(id + ':')) zones.delete(k); });
+    // people walk over the zebra crossing: they wait until the cars (and bikes) can stop, the cars wait for them
+    let crossIds = 0;
+    const CROSS_STRETCH = (x) => [['A', x - 20, x + 20], ['B', x - 20, x + 20], ['bike', x - 20, x + 20]];
+    const hooks = { carTrip: () => {} };   // (the game listens for car trips, see onCarTrip)
     let lineFor = () => '';   // (the game gives us Bobo's lines in the player's language, see setLines)
     let walkPos = [...P.home];
     let gen = 0;               // goes up whenever a new situation starts; old animations then stop
@@ -1263,7 +1321,8 @@ const Scene = (() => {
     function updateGlows() {
       const dark = time === 'night' || time === 'evening' || time === 'eclipse';
       container.querySelectorAll('[data-glow]').forEach((g) => {
-        g.classList.toggle('on', dark && (g.dataset.glow === 'lamps' || visible(q(g.dataset.glow))));
+        const k = g.dataset.glow;
+        g.classList.toggle('on', k === 'flood' ? time === 'night' : dark && (k === 'lamps' || visible(q(k))));
       });
     }
 
@@ -1291,7 +1350,7 @@ const Scene = (() => {
       placeBubble(ms);
       monkey.classList.toggle('walking', dist > 4);
       walker.classList.toggle('pedaling', dist > 4);
-      if (Math.abs(x - cx) > 2) rideDir.setAttribute('transform', `scale(${x < cx ? -0.42 : 0.42} .42)`);
+      if (Math.abs(x - cx) > 2) rideDir.setAttribute('transform', `scale(${x < cx ? -RIDE_SC : RIDE_SC} ${RIDE_SC})`);
       const towardsUs = y - cy > Math.abs(x - cx);
       rideDir.querySelector('.rv-front').style.display = towardsUs ? '' : 'none';
       rideDir.querySelector('.rv-back').style.display = towardsUs ? 'none' : '';
@@ -1350,9 +1409,15 @@ const Scene = (() => {
       // wait, but stop if a new situation started meanwhile
       async w(ms) { const g = gen; await sleep(ms); guard(g); },
       async go(to) {
-        const g = gen, path = route(walkPos, to), cross = path.includes(CROSS_B);
-        if (cross) crossing(true);
-        try { for (const p of path) { await walkTo(p[0], p[1]); guard(g); } } finally { if (cross) crossing(false); }
+        const g = gen, path = route(walkPos, to), id = 'walk' + ++crossIds;
+        try {
+          for (const p of path) {
+            const crossing = (p === CROSS_B || p === CROSS_F) && Math.abs(walkPos[1] - p[1]) > 20;
+            if (crossing) { await claimRoad(id, CROSS_STRETCH(p[0]), s.w); guard(g); }
+            await walkTo(p[0], p[1]); guard(g);
+            if (crossing) freeRoad(id);
+          }
+        } finally { freeRoad(id); }
       },
       // one smooth ride along the street: speeds up, cruises, slows down (and the camera glides along)
       async ride(to, speed = 0.13) {
@@ -1371,7 +1436,7 @@ const Scene = (() => {
       burst() { s.flash('plantBurst', 2600); },
       // The family car backs out of the driveway (seen from behind) and drives off along the street (dad drives)
       async carOut(back, heads = headBack(-5, '#6b4423'), toX = 232) {
-        await s.roadClear([['A', Math.min(toX, 434) - 20, 640]]);   // (dad looks, waits for a gap; the cars in that lane wait for him)
+        await s.roadClear([['A', Math.min(toX, 434) - 20, 475]]);   // (dad looks, waits for a gap; the cars coming stop for him)
         s.hide('parkedCar');
         const r = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', heads)}</g>`, 434, 442, 1);
         r.carry(true);
@@ -1421,7 +1486,7 @@ const Scene = (() => {
       // a grown-up or the sister riding a bike (side view; from behind going away; from the front coming towards us)
       cyclist(kind, at) {
         const look = { dad: '#2f80ed', mom: '#ff6fa8', sister: '#ffd23f' }, [fur] = FRIENDS[kind];
-        const size = kind === 'sister' ? 0.32 : 0.42;
+        const size = kind === 'sister' ? RIDE_SC * 0.76 : RIDE_SC;
         const g = document.createElementNS(NS, 'g');
         g.innerHTML = `<g class="cv-side">${sideRider(fur, look[kind])}</g><g class="cv-back" style="display:none">${backRider(fur)}</g><g class="cv-front" style="display:none">${frontRider(fur, look[kind])}</g>`;
         const c = { g, x: at[0], y: at[1], dir: 1 };
@@ -1712,9 +1777,15 @@ const Scene = (() => {
         };
         // walk somewhere, through the side street if it's between the back and the front
         b.go = async (to) => {
-          const path = route(b.pos, to), cross = path.includes(CROSS_B);
-          if (cross) crossing(true);
-          try { for (const p of path) await b.walk(p[0], p[1]); } finally { if (cross) crossing(false); }
+          const path = route(b.pos, to), id = 'walk' + ++crossIds;
+          try {
+            for (const p of path) {
+              const crossing = (p === CROSS_B || p === CROSS_F) && Math.abs(b.pos[1] - p[1]) > 20;
+              if (crossing) await claimRoad(id, CROSS_STRETCH(p[0]), b.free ? sleep : s.w);
+              await b.walk(p[0], p[1]);
+              if (crossing) freeRoad(id);
+            }
+          } finally { freeRoad(id); }
         };
         b.chop = () => restartAnim(g.querySelector('.mjump'), 'chop');
         b.jump = () => restartAnim(g.querySelector('.mjump'), 'jump');
@@ -1727,17 +1798,11 @@ const Scene = (() => {
         return b;
       },
       chop() { restartAnim(svg.querySelector('.mjump'), 'chop'); },
-      // The family car wants to drive in some stretches of the main road: wait (up to a few seconds) for a
-      // gap there, then the cars in just those lanes wait for it until roadFree(lane) (the other lane keeps
-      // going). A car still in the way pulls aside. Every car in a lane waits together, so nobody bumps.
-      async roadClear(stretches) {
-        for (let k = 0; k < 20 && carsIn(stretches).length; k++) await s.w(200);
-        stretches.forEach(([lane]) => holdLane(lane, true));
-        carsIn(stretches).forEach((c) => c.classList.add('yield'));
-      },
+      // The family car wants to drive in some stretches of the main road: dad waits for a gap there, then the
+      // cars coming up stop before those stretches (and start again) until roadFree(lane). The rest drives on.
+      async roadClear(stretches) { await claimRoad('fam-' + stretches.map(([l]) => l).join(''), stretches, s.w); },
       roadFree(lane = null) {
-        (lane ? [lane] : ['A', 'B']).forEach((l) => holdLane(l, false));
-        if (!held.A && !held.B && !stoppers) container.querySelectorAll('.yield').forEach((c) => c.classList.remove('yield'));
+        [...zones.keys()].forEach((k) => { if (k.startsWith('fam-')) { const z = zones.get(k); if (!lane || z.lane === lane) zones.delete(k); } });
       },
       // a friend walks back home by themselves and goes in (it keeps going while the next scene starts)
       walkHome(b) {
@@ -1812,8 +1877,8 @@ const Scene = (() => {
       updateTraffic();
     }
     function updateTraffic() {
-      q('traffic2').classList.toggle('hide', s.traffic < 1);
-      q('traffic3').classList.toggle('hide', s.traffic < 2);
+      ['traffic2', 'traffic2B'].forEach((k) => q(k).classList.toggle('hide', s.traffic < 1));
+      ['traffic3', 'traffic3B'].forEach((k) => q(k).classList.toggle('hide', s.traffic < 2));
     }
 
     /* ── time of day + weather ── */
@@ -1916,7 +1981,7 @@ const Scene = (() => {
       if (kind === 'sad') s.droop();
       if (kind && ms) reactTimer = setTimeout(() => delete monkey.dataset.react, ms);
     }
-    const headTop = () => [walkPos[0], walkPos[1] - 62 * depthK(walkPos[1])];
+    const headTop = () => [walkPos[0], walkPos[1] - HEAD_H * depthK(walkPos[1])];
     let bubbleW = 120;
     const bubbleScale = (feetY) => clamp(depthK(feetY) * 1.05, 0.72, 1.1);
     // keep the bubble inside the part of the city that's on screen (phones see only a slice of it)
@@ -1938,7 +2003,7 @@ const Scene = (() => {
       if (left <= 30) { placeBubble(0); return; }
       const m = new DOMMatrixReadOnly(getComputedStyle(walker).transform);
       const b = q('bubble'), cx = 400 + m.m41, cy = 400 + m.m42;
-      const [x0, y0] = bubbleXY(cx, cy - 62 * m.d);
+      const [x0, y0] = bubbleXY(cx, cy - HEAD_H * m.d);
       b.style.transition = 'opacity .25s';
       b.style.transform = bubbleTransform(x0, y0, bubbleScale(cy));
       void b.getBoundingClientRect();

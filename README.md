@@ -17,10 +17,12 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
   (a yummy veggie meal or a beef burger every day), and a friend about to throw his trash into
   the sea from the pier (stop him and use the bin, or let him). Eating green is never about eating less.
 - Bobo bikes on the bike lane on the houses' side of the road, so he never rides into the cars, and
-  cars stop whenever someone walks over the zebra crossing. The family car always waits for a gap
-  before driving onto the main road, and only the cars in its lane wait for it (the other lane keeps
-  going). Every car in a lane always moves and stops together, so nothing ever bumps.
+  a smart traffic model drives every car, van, truck and bus: they keep a safe distance, brake and start
+  smoothly, stop for people on the zebra crossing in front of Bobo's house (people wait for a gap
+  first), and let the family car pull out (dad waits for a gap too). Nothing ever bumps.
 - Seagulls and the hawk drift up and down at different heights, and now and then an airplane flies by.
+- Day and night: at night homes and offices light up (not every window), the school, the shops and the
+  station are closed but floodlit, and street lights glow along the streets.
 - Parking: a bay by the school, a little car park by the station and one for the shops (right across
   the street from the thrift store and the mall). Bike racks at home, the school, the station and the mall.
 - How Bobo gets to school decides how the family gets around for the rest of the game. With the

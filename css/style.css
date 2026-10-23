@@ -521,6 +521,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .win { fill: #cfefff; transition: fill 2s; }
 :root[data-time="evening"] .win { fill: #ffe9a3; }
 :root[data-time="night"] .win { fill: #ffd85a; }
+/* at night: some office windows are dark; the school, the shops and the station are closed (their walls are floodlit instead) */
+:root[data-time="night"] .win.unlit, :root[data-time="night"] .closed .win { fill: #33465c; }
 :root[data-time="night"] .lights-off .hw, :root[data-time="evening"] .lights-off .hw { fill: #2c3a55; }
 .win-open .hw { fill: #fff; }
 .lampbulb { fill: #fff3a8; }
@@ -535,15 +537,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .exhaust circle { fill: #9aa3ad; opacity: 0; }
 :is(.puffing, .moving) .exhaust circle { animation: exhaust 0.8s linear infinite; }
 @keyframes exhaust { 0% { transform: translate(0, 0); opacity: 0.6; } 100% { transform: translate(-10px, -7px); opacity: 0; } }
-/* monkeys on the zebra crossing: the cars (and bikes) wait for them; one right at the crossing makes way */
-.yield { opacity: 0 !important; transition: opacity 0.3s; }
-.crossing [data-k="cyclists"] * { animation-play-state: paused !important; }
-/* hidden cars keep driving (invisibly), so when more cars show up they're still nicely spaced in their lane */
-[data-k^="traffic"].hide :is(.driveL, .driveR) { animation-play-state: running !important; }
-/* the cars in a lane always stop together (so nobody bumps into the car ahead): for people on the
-   zebra crossing (both lanes), or for the family car in its lane (the other lane keeps driving) */
-.scene-wrap.crossing [data-k^="traffic"] :is(.driveL, .driveR),
-.scene-wrap.hold-A [data-k^="traffic"] .driveL, .scene-wrap.hold-B [data-k^="traffic"] .driveR { animation-play-state: paused !important; }
+/* (the cars on the main road are driven by the traffic model in scene.js: see "Smart traffic") */
 .cow-gas .smoke { animation-name: gasRise; }
 @keyframes gasRise { 0% { transform: translate(0, 0) scale(0.4); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translate(-6px, -40px) scale(1.4); opacity: 0; } }
 /* electricity flowing along the wire from the power plant */
@@ -553,11 +547,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 @keyframes energy { from { transform: translateX(0); } to { transform: translateX(-172px); } }
 
 /* moving things */
-.driveL { animation: driveL 15s linear infinite; }
-.driveR { animation: driveR 13s linear infinite; }
-@keyframes driveL { from { transform: translateX(1300px); } to { transform: translateX(-500px); } }
 @keyframes driveR { from { transform: translateX(-500px); } to { transform: translateX(1300px); } }
-.ride { animation: driveR 16s linear infinite; }
 /* bike riders seen from the side: legs pedal, wheels turn */
 .leg-a { animation: pedal 0.5s ease-in-out infinite alternate; }
 .leg-b { animation: pedal 0.5s ease-in-out infinite alternate-reverse; }
@@ -600,6 +590,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 
 .glows circle { opacity: 0; transition: opacity 1.2s; pointer-events: none; }
 .glows circle.on { opacity: 1; animation: glowFlicker 2.4s ease-in-out infinite alternate; }
+.glows .flood-light { opacity: 0; transition: opacity 1.5s; pointer-events: none; }
+.glows .flood-light.on { opacity: 1; }
 @keyframes glowFlicker { 50% { opacity: 0.8; } }
 
 /* Bobo's reactions */
@@ -727,7 +719,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 /* (the animals always stay and keep moving around on every level: they show how healthy the island is.
    The lowest level only stops little extras, like flapping and fluttering wings and swaying plants) */
 :root[data-perf="low"] :is(.kelp, .sway-soft, .flutter, .bfly, .beefly .bwing, .vwing, .flag, .balloon, .boat-rock, .wing, .flicker, .tv-flicker, .glows circle.on, .bob, .heat-lines path, .cow-gas .smoke, .v-steam .smoke, .energy circle, .wheelspin) { animation: none !important; }
-:root[data-perf="low"] :is([data-k="skyClouds"], [data-k="traffic2"], [data-k="traffic3"]) { display: none; }
+:root[data-perf="low"] :is([data-k="skyClouds"], [data-k^="traffic2"], [data-k^="traffic3"]) { display: none; }
 :root[data-perf="low"] .plant-smoke .smoke:not(:first-child), :root[data-perf="low"] .exhaust circle:not(:first-child) { display: none; }
 :root[data-perf="low"] .raining .rain-fx::before { animation-duration: 0.9s; }
 :root[data-perf="low"] .bd, :root[data-perf="low"] .fxh-tint { transition-duration: 1s; }
