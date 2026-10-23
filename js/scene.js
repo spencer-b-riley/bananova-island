@@ -1169,7 +1169,7 @@ const Scene = (() => {
           await Promise.all(fam.map((m) => m.enter()));
           s.inside(true);
           const ride = await s.carOut(BACK_FAMILY, headBack(-6, '#6b4423') + headBack(0, '#a0703f', .9) + headBack(6, '#8b5a2b', .85), -150);
-          sfx('honk'); await s.w(1200);
+          sfx('honk');
           await ride.move(-160, LANE_A, 2600, 'ease-in');   // (off over the bridge to Grandma's)
           s.roadFree();
           await ride.move(-650, LANE_A, 1600, 'linear'); ride.remove();
@@ -1278,9 +1278,11 @@ const Scene = (() => {
     };
     // a family car on the main road is an obstacle exactly where it is (the cars behind it slow down for it)
     let famIds = 0;
+    const EASE = { linear: (t) => t, 'ease-in': (t) => t * t, 'ease-out': (t) => 1 - (1 - t) ** 2, ease: (t) => 1 - (1 - t) ** 2,
+      'ease-in-out': (t) => (t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) ** 2) };
     function trackOnRoad(v) {
       const id = 'car' + ++famIds;
-      const where = () => { const m = new DOMMatrixReadOnly(getComputedStyle(v.g).transform); return [m.m41, m.m42]; };
+      const where = () => v.where();
       zones.set(id + ':A', { lane: 'A', get: () => { const [x, y] = where(); return Math.abs(y - LANE_A) < 8 ? [x - 38, x + 38] : null; } });
       zones.set(id + ':B', { lane: 'B', get: () => { const [x, y] = where(); return Math.abs(y - LANE_B) < 7 ? [x - 38, x + 38] : null; } });
       return id;
@@ -1316,7 +1318,10 @@ const Scene = (() => {
             c.p = Math.min(L.from, last && last !== c ? last.p + last.rear - c.front - 30 : L.from);
           }
         });
-        list.forEach((c) => { c.el.style.transform = `translateX(${(c.dir * c.p).toFixed(1)}px)`; });
+        going.forEach((c) => {
+          const x = (c.dir * c.p).toFixed(1);
+          if (x !== c.shown) { c.shown = x; c.el.style.transform = `translateX(${x}px)`; }
+        });
       });
       requestAnimationFrame(tick);
     }
@@ -1783,7 +1788,16 @@ const Scene = (() => {
         const k = () => fixedScale || depthK(y);
         const set = () => { g.style.transform = `translate(${v.x}px, ${v.y}px) scale(${(k() * dir).toFixed(3)}, ${k().toFixed(3)})`; };
         g.style.transition = 'none'; set(); void g.getBoundingClientRect();
+        // where it is right now (worked out from the move it's doing; the traffic needs this every frame)
+        v.where = () => {
+          const m = v.path;
+          if (!m) return [v.x, v.y];
+          const t = clamp((performance.now() - m.t0) / m.ms, 0, 1), e = (EASE[m.ease] || EASE['ease-in-out'])(t);
+          return [m.x0 + (m.x1 - m.x0) * e, m.y0 + (m.y1 - m.y0) * e];
+        };
         v.move = (x2, y2, ms, ease = 'ease-in-out') => {
+          const [x0, y0] = v.where();
+          v.path = { x0, y0, x1: x2, y1: y2, t0: performance.now(), ms: Math.max(1, ms), ease };
           v.x = x2; v.y = y2;
           g.classList.add('moving');   // (exhaust puffs while it drives)
           clearTimeout(v.stop); v.stop = setTimeout(() => g.classList.remove('moving'), ms);
