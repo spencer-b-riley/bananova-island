@@ -1,7 +1,7 @@
 # 🐒 Bobo's City 🏙️
 
 A climate game for kids aged 8–10. Bobo the monkey lives in a busy city on an island, and the
-player helps Bobo make **11 everyday choices**: how to get to school, what to do with the lights,
+player helps Bobo make **12 everyday choices**: how to get to school, what to do with the lights,
 a broken toy, a birthday party, a new jacket, lunch and more. Every choice changes
 🌡️ **the city's temperature**, and the city visibly changes with the climate. Green choices "pay back" two turns later, and at the end players see a recap that
 explains why each decision mattered.
@@ -11,10 +11,14 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
 
 ## Features
 
-- 11 everyday choices kids really face: getting to school (bike or car), lights and TV,
+- 12 everyday choices kids really face: getting to school (bike or car), lights and TV,
   a water bottle, a broken toy, a hot day, a cold day, bath time, a birthday party with monkey
-  friends, a new jacket (thrift store or fast fashion), a weekend trip (train or car), and lunch
-  (a yummy veggie meal or a beef burger every day). Eating green is never about eating less.
+  friends, a new jacket (thrift store or fast fashion), a weekend trip (train or car), lunch
+  (a yummy veggie meal or a beef burger every day), and a friend about to throw his trash into
+  the sea from the pier (stop him and use the bin, or let him). Eating green is never about eating less.
+- How Bobo gets to school decides how the family gets around for the rest of the game. With the
+  car, every extra car trip warms the city a tiny bit (+0.03 °C, never enough to lose) and a
+  little message says so.
 - Green choices are often better right away (biking past the traffic jam, a cheaper and cooler
   thrift jacket, swapping toys with a friend, cooling down in the shade)
 - A living city: Bobo's street with the school, skyscrapers, a thrift store, a mall, houses, a park,
@@ -29,12 +33,15 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
   the plant puff more smoke, and solar panels and wind turbines make it cleaner
 - Rewards two turns later: a bike group, solar panels, a sea turtle on a clean beach, a toy swap box,
   shady trees, wind turbines, a solar water heater, a recycling center, a clothes rack, an extra
-  train and a veggie garden with bees
+  train, a veggie garden with bees and a beach clean-up
 - The climate changes the city step by step (no disasters):
   - cooler: green grass, birds, butterflies, bees, crabs, fish and a sea turtle, colourful coral
   - hotter: dry brown grass, hazy sky, a bigger sun, bugs and flies, the animals leave, the sea
-    rises over the beach, the coral bleaches, and the weather gets wilder (more rain, then storms)
-  - Bobo looks less happy as the city gets hotter
+    rises over the beach, the coral bleaches, plastic and dead fish wash up, heat shimmers off the
+    roads, and the weather gets wilder (more rain, then storms, with lightning near and far)
+  - Bobo's face turns neutral when it gets hot (never sad: it's a game for kids)
+  - it's never too late: after a lot of warming (over +1.5 °C), 3 or more green choices in a row
+    cool the city a little
 - Endings by temperature: **Climate Warrior** (up to +1.3 °C), **Warming Island** (up to
   +2.0 °C) and **Hot Island** (above that). The game starts at +1.0 °C, about how much warmer
   Earth already is today. If the city reaches +2.5 °C, the island overheats and the game is
@@ -50,7 +57,8 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
   guesses from the CPU, memory, graphics chip and iPhone screen size, then watches the real frame
   rate and switches off more animations as soon as the device struggles. Big changes happen one at a time (the sky changes first, then Bobo moves).
 - All icons are our own drawings (`js/icons.js`), no emoji
-- A recap of every decision with "Did you know?" facts (skippable), then simple takeaways
+- A recap of every decision with "Did you know?" facts, then simple takeaways. The first time,
+  players tick "I read this" on every card before going on; after that the recap can be skipped
 - 16 achievements
 - English, German, Italian and French (switch anytime, top-right)
 - Music and sound effects, generated in the browser (no audio files)

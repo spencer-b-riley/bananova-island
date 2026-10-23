@@ -52,8 +52,10 @@ const Scene = (() => {
       <circle cx="0" cy="-15" r="3" fill="${c}"/><circle cx="0" cy="-9.5" r="3" fill="${c}"/>
       <circle cx="0" cy="-12" r="2" fill="#ffd23f"/></g>`;
 
-  const flies = (x, y) => `<g class="flies" transform="translate(${x} ${y})">
-      <circle cx="0" cy="0" r="1.8"/><circle cx="10" cy="-6" r="1.8" style="animation-delay:-.3s"/><circle cx="-8" cy="-10" r="1.8" style="animation-delay:-.6s"/><circle cx="4" cy="-14" r="1.6" style="animation-delay:-.45s"/></g>`;
+  const flies = (x, y) => `<g class="flies" transform="translate(${x} ${y})">${[[0, 0, 0], [10, -6, -0.3], [-8, -10, -0.6], [4, -14, -0.45]].map(([fx, fy, d], k) =>
+    `<g transform="translate(${fx} ${fy})"><g class="fly-bug f${k % 2}" style="animation-delay:${d}s"><ellipse class="fwing" cx="-1.3" cy="-1.9" rx="2.1" ry="1.1" fill="#eef4f8" stroke="#9aa5b1" stroke-width=".3"/><ellipse class="fwing" cx="1.3" cy="-1.9" rx="2.1" ry="1.1" fill="#eef4f8" stroke="#9aa5b1" stroke-width=".3"/><ellipse rx="2.3" ry="1.6" fill="#2a2a2a"/></g></g>`).join('')}</g>`;
+  // a fish that didn't make it in the too-warm sea (cartoon: belly up, x eye)
+  const deadFish = (x, y, r = 0) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M-9 0 Q-2 6 6 2 L11 6 V-5 L6 -2 Q-2 -6 -9 0Z" fill="#b4bfb2" stroke="#6f7d6d" stroke-width="1"/><path d="M-6.4 -1.6 l2.4 2.4 M-4 -1.6 l-2.4 2.4" stroke="#3b4540" stroke-width="1"/></g>`;
 
   // simple repeatable "random" so every screen draws the same stars
   const rnd = (n) => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };
@@ -203,7 +205,7 @@ const Scene = (() => {
     </g>`;
 
   /* ── vehicles (side view, facing right; the origin is where the wheels touch the ground) ── */
-  const exhaust = (x) => `<g class="exhaust"><circle cx="${x}" cy="-7" r="5"/><circle cx="${x - 8}" cy="-13" r="7" style="animation-delay:-.27s"/><circle cx="${x - 18}" cy="-19" r="9" style="animation-delay:-.54s"/></g>`;
+  const exhaust = (x) => `<g class="exhaust"><circle cx="${x}" cy="-8" r="3"/><circle cx="${x - 5}" cy="-11" r="4" style="animation-delay:-.27s"/><circle cx="${x - 11}" cy="-14" r="5" style="animation-delay:-.54s"/></g>`;
   const wheel = (x, r = 7) => `<circle cx="${x}" cy="${-r + 2}" r="${r}" fill="#2b2f36"/><circle cx="${x}" cy="${-r + 2}" r="${r * 0.42}" fill="#b8c0c8"/>`;
   // a little monkey head looking out of a window (faces right)
   const monkeyHead = (x, y, fur, cls = '') => `<g class="${cls}" transform="translate(${x} ${y})"><circle cx="-4.6" cy="-.5" r="2.4" fill="${fur}"/><circle r="5.2" fill="${fur}"/>
@@ -365,8 +367,8 @@ const Scene = (() => {
   // cars looping along the road (lane A goes left, lane B goes right), each with a happy monkey driver
   const LANE_A = 468, LANE_B = 477;
   const laneCar = (lane, c, dur, d, fur) => lane === 'A'
-    ? `<g class="driveL" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 ${LANE_A - 20}) scale(-.92 .92)">${car(c, fur)}</g></g>`
-    : `<g class="driveR" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 ${LANE_B - 20}) scale(.96)">${car(c, fur)}</g></g>`;
+    ? `<g class="driveL puffing" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 ${LANE_A - 20}) scale(-.92 .92)">${car(c, fur)}</g></g>`
+    : `<g class="driveR puffing" style="animation-duration:${dur}s;animation-delay:${d}s"><g transform="translate(0 ${LANE_B - 20}) scale(.96)">${car(c, fur)}</g></g>`;
 
   function buildSVG(u) {
     const piers = (y, h) => [-300, -200, -100, -10, 870, 960, 1060, 1160].map((x) =>
@@ -374,6 +376,7 @@ const Scene = (() => {
     return `
 <svg class="scene-main" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Bobo's City" xmlns="http://www.w3.org/2000/svg">
   <defs>
+    <clipPath id="${u}beachClip"><rect x="-200" y="486" width="1200" height="200"/></clipPath>
     <pattern id="${u}tufts" width="26" height="17" patternUnits="userSpaceOnUse"><path d="M3 13 l1.4 -4 l1.4 4 M7 13 l.8 -3 M15 6 l1.2 -3.6 l1.2 3.6 M21 15 l1 -3 l1 3 M11 16 l.7 -2.5" stroke="#2e6b2a" stroke-width=".9" fill="none" opacity=".5"/></pattern>
     <linearGradient id="${u}sea" gradientUnits="userSpaceOnUse" x1="0" y1="285" x2="0" y2="900"><stop offset="0" class="st-sea-top"/><stop offset=".35" class="st-sea-bot"/><stop offset="1" class="st-sea-deep"/></linearGradient>
   </defs>
@@ -404,7 +407,7 @@ const Scene = (() => {
   <!-- the island -->
   <path class="foam" d="M30 298 C160 284 640 284 770 298 C808 304 814 360 812 432 C810 508 790 538 744 538 L56 538 C10 538 -10 508 -12 432 C-14 360 -6 304 30 298Z" fill="none" stroke="#e6f9ff" stroke-width="5" opacity=".7"/>
   <path d="M34 296 C160 282 640 282 766 296 C800 302 808 360 806 430 C804 502 786 534 744 534 L56 534 C14 534 -4 502 -6 430 C-8 360 0 302 34 296Z" fill="#fbe3a2"/>
-  <path data-k="seaRise" class="sea-rise" d="M34 296 C160 282 640 282 766 296 C800 302 808 360 806 430 C804 502 786 534 744 534 L56 534 C14 534 -4 502 -6 430 C-8 360 0 302 34 296Z" fill="none" stroke="url(#${u}sea)"/>
+  <path data-k="seaRise" class="sea-rise" clip-path="url(#${u}beachClip)" d="M34 296 C160 282 640 282 766 296 C800 302 808 360 806 430 C804 502 786 534 744 534 L56 534 C14 534 -4 502 -6 430 C-8 360 0 302 34 296Z" fill="none" stroke="url(#${u}sea)"/>
   <path class="grass" d="M44 304 C170 292 630 292 756 304 C786 310 792 360 790 430 C788 478 770 490 738 490 L62 490 C30 490 12 478 10 430 C8 360 14 310 44 304Z"/>
   <path class="grass light" d="M60 310 C180 300 620 300 740 310 C766 316 770 340 760 352 L40 352 C30 340 34 316 60 310Z"/>
   <path d="M44 304 C170 292 630 292 756 304 C786 310 792 360 790 430 C788 478 770 490 738 490 L62 490 C30 490 12 478 10 430 C8 360 14 310 44 304Z" fill="url(#${u}tufts)"/>
@@ -463,14 +466,17 @@ const Scene = (() => {
   <!-- parking bays on the street (school, station, shops) and bike racks -->
   <g class="bays" stroke="#fff" stroke-width="1.2" opacity=".85"><path d="M138 373.5 v4 M200 373.5 v4 M262 373.5 v4 M318 373.5 v4 M568 373.5 v4 M632 373.5 v4"/></g>
   <g fill="#fff" opacity=".8" font-size="6" font-weight="900" font-family="Arial, sans-serif"><text x="166" y="377">P</text><text x="287" y="377">P</text><text x="597" y="377">P</text></g>
-  ${rack(126, 365, 'school')}${rack(254, 356, 'station')}${rack(596, 365, 'mall')}
+  <!-- a little car park by the station, to the right of the little street -->
+  <rect x="248" y="333" width="52" height="21" rx="2" class="road"/><path d="M250 335 v17 M298 335 v17" stroke="#fff" stroke-width="1.2" opacity=".85"/>
+  <text x="274" y="351" text-anchor="middle" fill="#fff" opacity=".8" font-size="6" font-weight="900" font-family="Arial, sans-serif">P</text>
+  ${rack(126, 365, 'school')}${rack(306, 356, 'station')}${rack(596, 365, 'mall')}
   <!-- road signs: school crossing, which way to the station, parking at the mall -->
   <g class="signs">
     <path d="M196 362 V340" stroke="#6b7280" stroke-width="1.8"/><path d="M196 330 L204 338 L196 346 L188 338Z" fill="#ffd23f" stroke="#23313f" stroke-width="1"/><circle cx="194" cy="335.5" r="1.4" fill="#23313f"/><circle cx="198.5" cy="336.5" r="1.2" fill="#23313f"/><path d="M194 337 v4 M198.5 338 v3.4" stroke="#23313f" stroke-width="1.4"/>
     <path d="M642 362 V342" stroke="#6b7280" stroke-width="1.8"/><rect x="636" y="330" width="12" height="12" rx="2" fill="#2f80ed"/><text x="642" y="339.5" text-anchor="middle" font-size="9" font-weight="900" fill="#fff" font-family="Arial, sans-serif">P</text>
   </g>
   <!-- the recycling center (a reward) behind Bobo's house -->
-  ${item('recycling', 322, 362, `<rect x="-24" y="-34" width="48" height="34" rx="3" fill="#2fb35a"/><path d="M-28 -34 H28 L24 -41 H-24Z" fill="#23863e"/>
+  ${item('recycling', 368, 362, `<rect x="-24" y="-34" width="48" height="34" rx="3" fill="#2fb35a"/><path d="M-28 -34 H28 L24 -41 H-24Z" fill="#23863e"/>
       <g transform="translate(0 -18)" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"><path d="M-7 5 A8 8 0 0 1 -5 -7"/><path d="M5 -7 A8 8 0 0 1 8 4"/><path d="M4 8 A8 8 0 0 1 -7 7"/></g>
       <rect x="-22" y="-7" width="11" height="7" fill="#2f80ed"/><rect x="-6" y="-7" width="11" height="7" fill="#ffd23f"/><rect x="10" y="-7" width="11" height="7" fill="#9aa5b1"/>`)}
   <g class="school">
@@ -517,7 +523,8 @@ const Scene = (() => {
   <!-- Bobo's driveway, to the right of the house (the family car parks at the top) -->
   <path d="M416 438 V392 Q416 388 420 388 H448 Q452 388 452 392 V438Z" class="road"/>
   <rect x="14" y="426" width="772" height="12" class="pave"/>
-  <!-- a zebra crossing where the little street meets the main road -->
+  <!-- a zebra crossing where the little street meets the main road (asphalt, the cars drive across it) -->
+  <rect x="218" y="426" width="28" height="12" class="road"/>
   <path d="M221 428 v8 M226 428 v8 M231 428 v8 M236 428 v8 M241 428 v8" stroke="#fff" stroke-width="3" opacity=".85"/>
   ${item('parkedCar', 434, 422, `<g transform="scale(.94)">${carRear('#e63946')}</g>`, 'fade', false)}
   <!-- a second friend's house, on the far left -->
@@ -673,13 +680,22 @@ const Scene = (() => {
   ${item('beachTrash', 0, 0, `${bottle(612, 482, 80, 1.1)}${bottle(640, 480, -60, 1.1)}<path d="M582 482 l10 -3 l2 5Z" fill="#ff6fa8"/>`, 'fade')}
   ${item('beachTurtle', 652, 480, `<g class="float">${turtle(0, 0, 0.8)}</g>`)}
   <g data-k="crabs" class="fade">${crab(150, 484, 0)}${crab(470, 486, -5)}</g>
+  ${item('heatJunk', 0, 0, `${deadFish(392, 485, -8)}${deadFish(536, 489, 12)}${bottle(452, 486, 70, 0.9)}${bottle(298, 489, -50, 0.8)}<path d="M600 487 l9 -3 l2 5 l-8 2Z" fill="#ff6fa8" opacity=".9"/>`, 'fade')}
+  ${item('cleanBeach', 600, 486, `<path d="M0 0 V-22" stroke="#8b5a2b" stroke-width="2.5"/><rect x="-16" y="-36" width="32" height="18" rx="3" fill="#fff8e1" stroke="#8b5a2b" stroke-width="2"/>
+    <g transform="translate(-5 -27) scale(.5)"><path d="M-12 0 Q-4 -9 6 -3 L12 -9 V9 L6 3 Q-4 9 -12 0Z" fill="#4fc3f7"/></g><path d="M9 -28 q-2.5 -3 -5 0 q0 3 5 5.5 q5 -2.5 5 -5.5 q-2.5 -3 -5 0Z" fill="#ff5b4a" transform="translate(-3 1) scale(.8)"/>
+    <g transform="translate(24 0)"><path d="M-6 -12 H6 L5 0 H-5Z" fill="#2fb35a" stroke="#23863e" stroke-width="1.2"/><rect x="-7" y="-14.5" width="14" height="3" rx="1" fill="#23863e"/></g>
+    <g transform="translate(40 0)"><path d="M-6 -12 H6 L5 0 H-5Z" fill="#2f80ed" stroke="#1d5fae" stroke-width="1.2"/><rect x="-7" y="-14.5" width="14" height="3" rx="1" fill="#1d5fae"/></g>`)}
   </g>
   <!-- the harbor: a wooden pier with a crane -->
   <g class="harbor">
     <path d="M700 512 H724 V566 H700Z" fill="#b5773f"/><path d="M700 520 H724 M700 530 H724 M700 540 H724 M700 550 H724 M700 560 H724" stroke="#8b5a2b" stroke-width="1.2"/>
     <path d="M703 566 V578 M721 566 V578" stroke="#6b4423" stroke-width="3"/>
     <path d="M708 548 V498 L742 498 M708 512 L722 498 M742 498 V512" stroke="#ffb627" stroke-width="3" fill="none"/><rect x="738" y="512" width="8" height="6" fill="#555b63"/>
+    <!-- a trash bin on the beach by the pier -->
+    <g transform="translate(684 507)"><path d="M-5 -12 H5 L4.2 0 H-4.2Z" fill="#2fb35a" stroke="#23863e" stroke-width="1.2"/><rect x="-6" y="-14.5" width="12" height="3" rx="1" fill="#23863e"/><path d="M-1.8 -9 V-3 M1.8 -9 V-3" stroke="#fff" stroke-width=".9" opacity=".8"/></g>
   </g>
+  <!-- when the sea gets too warm: plastic and dead fish floating -->
+  ${item('seaJunk', 0, 0, `<g class="float">${deadFish(186, 552, 170)}${bottle(420, 566, 95, 1)}${deadFish(612, 556, 190)}<path d="M300 560 q6 -6 12 0 q-6 4 -12 0Z" fill="#e8eef2" opacity=".85"/></g>`, 'fade')}
   <g data-k="reef" class="reef">${reef(110, 604, 0.7, 'staghorn', 'brain', 'anemone', 'a', 'd', 'b')}${reef(700, 610, 0.65, 'fan', 'tube', 'brain', 'c', 'b', 'e')}</g>
   <g data-k="fish">
     <g class="swim" style="animation-duration:34s"><g transform="translate(0 562) scale(.6)">${fish()}</g></g>
@@ -701,7 +717,10 @@ const Scene = (() => {
   <g data-k="bees" class="fade">${bee(712, 432, 0)}${bee(745, 428, -2.4)}</g>
   <g data-k="bugs1" class="fade hide">${flies(318, 438)}${flies(690, 428)}</g>
   <g data-k="bugs2" class="fade hide">${flies(150, 430)}${flies(505, 418)}${flies(420, 360)}${flies(760, 432)}</g>
-  ${item('heatHaze', 0, 0, `<g class="heat-lines"><path d="M120 300 q10 -15 0 -30 q-10 -15 0 -30 M300 290 q10 -15 0 -30 q-10 -15 0 -30 M520 300 q10 -15 0 -30 q-10 -15 0 -30 M700 290 q10 -15 0 -30 q-10 -15 0 -30"/></g>`, 'fade')}
+  <!-- heat shimmer: little wavy lines rising off the hot road and roofs (only when it's very hot) -->
+  ${item('heatHaze', 0, 0, `<g class="heat-lines">${[[96, 474], [188, 474], [306, 476], [420, 474], [540, 476], [650, 474], [760, 476],
+    [150, 360], [470, 360], [600, 362], [340, 372], [108, 300], [574, 296]].map(([x, y], k) =>
+    `<g transform="translate(${x} ${y})"><g class="shimmer" style="animation-delay:${(-k * 0.37 % 1.8).toFixed(2)}s"><path d="M-5 0 q2.5 -3.5 0 -7 q-2.5 -3.5 0 -7 M0 -2 q2.5 -3.5 0 -7 q-2.5 -3.5 0 -7 M5 0 q2.5 -3.5 0 -7 q-2.5 -3.5 0 -7"/></g></g>`).join('')}</g>`, 'fade')}
 
   <g data-k="fx"></g>
 
@@ -748,16 +767,19 @@ const Scene = (() => {
   /* Where things are (x, y = where Bobo's feet are) */
   const P = {
     home: [350, 454], door: [350, 450], friend: [166, 450], friend2: [62, 450], garden: [505, 454], vend: [650, 458], fountain: [676, 458],
-    school: [108, 365], shops: [517, 365], thrift: [462, 365], mall: [574, 365], station: [232, 326],
+    school: [108, 365], shops: [517, 365], thrift: [462, 365], mall: [574, 365], station: [232, 326], pier: [716, 522], bin: [670, 506],
     curb: [350, 458], gapF: [232, 454], gapB: [232, 368], lane: [350, 487],
   };
   const BACK_Y = 400;   // above this line = the back row
+  const CROSS_F = [232, 458], CROSS_B = [232, 494];   // the zebra crossing between the pavement and the beach
   const ROAD_Y = 465;   // below this line = in front of the cars
 
   const DROP = '<path d="M0 -6 q-5 6 0 9 q5 -3 0 -9Z" fill="#7cc9ef"/>';
   const BOX = '<rect x="-10" y="-8" width="20" height="16" fill="#c98f4f" stroke="#8b5a2b" stroke-width="1.5"/>';
   const TOY = '<g transform="scale(.5)"><path d="M-14 -4 h28 v8 h-28Z" fill="#ff5b4a"/><circle cx="-8" cy="5" r="4" fill="#23313f"/><circle cx="8" cy="5" r="4" fill="#23313f"/></g>';
   const BALL = '<circle r="5" fill="#ffd23f" stroke="#ff8c42" stroke-width="2"/>';
+  const LITTER = bottle(0, 0, 30, 0.8);   // (Pip's empty bottle)
+  const WRAPPER = '<path d="M-5 -2 l9 -3 l2 5 l-8 2Z" fill="#ff6fa8"/>';
   const CUP = '<path d="M-3 -4 h6 l-1 8 h-4Z" fill="#fff" stroke="#2fb35a" stroke-width="1.2"/>';
   const PLASTIC = '<path d="M-3 -4 h6 l-1 8 h-4Z" fill="#ff5b4a"/>';
   // A traffic jam across the whole city: a queue of cars in both lanes
@@ -980,7 +1002,7 @@ const Scene = (() => {
         },
         apply(s) { s.show('trashPile'); },
       },
-      pay(s) { s.reveal('recycling', 322, 330); },
+      pay(s) { s.reveal('recycling', 368, 330); },
     },
     jacket: {
       async ev(s) {
@@ -1076,6 +1098,43 @@ const Scene = (() => {
       },
       pay(s) { s.reveal('veggieGarden', 746, 446); },
     },
+    litter: {
+      // Pip (Bobo's friend from the green house) walks onto the pier with his trash… Bobo follows him
+      async ev(s) {
+        await s.travel(P.home);
+        const f = s.buddy('red', '#2fb35a', P.friend2);
+        f.appear(); f.keep = true; f.free = true;   // (Pip walks home by himself afterwards)
+        const pip = f.go(P.pier); pip.catch(() => {});
+        await s.w(1200);
+        await s.go(P.bin);
+        await pip;
+      },
+      good: {
+        // Bobo stops him, takes the trash and puts it in the bin by the pier
+        async play(s) {
+          const f = s.buddies.find((b) => b.kind === 'red');
+          await s.go([700, 516]);
+          s.chop(); s.toss(716, 500, 702, 494, LITTER, 450); await s.w(600);
+          await s.go(P.bin);
+          s.toss(676, 494, 684, 496, LITTER, 500, () => s.sparkle(684, 490)); await s.w(700);
+          if (f) { f.jump(); await s.w(600); s.walkHome(f); }
+        },
+      },
+      bad: {
+        // Pip throws it all into the sea: splash!
+        async play(s) {
+          const f = s.buddies.find((b) => b.kind === 'red');
+          if (f) f.chop();
+          s.toss(720, 498, 768, 572, LITTER, 800, () => s.splash(768, 574)); await s.w(300);
+          s.toss(720, 498, 746, 578, WRAPPER, 750, () => s.splash(746, 580)); await s.w(900);
+          s.show('seaBottles'); s.droop(); await s.w(900);
+          if (f) s.walkHome(f);
+        },
+        apply(s) { s.show('seaBottles'); s.seaHurt = true; },
+      },
+      // the whole class cleans the beach (and the sea animals come back)
+      pay(s) { s.hide('seaBottles'); s.hide('beachTrash'); s.seaHurt = false; s.reveal('cleanBeach', 620, 494); },
+    },
   };
 
   const TIMES = ['morning', 'day', 'evening', 'night', 'eclipse'];
@@ -1101,6 +1160,9 @@ const Scene = (() => {
     let time = 'day';
     let reactTimer = 0, bubbleTimer = 0, walkTimer = 0, walkEnd = 0;
     let boltTimer = 0;        // (the next lightning strike while there's a storm)
+    let crossers = 0;         // (monkeys on the zebra crossing: the cars wait for them)
+    const crossing = (on) => { crossers = Math.max(0, crossers + (on ? 1 : -1)); container.classList.toggle('crossing', crossers > 0); };
+    const hooks = { carTrip: () => {} };   // (the game listens for car trips, see onCarTrip)
     let lineFor = () => '';   // (the game gives us Bobo's lines in the player's language, see setLines)
     let walkPos = [...P.home];
     let gen = 0;               // goes up whenever a new situation starts; old animations then stop
@@ -1184,6 +1246,9 @@ const Scene = (() => {
     }
     // Plan a route: between the back and front rows Bobo always goes through the side street
     function route(from, to) {
+      const beach = (p) => p[1] > 488;
+      if (beach(from) && !beach(to)) return [CROSS_B, CROSS_F, ...route(CROSS_F, to)];
+      if (!beach(from) && beach(to)) return [...route(from, CROSS_F), CROSS_B, to];
       const back = (p) => p[1] < BACK_Y;
       if (back(from) === back(to)) return [to];
       return back(from) ? [[P.gapB[0], P.gapB[1]], [P.gapF[0], P.gapF[1]], to] : [[P.gapF[0], P.gapF[1]], [P.gapB[0], P.gapB[1]], to];
@@ -1231,8 +1296,9 @@ const Scene = (() => {
       // wait, but stop if a new situation started meanwhile
       async w(ms) { const g = gen; await sleep(ms); guard(g); },
       async go(to) {
-        const g = gen;
-        for (const p of route(walkPos, to)) { await walkTo(p[0], p[1]); guard(g); }
+        const g = gen, path = route(walkPos, to), cross = path.includes(CROSS_B);
+        if (cross) crossing(true);
+        try { for (const p of path) { await walkTo(p[0], p[1]); guard(g); } } finally { if (cross) crossing(false); }
       },
       // one smooth ride along the street: speeds up, cruises, slows down (and the camera glides along)
       async ride(to, speed = 0.13) {
@@ -1357,8 +1423,13 @@ const Scene = (() => {
         if (there) await (s.mode === 'bike' ? s.bikeThere(to, kinds, existing) : s.driveThere(to, kinds, existing));
         else await (s.mode === 'bike' ? s.bikeHome(to) : s.driveHome(to));
       },
-      rackFor(to) { return to[1] < 345 ? ['station', [270, 358]] : to[0] < 300 ? ['school', [137, 368]] : ['mall', [606, 370]]; },
-      bayFor(to) { return to[1] < 345 ? 290 : to[0] < 300 ? 168 : 600; },
+      rackFor(to) { return to[1] < 345 ? ['station', [318, 358]] : to[0] < 300 ? ['school', [137, 368]] : ['mall', [606, 370]]; },
+      // where the family car parks: the station's car park (up the little street), or a bay on the street by the school / shops
+      bayFor(to) { return to[1] < 345 ? { x: 274, y: 346, station: true } : { x: to[0] < 300 ? 168 : 600, y: 378 }; },
+      // where people stand when they get out of (or wait for) the parked car
+      outOf(bay, k) { return bay.station ? (k < 0 ? [bay.x + 30, bay.y - 3] : [bay.x - 32 - 14 * k, bay.y - 3]) : (k < 0 ? [bay.x + 10, 367] : [bay.x - 10 + 14 * k, 367]); },
+      // up the little street: to the school street, or all the way up to the station's car park
+      upTo(bay) { return bay.station ? bay.y : 384; },
       async bikeThere(to, kinds, existing) {
         const [rk, rp] = s.rackFor(to);
         // everyone takes their bike from the rack at home and rides off together
@@ -1397,6 +1468,7 @@ const Scene = (() => {
         if (!existing) fam.forEach((m) => m.appear());
         await Promise.all(fam.map(async (m, k) => { await s.w(180 * k); await m.walk(408 + 14 * k, 452); await m.enter(); }));
         s.inside(true);
+        hooks.carTrip();   // (Bobo got into the car again)
         const back = [monkeyHead(-3, -23, '#8b5a2b')].concat(riders.map((k, n) => `<g transform="translate(${-9 + n * 9} -22.5) scale(.55)">${monkeyHead(0, 0, FRIENDS[k][0])}</g>`)).join('');
         const v = await s.carOut(back);
         v.cam = true;
@@ -1404,15 +1476,16 @@ const Scene = (() => {
         v.remove();
         const up = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', headBack(-5, '#6b4423') + headBack(5, '#8b5a2b', .85))}</g>`, 232, LANE_A, 1);
         up.carry(true); up.cam = true;
-        await up.move(232, 384, 1500, 'ease-in-out');
+        await up.move(232, s.upTo(bay), bay.station ? 2300 : 1500, 'ease-in-out');
         up.remove();
-        const side = s.vehicle('backFx', car('#e63946', '#6b4423', back), 232, 378, bay < 232 ? -1 : 1);
+        const side = s.vehicle('backFx', car('#e63946', '#6b4423', back), 232, bay.y, bay.x < 232 ? -1 : 1);
         side.carry(true); side.cam = true;
-        await side.move(bay, 378, Math.max(500, Math.abs(bay - 232) * 6), 'ease-out');
+        await side.move(bay.x, bay.y, Math.max(500, Math.abs(bay.x - 232) * 6), 'ease-out');
+        // parked: everybody gets out, so the car is empty (nobody waits inside)
+        side.g.querySelector('.veh').innerHTML = car('#e63946', '#6b4423', '', false);
         side.cam = false; side.carry(false); side.keep = true;
-        // everybody gets out and walks with Bobo
-        s.place([bay + 10, 367]); s.inside(false);
-        const people = s.family([[bay - 10, 367]].concat(riders.map((_, n) => [bay + 26 + n * 14, 367])), ['dad', ...riders]);
+        s.place(s.outOf(bay, -1)); s.inside(false);
+        const people = s.family(['dad', ...riders].map((_, k) => s.outOf(bay, k)), ['dad', ...riders]);
         people.forEach((m, k) => { m.kind = ['dad', ...riders][k]; m.keep = true; m.appear(); });
         s.remote = { car: side, bay, people };
         await s.withMe(to, people);
@@ -1429,28 +1502,29 @@ const Scene = (() => {
           await v.move(232, LANE_A, 1200, 'ease-in-out'); v.remove();
           const up = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', headBack(-5, '#6b4423'))}</g>`, 232, LANE_A, 1);
           up.carry(true); up.cam = true;
-          await up.move(232, 384, 1500, 'ease-in-out'); up.remove();
-          const side = s.vehicle('backFx', car('#e63946', '#6b4423', ''), 232, 378, bay < 232 ? -1 : 1);
+          await up.move(232, s.upTo(bay), bay.station ? 2300 : 1500, 'ease-in-out'); up.remove();
+          const side = s.vehicle('backFx', car('#e63946', '#6b4423', ''), 232, bay.y, bay.x < 232 ? -1 : 1);
           side.cam = true;
-          await side.move(bay, 378, Math.max(500, Math.abs(bay - 232) * 6), 'ease-out');
+          await side.move(bay.x, bay.y, Math.max(500, Math.abs(bay.x - 232) * 6), 'ease-out');
           side.cam = false;
           r = { car: side, bay, people: [] };
         }
         // everybody walks to the car and gets in
-        await Promise.all([s.go([r.bay + 10, 367]), ...r.people.map((m, k) => m.go([r.bay - 10 + 14 * k, 367]))]);
+        await Promise.all([s.go(s.outOf(r.bay, -1)), ...r.people.map((m, k) => m.go(s.outOf(r.bay, k)))]);
         await Promise.all(r.people.map((m) => m.enter()));
         s.inside(true);
+        hooks.carTrip();
         const kinds = r.people.map((m) => m.kind).filter((k) => k !== 'dad');
         const back = [monkeyHead(-3, -23, '#8b5a2b')].concat(kinds.map((k, n) => `<g transform="translate(${-9 + n * 9} -22.5) scale(.55)">${monkeyHead(0, 0, FRIENDS[k][0])}</g>`)).join('');
         r.car.remove();
         s.remote = null;
         // back along the street, down the little street (coming towards us), along the main road and up the driveway
-        const side = s.vehicle('backFx', car('#e63946', '#6b4423', back), r.bay, 378, r.bay < 232 ? 1 : -1);
+        const side = s.vehicle('backFx', car('#e63946', '#6b4423', back), r.bay.x, r.bay.y, r.bay.x < 232 ? 1 : -1);
         side.carry(true); side.cam = true;
-        await side.move(232, 378, Math.max(500, Math.abs(r.bay - 232) * 6), 'ease-in-out'); side.remove();
-        const down = s.vehicle('roadFx', `<g transform="scale(.94)">${carFront('#e63946', '#6b4423')}</g>`, 232, 384, 1);
+        await side.move(232, r.bay.y, Math.max(500, Math.abs(r.bay.x - 232) * 6), 'ease-in-out'); side.remove();
+        const down = s.vehicle('roadFx', `<g transform="scale(.94)">${carFront('#e63946', '#6b4423')}</g>`, 232, s.upTo(r.bay), 1);
         down.cam = true;
-        await down.move(232, LANE_B - 2, 1500, 'ease-in-out'); down.remove();
+        await down.move(232, LANE_B - 2, r.bay.station ? 2300 : 1500, 'ease-in-out'); down.remove();
         const home = s.vehicle('roadFx', familyCar('#e63946', back), 232, LANE_B, 1);
         home.carry(true); home.cam = true;
         await s.carPark(home, headBack(-5, '#6b4423') + headBack(5, '#8b5a2b', .85));
@@ -1577,6 +1651,8 @@ const Scene = (() => {
         g.style.transition = 'none'; set(); void g.getBoundingClientRect();
         v.move = (x2, y2, ms, ease = 'ease-in-out') => {
           v.x = x2; v.y = y2;
+          g.classList.add('moving');   // (exhaust puffs while it drives)
+          clearTimeout(v.stop); v.stop = setTimeout(() => g.classList.remove('moving'), ms);
           if (v.cam) camTo(x2, ms);
           g.style.transition = `transform ${ms}ms ${ease}, opacity .6s`; set();
           const p = s.w(ms); p.catch(() => {});   // (fine to not wait for it)
@@ -1604,7 +1680,7 @@ const Scene = (() => {
         q('buddies').appendChild(g);
         const b = { g, pos: from, kind };
         const set = (x, y, ms) => {
-          const layer = y < BACK_Y ? q('backLayer') : q('buddies');
+          const layer = y < BACK_Y ? q('backLayer') : y < ROAD_Y ? q('buddies') : q('frontLayer');
           if (g.parentNode !== layer) {
             // (moving to another layer would skip the slide: settle where we are first)
             layer.appendChild(g);
@@ -1618,11 +1694,15 @@ const Scene = (() => {
           const ms = Math.max(300, Math.hypot(x - b.pos[0], y - b.pos[1]) * 5.5);
           b.pos = [x, y]; set(x, y, ms);
           g.classList.add('walking');
-          const p = s.w(ms).finally(() => g.classList.remove('walking')); p.catch(() => {});
+          const p = (b.free ? sleep(ms) : s.w(ms)).finally(() => g.classList.remove('walking')); p.catch(() => {});
           return p;
         };
         // walk somewhere, through the side street if it's between the back and the front
-        b.go = async (to) => { for (const p of route(b.pos, to)) await b.walk(p[0], p[1]); };
+        b.go = async (to) => {
+          const path = route(b.pos, to), cross = path.includes(CROSS_B);
+          if (cross) crossing(true);
+          try { for (const p of path) await b.walk(p[0], p[1]); } finally { if (cross) crossing(false); }
+        };
         b.chop = () => restartAnim(g.querySelector('.mjump'), 'chop');
         b.jump = () => restartAnim(g.querySelector('.mjump'), 'jump');
         b.remove = () => { g.remove(); const k = buddies.indexOf(b); if (k >= 0) buddies.splice(k, 1); };
@@ -1634,6 +1714,12 @@ const Scene = (() => {
         return b;
       },
       chop() { restartAnim(svg.querySelector('.mjump'), 'chop'); },
+      // a friend walks back home by themselves and goes in (it keeps going while the next scene starts)
+      walkHome(b) {
+        const homes = { golden: P.friend, red: P.friend2 };
+        b.free = true; b.keep = true;
+        (async () => { await b.go(homes[b.kind] || P.friend); await b.enter(); })().catch(() => {});
+      },
       /* throw something in an arc from (x1,y1) to (x2,y2) */
       toss(x1, y1, x2, y2, inner, ms = 800, after = null) {
         const g = document.createElementNS(NS, 'g');
@@ -1649,6 +1735,14 @@ const Scene = (() => {
           else { g.remove(); if (after) after(); }
         };
         requestAnimationFrame(frame);
+      },
+      splash(x, y) {
+        const g = document.createElementNS(NS, 'g');
+        g.setAttribute('transform', `translate(${x} ${y})`);
+        g.innerHTML = '<ellipse rx="10" ry="3" fill="none" stroke="#fff" stroke-width="2"/><ellipse rx="5" ry="1.6" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M-6 -2 l-3 -7 M0 -3 v-9 M6 -2 l3 -7" stroke="#cfefff" stroke-width="2" stroke-linecap="round"/>';
+        q('fxTop').appendChild(g);
+        g.animate([{ opacity: 1, transform: `translate(${x}px, ${y}px) scale(.4)` }, { opacity: 0, transform: `translate(${x}px, ${y}px) scale(1.6)` }], { duration: 900, easing: 'ease-out' }).onfinish = () => g.remove();
+        sfx('splash');
       },
       sparkle(x, y) {
         const g = document.createElementNS(NS, 'g');
@@ -1888,11 +1982,13 @@ const Scene = (() => {
       q('nestLife').classList.toggle('hide', level >= 2);
       q('vBirds').classList.toggle('hide', level >= 2);
       q('bugs1').classList.toggle('hide', level < 2);
+      q('heatJunk').classList.toggle('hide', level < 2);   // (dead fish and plastic wash up on the beach…)
+      q('seaJunk').classList.toggle('hide', level < 3);    // (…and float in the sea)
       q('bugs2').classList.toggle('hide', level < 3);
       svg.classList.toggle('coral-pale', level === 2);
       svg.classList.toggle('coral-bleached', level >= 3);
       setTime(time);
-      const m = level <= 1 ? 'mHappy' : level === 2 ? 'mMeh' : 'mSad';   // (the hotter the city, the less happy Bobo looks)
+      const m = level <= 1 ? 'mHappy' : 'mMeh';   // (when it gets hot Bobo looks neutral, never sad: it's a game for kids)
       if (m !== mood) {
         ['mHappy', 'mMeh', 'mSad'].forEach((k) => q(k).classList.toggle('hide', k !== m));
         mood = m;
@@ -1927,7 +2023,8 @@ const Scene = (() => {
       },
       finishJobs: finishPending,
       setMode: (m) => { s.mode = m; },   // 'bike' or 'car': how Bobo gets around town
-      setLines: (fn) => { lineFor = fn; },   // fn(key) → that speech bubble line in the current language
+      setLines: (fn) => { lineFor = fn; },
+      onCarTrip: (fn) => { hooks.carTrip = fn; },   // fn() whenever Bobo gets into the car for a trip around town   // fn(key) → that speech bubble line in the current language
       /* A reward 2 turns later (if Bobo was away on a trip, Bobo comes back first) */
       payoff(id) {
         begin();

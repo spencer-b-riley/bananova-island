@@ -9,12 +9,18 @@
   const PAYOFF_T = -0.03;                // reward when a green choice "comes back" 2 turns later
   const LOSE_T = 2.5;                    // this hot = the island overheated (game over, even before the last choice)
   const PAYOFF_DELAY = 2;
+  // It's never too late: after a lot of warming (over +1.5 °C), 3 or more green choices in a row
+  // cool the city down a little (but only back to +1.5 °C: the rest is up to the rewards)
+  const STREAK_T = -0.05, STREAK_FROM = 1.5;
+  // Every extra car trip (after choosing the car for school) warms the city a tiny bit, but never
+  // enough to make the player lose: at most +0.15 °C per game, and never close to the overheat line
+  const CAR_T = 0.03, CAR_MAX = 0.15;
   const TURNS = CHOICES.length;          // 11
   const MIN_T = 1.0;                     // the planet is already about 1 °C warmer today
   const GAMES_PER_PAGE = 4;
   // How Bobo looks when each situation appears
   const REACT = { school: 'think', lights: 'think', bottle: 'hot', toy: 'sad', hot: 'hot', cold: 'cold', shower: 'think',
-    party: 'yay', jacket: 'think', trip: 'yay', food: 'yay' };
+    party: 'yay', jacket: 'think', trip: 'yay', food: 'yay', litter: 'scared' };
   // Climate levels: below +1.3 °C, +1.7, +2.2, above
   const levelOf = (temp) => (temp < 1.3 ? 0 : temp < 1.7 ? 1 : temp < 2.2 ? 2 : 3);
   const RAIN_CHANCE = [0.12, 0.2, 0.3, 0.42];   // hotter = wilder weather
@@ -333,6 +339,7 @@
       </section>`, { home: true });
     scene = Scene.create($('#sceneWrap'));
     scene.setLines((key) => L().say[key] || '');
+    scene.onCarTrip(carTrip);
     watchScene($('#sceneWrap'));
     labelHud();
     updateHud();
@@ -390,6 +397,14 @@
 
   const deltaChips = (dt) => `<div class="chips">
       <span class="chip ${dt <= 0 ? 'up' : 'down'}">${Icon('thermo')} ${degDelta(dt)}</span></div>`;
+
+  // Bobo got into the car again: a little more CO₂ (see CAR_T)
+  function carTrip() {
+    if (!G || G.ending) return;
+    const add = round2(Math.max(0, Math.min(CAR_T, CAR_MAX - (G.carHeat || 0), LOSE_T - 0.2 - G.temp)));
+    if (add > 0) { G.carHeat = (G.carHeat || 0) + add; applyDelta(add); }
+    toast('car', t('carTrip'), add > 0 ? degDelta(add) : '');
+  }
 
   const wait = (ms) => new Promise((done) => setTimeout(done, ms));
   // While an animation plays, the card steps aside so the player can just watch.
@@ -483,7 +498,11 @@
     // 3. then the result: reaction, speech bubble, meters and the text card
     scene.react(good ? 'yay' : 'sad');
     sayLine((sy) => sy.choices[idx][good ? 1 : 2]);
-    applyDelta(d.t);
+    // a green streak (3 in a row) after a lot of warming cools the city down a little
+    const n = G.made.length, prevGood = n > 2 && G.picks[G.made[n - 2]] && G.picks[G.made[n - 3]];
+    const streak = good && prevGood && G.temp > STREAK_FROM;
+    const dt = streak ? Math.max(STREAK_T, round2(STREAK_FROM - G.temp)) : d.t;
+    applyDelta(dt);
     if (good) G.payQueue.push({ idx, due: turn + PAYOFF_DELAY });
 
     // too hot before the end: the island overheated and the game is over
@@ -491,7 +510,8 @@
     cardShow(() => card(`
       <div class="card-head"><span class="pill">${t('turn', { n: turn + 1 })}</span><span class="topic">${ct(idx, 'topic')}</span></div>
       <div class="result"><span class="emo">${Icon(d.icon)}</span><p>${ct(idx, good ? 'resGood' : 'resBad')}</p></div>
-      ${deltaChips(d.t)}
+      ${streak ? `<p class="note streak">${Icon('sparkle')} ${t('streak')}</p>` : ''}
+      ${deltaChips(dt)}
       <div class="row end"><button class="btn primary" data-action="cont">${t('cont')} ${Icon('next')}</button></div>`));
     G.busy = false;
   }
@@ -576,6 +596,9 @@
     endingView();
   }
 
+  // The recap ("what did you learn") must be read once, card by card; after that it can be skipped
+  const readOnce = () => !!store.ach.learner;
+
   function endingView() {
     const e = G.ending, [title, text] = L().endings[e];
     const greens = G.picks.filter(Boolean).length;
@@ -590,17 +613,17 @@
           : `<span class="ach-mini" title="${achName(id)}" aria-label="${achName(id)}">${Icon(achIcon(id))}</span>`).join('')}</div>` : ''}
       <div class="row">
         <button class="btn primary" data-action="recap">${Icon('book')} ${t('recapBtn')}</button>
-        <button class="btn ghost" data-action="takeaways">${t('skip')} ${Icon('skip')}</button>
+        ${readOnce() ? `<button class="btn ghost" data-action="takeaways">${t('skip')} ${Icon('skip')}</button>` : ''}
       </div>`);
   }
 
   function recapView() {
     const made = G.made.length;
-    const pos = G.recapIdx, k = G.made[pos], good = G.picks[k], ch = CHOICES[k];
+    const pos = G.recapIdx, k = G.made[pos], good = G.picks[k], ch = CHOICES[k], read = G.readSet.has(pos);
     card(`
       <div class="recap">
         <div class="card-head"><span class="pill">${pos + 1} / ${made}</span><span class="topic">${ct(k, 'topic')}</span>
-          <span class="spacer"></span><button class="link-btn" data-action="takeaways">${t('skip')} ${Icon('skip')}</button></div>
+          <span class="spacer"></span>${readOnce() ? `<button class="link-btn" data-action="takeaways">${t('skip')} ${Icon('skip')}</button>` : ''}</div>
         <p class="verdict ${good ? 'good' : 'bad'}">${good ? Icon('check') + ' ' + t('great') : Icon('think') + ' ' + t('couldBetter')}</p>
         <p>${t('youChose')} ${Icon(good ? ch.good.icon : ch.bad.icon)} ${ct(k, good ? 'good' : 'bad')}</p>
         <p>${ct(k, good ? 'recapGood' : 'recapBad')}</p>
@@ -608,8 +631,10 @@
         <div class="fact"><b>${Icon('bulb')} ${t('didYouKnow')}</b>${ct(k, 'fact')}</div>
         <div class="recap-nav">
           <button class="btn ghost small" data-action="recapPrev" ${pos === 0 ? 'disabled' : ''}>${Icon('back')} ${t('prev')}</button>
-          <button class="btn primary small" data-action="recapNext">${t('next')} ${Icon('next')}</button>
+          <button class="read-check ${read ? 'on' : ''}" data-action="readIt" aria-pressed="${read}">${Icon(read ? 'check' : 'book')} ${t('readIt')}</button>
+          <button class="btn primary small" data-action="recapNext" ${read || readOnce() ? '' : 'disabled'}>${t('next')} ${Icon('next')}</button>
         </div>
+        ${read || readOnce() ? '' : `<p class="read-hint">${t('readHint')}</p>`}
       </div>`);
   }
 
@@ -647,9 +672,11 @@
         if (next) { G.next = null; next(); }
         break;
       }
-      case 'recap': G.recapIdx = 0; G.cardView = recapView; recapView(); break;
+      case 'recap': G.recapIdx = 0; G.readSet = G.readSet || new Set(); G.cardView = recapView; recapView(); break;
+      case 'readIt': G.readSet.add(G.recapIdx); recapView(); break;
       case 'recapPrev': G.recapIdx = Math.max(0, G.recapIdx - 1); recapView(); break;
       case 'recapNext':
+        if (!G.readSet.has(G.recapIdx) && !readOnce()) break;   // (read it first: tick "I read this")
         if (G.recapIdx < G.made.length - 1) { G.recapIdx++; recapView(); }
         else {
           unlockWithToast('learner');

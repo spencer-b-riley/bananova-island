@@ -1,7 +1,6 @@
 /* Game data that doesn't depend on language.
    All text (in 4 languages) lives in i18n.js, in the same order as CHOICES.
 
-   h = change to 🐒 Bobo's happiness.
    t = change to 🌡️ the city's temperature (in °C above the old normal; the game starts at +1.0).
    Climate-smart ("good") choices don't warm the city. Some of them are ALSO more fun or
    cheaper right away (biking, thrift store, swapping toys), because green isn't always boring.
@@ -20,6 +19,7 @@ const CHOICES = [
   { id: 'jacket', good: { t: 0, icon: 'thrift' }, bad: { t: 0.35, icon: 'mall' }, times: ['day'] },
   { id: 'trip', good: { t: 0, icon: 'train' }, bad: { t: 0.4, icon: 'car' }, times: ['morning', 'day'] },
   { id: 'food', good: { t: 0, icon: 'veggie' }, bad: { t: 0.4, icon: 'burger' }, times: ['day'] },
+  { id: 'litter', good: { t: 0, icon: 'bin' }, bad: { t: 0.2, icon: 'splash' }, times: ['morning', 'day'] },
 ];
 
 // Endings depend on the final temperature (see app.js). Reaching +2.5 °C ends the game right away.
@@ -45,12 +45,13 @@ const ACHIEVEMENTS = [
   { id: 'thrift', icon: 'thrift' },
   { id: 'train', icon: 'train' },
   { id: 'veggie', icon: 'veggie' },
+  { id: 'seaGuard', icon: 'fish' },
   { id: 'learner', icon: 'book' },
   { id: 'three', icon: 'replay' },
 ];
 
 // which achievement belongs to which choice (unlocked by the climate-smart answer)
 const CHOICE_ACH = { school: 'bike', lights: 'lights', bottle: 'bottle', toy: 'toy', hot: 'breeze', cold: 'sweater',
-  shower: 'shower', party: 'party', jacket: 'thrift', trip: 'train', food: 'veggie' };
+  shower: 'shower', party: 'party', jacket: 'thrift', trip: 'train', food: 'veggie', litter: 'seaGuard' };
 
 const TAKEAWAY_ICONS = ['bike', 'switch', 'wrench', 'recycle', 'veggie', 'chat'];
