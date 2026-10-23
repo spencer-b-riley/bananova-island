@@ -551,17 +551,17 @@ const Scene = (() => {
   <g class="bays" stroke="#fff" stroke-width="1.2" opacity=".85"><path d="M138 373.5 v4 M200 373.5 v4 M262 373.5 v4 M318 373.5 v4"/></g>
   <g fill="#fff" opacity=".8" font-size="6" font-weight="900" font-family="Arial, sans-serif"><text x="166" y="377">P</text><text x="287" y="377">P</text></g>
   <!-- the shops' car park, right across the street from the thrift store and the mall -->
-  <rect x="482" y="375" width="112" height="21" class="road"/><path d="M538 380 v14" stroke="#fff" stroke-width="1.2" opacity=".85"/>
+  <rect x="482" y="375" width="112" height="21" class="road"/><path d="M482.5 377 V395.5 H593.5 V377" stroke="#d6dbe0" stroke-width="1" fill="none"/><path d="M538 380 v14" stroke="#fff" stroke-width="1.2" opacity=".85"/>
   <g fill="#fff" opacity=".8" font-size="7" font-weight="900" font-family="Arial, sans-serif" text-anchor="middle"><text x="511" y="393">P</text><text x="565" y="393">P</text></g>
   <!-- a little car park by the station, to the right of the little street -->
-  <rect x="244" y="333" width="56" height="21" class="road"/>
+  <rect x="244" y="333" width="56" height="21" class="road"/><path d="M246 333.5 H299.5 V353.5 H246" stroke="#d6dbe0" stroke-width="1" fill="none"/>
   <text x="274" y="351" text-anchor="middle" fill="#fff" opacity=".8" font-size="6" font-weight="900" font-family="Arial, sans-serif">P</text>
   ${rack(182, 365, 'school')}${rack(306, 356, 'station')}${rack(596, 365, 'mall')}
   <!-- street lights along the street at the back -->
   ${lamp(30, 362, false, 0.7)}${lamp(412, 362, false, 0.7)}${lamp(252, 384, false, 0.7)}${lamp(612, 384, true, 0.7)}
-  <!-- road signs: parking at the mall -->
+  <!-- road signs: the shops' car park -->
   <g class="signs">
-    <path d="M642 362 V342" stroke="#6b7280" stroke-width="1.8"/><rect x="636" y="330" width="12" height="12" rx="2" fill="#2f80ed"/><text x="642" y="339.5" text-anchor="middle" font-size="9" font-weight="900" fill="#fff" font-family="Arial, sans-serif">P</text>
+    <path d="M475 396 V378" stroke="#6b7280" stroke-width="1.6"/><rect x="470" y="367" width="10" height="10" rx="2" fill="#2f80ed"/><text x="475" y="375" text-anchor="middle" font-size="7.5" font-weight="900" fill="#fff" font-family="Arial, sans-serif">P</text>
   </g>
   <!-- the recycling center (a reward) behind Bobo's house -->
   ${item('recycling', 368, 362, `<rect x="-24" y="-34" width="48" height="34" rx="3" fill="#2fb35a"/><path d="M-28 -34 H28 L24 -41 H-24Z" fill="#23863e"/>
