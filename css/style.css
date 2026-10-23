@@ -521,7 +521,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .win { fill: #cfefff; transition: fill 2s; }
 :root[data-time="evening"] .win { fill: #ffe9a3; }
 :root[data-time="night"] .win { fill: #ffd85a; }
-/* at night: some office windows are dark; the school, the shops and the station are closed (their walls are floodlit instead) */
+/* at night: some office windows are dark; the school, the shops and the station are closed */
 :root[data-time="night"] .win.unlit, :root[data-time="night"] .closed .win { fill: #33465c; }
 :root[data-time="night"] .lights-off .hw, :root[data-time="evening"] .lights-off .hw { fill: #2c3a55; }
 .win-open .hw { fill: #fff; }
@@ -590,8 +590,6 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 
 .glows circle { opacity: 0; transition: opacity 1.2s; pointer-events: none; }
 .glows circle.on { opacity: 1; animation: glowFlicker 2.4s ease-in-out infinite alternate; }
-.glows .flood-light { opacity: 0; transition: opacity 1.5s; pointer-events: none; }
-.glows .flood-light.on { opacity: 1; }
 @keyframes glowFlicker { 50% { opacity: 0.8; } }
 
 /* Bobo's reactions */
@@ -798,5 +796,5 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 
 /* the bike group: two friends ride along the street by the school, arrive, and set off again */
 .to-school { animation: toSchool 18s linear infinite; }
-@keyframes toSchool { 0% { transform: translateX(660px); opacity: 0; } 4% { opacity: 1; } 80% { transform: translateX(140px); opacity: 1; } 86%, 100% { transform: translateX(110px); opacity: 0; } }
+@keyframes toSchool { 0% { transform: translateX(600px); opacity: 0; } 4% { opacity: 1; } 80% { transform: translateX(200px); opacity: 1; } 86%, 100% { transform: translateX(180px); opacity: 0; } }
 :root[data-perf="low"] .to-school { animation-duration: 30s; }
