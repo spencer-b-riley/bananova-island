@@ -391,7 +391,9 @@ const Scene = (() => {
   ${item('turbines', 0, 0, `${turbine(36, 300, 1, 0)}${turbine(82, 296, 0.85, -0.7)}${turbine(122, 293, 0.7, -1.3)}`, 'fade')}
 
   <!-- far away: a volcano island; its trees and animals come and go with the climate -->
+  <g data-k="boltsBack"></g>
   ${VOLCANO}
+  <g data-k="boltsFar"></g>
   <ellipse class="lagoon" cx="400" cy="446" rx="560" ry="140"/>
   <g data-k="farFish" class="fade"><g class="swim" style="animation-duration:60s;animation-delay:-10s"><g transform="translate(0 312) scale(.3)">${fish('#ffd23f')}</g></g>
     <g class="swim" style="animation-duration:66s;animation-delay:-25s"><g transform="translate(0 326) scale(.34)">${fish('#7ad3ff')}</g></g></g>
@@ -407,6 +409,8 @@ const Scene = (() => {
   <path class="grass light" d="M60 310 C180 300 620 300 740 310 C766 316 770 340 760 352 L40 352 C30 340 34 316 60 310Z"/>
   <path d="M44 304 C170 292 630 292 756 304 C786 310 792 360 790 430 C788 478 770 490 738 490 L62 490 C30 490 12 478 10 430 C8 360 14 310 44 304Z" fill="url(#${u}tufts)"/>
 
+  <!-- lightning behind the skyscrapers (the buildings hide the bottom of it, so it looks far away) -->
+  <g data-k="boltsMid"></g>
   <!-- far back: skyscrapers and the power plant -->
   <g class="towers">
     <rect x="286" y="190" width="40" height="124" fill="#8fb3d9"/><rect x="286" y="190" width="40" height="8" fill="#6f93b9"/>
@@ -459,7 +463,7 @@ const Scene = (() => {
   <!-- parking bays on the street (school, station, shops) and bike racks -->
   <g class="bays" stroke="#fff" stroke-width="1.2" opacity=".85"><path d="M138 373.5 v4 M200 373.5 v4 M262 373.5 v4 M318 373.5 v4 M568 373.5 v4 M632 373.5 v4"/></g>
   <g fill="#fff" opacity=".8" font-size="6" font-weight="900" font-family="Arial, sans-serif"><text x="166" y="377">P</text><text x="287" y="377">P</text><text x="597" y="377">P</text></g>
-  ${rack(126, 362, 'school')}${rack(252, 340, 'station')}${rack(596, 365, 'mall')}
+  ${rack(126, 365, 'school')}${rack(254, 356, 'station')}${rack(596, 365, 'mall')}
   <!-- road signs: school crossing, which way to the station, parking at the mall -->
   <g class="signs">
     <path d="M196 362 V340" stroke="#6b7280" stroke-width="1.8"/><path d="M196 330 L204 338 L196 346 L188 338Z" fill="#ffd23f" stroke="#23313f" stroke-width="1"/><circle cx="194" cy="335.5" r="1.4" fill="#23313f"/><circle cx="198.5" cy="336.5" r="1.2" fill="#23313f"/><path d="M194 337 v4 M198.5 338 v3.4" stroke="#23313f" stroke-width="1.4"/>
@@ -472,7 +476,7 @@ const Scene = (() => {
   <g class="school">
     <rect x="40" y="312" width="136" height="50" fill="#ffcf5a"/><rect x="36" y="306" width="144" height="7" rx="2" fill="#c98f4f"/>
     <path d="M90 306 V290 L108 276 L126 290 V306Z" fill="#ffcf5a" stroke="#c98f4f" stroke-width="3"/><circle cx="108" cy="292" r="7" fill="#fff" stroke="#23313f" stroke-width="1.5"/><path d="M108 292 V287 M108 292 h4" stroke="#23313f" stroke-width="1.5"/>
-    ${[50, 70, 136, 156].map((x) => `<rect class="win" x="${x}" y="320" width="13" height="12" rx="1"/><rect class="win" x="${x}" y="340" width="13" height="12" rx="1"/>`).join('')}
+    ${[50, 70, 136, 156].map((x) => `<rect class="win" x="${x}" y="320" width="13" height="12" rx="1"/><rect class="win" x="${x}" y="337" width="13" height="11" rx="1"/>`).join('')}
     <rect x="98" y="336" width="20" height="26" fill="#2f80ed"/><path d="M108 336 V362" stroke="#1d5fae" stroke-width="2"/>
     <text x="108" y="328" text-anchor="middle" font-size="9" font-weight="900" fill="#c0392b">A B C</text>
     <path d="M108 276 V264" stroke="#9aa5b1" stroke-width="2"/><path d="M109 264 l12 4 l-12 4Z" fill="#ff6fa8" class="flag"/>
@@ -492,7 +496,7 @@ const Scene = (() => {
     <rect x="548" y="304" width="52" height="15" rx="4" fill="#ff5b4a"/><path d="M566 309 h16 l-2 8 h-12Z M569 309 q5 -7 10 0" fill="none" stroke="#fff" stroke-width="2"/>
     ${[520, 538, 600, 618].map((x) => `<rect class="win" x="${x}" y="324" width="12" height="14" rx="1"/>`).join('')}
     <rect x="560" y="330" width="28" height="32" fill="#cfefff" stroke="#6f93b9" stroke-width="2"/><path d="M574 330 V362" stroke="#6f93b9" stroke-width="2"/>
-    <text x="609" y="355" font-size="9" font-weight="900" fill="#fff">SALE</text>
+    <text x="609" y="347" font-size="9" font-weight="900" fill="#fff">SALE</text>
   </g>
   ${tree(640, 340, 0.75)}
   <!-- a nest at the top of the tree; the chicks are gone when it gets too hot -->
@@ -572,7 +576,7 @@ const Scene = (() => {
     `<g transform="translate(${x} 441)"><path d="M0 0 q-6 -8 -2 -14 M0 0 q6 -8 2 -14 M0 0 V-12" stroke="#3d9a2e" stroke-width="2.4" fill="none"/>${k % 2 ? '<circle cx="0" cy="-2" r="3" fill="#ff8c42"/>' : '<circle cx="0" cy="-6" r="5" fill="#7fe06a"/>'}</g>`).join('')}
       ${flower(704, 438, '#ff6fa8')}${bee(728, 416, 0)}${bee(760, 420, -1.4)}`)}
 
-  ${rack(288, 426, 'home')}
+  ${rack(250, 426, 'home')}
   <!-- pigeons pecking on the pavement (behind the road, so the cars drive in front of them) -->
   <g data-k="pigeons" class="fade">${pigeon(234, 435, false, 0)}${pigeon(596, 436, true, -1.1)}</g>
   <!-- the toy in front of Bobo's house -->
@@ -719,9 +723,8 @@ const Scene = (() => {
     <circle data-glow="houseLit" cx="386" cy="416" r="24" fill="url(#${u}glow)"/>
     <circle data-glow="lamps" cx="704" cy="294" r="14" fill="url(#${u}glow)"/>
   </g>
-  <!-- lightning (only during storms, in time with the white flash) -->
-  <g class="bolts"><path class="bolt" d="M560 0 L536 74 L556 74 L526 158 L582 58 L560 58 L582 0Z" fill="#fff36b" stroke="#fff" stroke-width="2"/>
-    <path class="bolt b2" d="M180 6 L164 60 L180 60 L158 122 L200 50 L184 50 L200 6Z" fill="#fff9c4" stroke="#fff" stroke-width="2"/></g>
+  <!-- lightning close by, up in the clouds (storms only; see strike() in the scene) -->
+  <g data-k="boltsNear"></g>
   <g data-k="bubble" class="bubble hide"><g class="bubble-in">
     <rect data-k="bubbleBox" x="-60" y="-37" width="120" height="31" rx="12" fill="#fff" stroke="#23313f" stroke-width="2.2"/>
     <path d="M-7 -6.6 L0 6 L7 -6.6" fill="#fff" stroke="#23313f" stroke-width="2.4" stroke-linejoin="round"/>
@@ -772,11 +775,11 @@ const Scene = (() => {
         async play(s) {
           // there's a traffic jam on the roads… and Bobo just bikes right past it
           const jam = s.jamStart(QUEUE_A, QUEUE_B, false);   // (the cars drive in as Bobo heads out)
-          await s.go([300, 456]);              // Bobo's bike is in the rack by the house
+          await s.go([268, 456]);              // Bobo's bike is in the rack by the house
           s.hide('bikes_home'); s.wear('bike');
           await jam.ready; await s.w(150);
           // along the bike lane past all the cars, up the little street (seen from behind) to the bike rack at school
-          await s.ridePath([[300, 487], [232, 487], [232, 374], [137, 370]]);
+          await s.ridePath([[268, 487], [232, 487], [232, 374], [137, 370]]);
           s.wear('bike', false); s.show('bikes_school'); await s.w(150);
           s.remote = { bikes: 'school', people: [] };
           s.jamGo(jam);
@@ -1097,6 +1100,7 @@ const Scene = (() => {
     let mood = '';
     let time = 'day';
     let reactTimer = 0, bubbleTimer = 0, walkTimer = 0, walkEnd = 0;
+    let boltTimer = 0;        // (the next lightning strike while there's a storm)
     let lineFor = () => '';   // (the game gives us Bobo's lines in the player's language, see setLines)
     let walkPos = [...P.home];
     let gen = 0;               // goes up whenever a new situation starts; old animations then stop
@@ -1353,17 +1357,17 @@ const Scene = (() => {
         if (there) await (s.mode === 'bike' ? s.bikeThere(to, kinds, existing) : s.driveThere(to, kinds, existing));
         else await (s.mode === 'bike' ? s.bikeHome(to) : s.driveHome(to));
       },
-      rackFor(to) { return to[1] < 345 ? ['station', [256, 342]] : to[0] < 300 ? ['school', [137, 368]] : ['mall', [606, 370]]; },
+      rackFor(to) { return to[1] < 345 ? ['station', [270, 358]] : to[0] < 300 ? ['school', [137, 368]] : ['mall', [606, 370]]; },
       bayFor(to) { return to[1] < 345 ? 290 : to[0] < 300 ? 168 : 600; },
       async bikeThere(to, kinds, existing) {
         const [rk, rp] = s.rackFor(to);
         // everyone takes their bike from the rack at home and rides off together
         let people = existing || s.family(P.door, kinds);
         people.forEach((m, k) => { m.kind = kinds[k]; if (!existing) m.appear(); });
-        await Promise.all([s.go([300, 456]), ...people.map((m, k) => m.walk(318 + 16 * k, 456))]);
+        await Promise.all([s.go([268, 456]), ...people.map((m, k) => m.walk(286 + 16 * k, 456))]);
         s.hide('bikes_home'); s.wear('bike');
         const riders = s.toBikes(people);
-        await s.ridePath([[300, 487], [232, 487], [232, rp[1] > 360 ? 374 : rp[1]], rp], riders);
+        await s.ridePath([[268, 487], [232, 487], [232, rp[1] > 360 ? 374 : rp[1]], rp], riders);
         // lock the bikes at the rack by the destination
         s.wear('bike', false); s.show('bikes_' + rk); if (riders.length) s.show('bikes2_' + rk); if (riders.length > 1) s.show('bikes3_' + rk);
         people = s.toWalkers(riders, kinds);
@@ -1380,7 +1384,7 @@ const Scene = (() => {
         const kinds = r.people.map((m) => m.kind);
         const riders = s.toBikes(r.people);
         s.remote = null;
-        await s.ridePath([[232, rp[1] > 360 ? 374 : rp[1]], [232, 487], [300, 487]], riders);
+        await s.ridePath([[232, rp[1] > 360 ? 374 : rp[1]], [232, 487], [268, 487]], riders);
         s.wear('bike', false); s.show('bikes_home');
         const people = s.toWalkers(riders, kinds);
         await Promise.all([s.go(to), ...people.map(async (m, k) => { await s.w(200 * k); await m.go(P.door); await m.enter(); })]);
@@ -1723,6 +1727,66 @@ const Scene = (() => {
       container.classList.toggle('raining', wet);
       container.classList.toggle('storming', w === 'storm');
       container.classList.toggle('fx-storm', w === 'storm');
+      if (w === 'storm' && !boltTimer) boltTimer = setTimeout(lightning, 900);
+      if (w !== 'storm') { clearTimeout(boltTimer); boltTimer = 0; }
+    }
+
+    /* Lightning: every strike is new, somewhere else, at a different distance. Far ones are thin and faint
+       (behind the volcano, on the volcano, out at sea), middle ones disappear behind the skyscrapers,
+       close ones flicker between the clouds. The flash on the screen is gentle, and bigger for closer ones. */
+    const BOLT = {
+      back: { layer: 'boltsBack', w: 0.7, top: [175, 215], op: 0.55, flash: 0.03 },
+      far: { layer: 'boltsFar', w: 1.1, top: [120, 165], op: 0.75, flash: 0.05 },
+      mid: { layer: 'boltsMid', w: 1.8, top: [40, 90], op: 0.85, flash: 0.08 },
+      near: { layer: 'boltsNear', w: 2.6, top: [-10, 10], op: 0.95, flash: 0.13 },
+    };
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    // the top of the volcano island at x (or null if x isn't over the volcano)
+    const volcanoY = (x) => {
+      const l = Math.abs((x - 616) / 1.15);
+      return l > 94 ? null : 291 - 1.15 * 64 * Math.pow(clamp(1 - (l - 13) / 81, 0, 1), 1.4);
+    };
+    const zigzag = (x0, y0, x1, y1, n) => {
+      const pts = [[x0, y0]], wob = Math.abs(y1 - y0) * 0.09;
+      for (let k = 1; k < n; k++) pts.push([x0 + (x1 - x0) * k / n + rnd(-wob, wob), y0 + (y1 - y0) * k / n + rnd(-wob, wob) * 0.4]);
+      pts.push([x1, y1]);
+      return pts;
+    };
+    const pathOf = (pts) => 'M' + pts.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L');
+    function strike(depth) {
+      const d = BOLT[depth];
+      let x0 = rnd(30, 770), x1, y1;
+      if (depth === 'far' && Math.random() < 0.6) x0 = rnd(540, 700);   // (the volcano gets hit a lot)
+      const y0 = rnd(d.top[0], d.top[1]);
+      if (depth === 'near') { x1 = x0 + rnd(-60, 60); y1 = rnd(90, 160); }   // (between the clouds, high above the city)
+      else {
+        x1 = x0 + rnd(-30, 30);
+        const v = depth === 'far' ? volcanoY(x1) : null;
+        y1 = v !== null ? v : depth === 'mid' ? 292 : 288;
+      }
+      const main = zigzag(x0, y0, x1, y1, 7 + Math.floor(Math.random() * 4));
+      const from = main[2 + Math.floor(Math.random() * 3)], side = Math.random() < 0.5 ? -1 : 1, len = (y1 - y0) * rnd(0.25, 0.4);
+      const branch = zigzag(from[0], from[1], from[0] + side * len * 0.7, from[1] + len, 3);
+      const g = document.createElementNS(NS, 'g');
+      g.setAttribute('fill', 'none'); g.setAttribute('stroke-linejoin', 'round'); g.setAttribute('stroke-linecap', 'round');
+      g.innerHTML = `<path d="${pathOf(main)} ${pathOf(branch)}" stroke="#bcd4ff" stroke-width="${d.w * 3.2}" opacity=".3"/>`
+        + `<path d="${pathOf(main)}" stroke="#fffdf0" stroke-width="${d.w}"/><path d="${pathOf(branch)}" stroke="#fffdf0" stroke-width="${d.w * 0.6}"/>`;
+      g.style.opacity = '0';
+      q(d.layer).appendChild(g);
+      const steps = [{ opacity: 0 }, { opacity: d.op, offset: 0.06 }, { opacity: d.op * 0.15, offset: 0.22 }, { opacity: d.op * 0.9, offset: 0.32 }, { opacity: 0 }];
+      g.animate(steps, { duration: 650 }).onfinish = () => g.remove();
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const fl = container.querySelector('.fxh-flash');
+        if (fl) fl.animate(steps.map((st) => ({ ...st, opacity: st.opacity / d.op * d.flash })), { duration: 650 });
+      }
+    }
+    function lightning() {
+      if (!svg.isConnected || !container.classList.contains('storming')) { boltTimer = 0; return; }
+      const r = Math.random(), depth = r < 0.25 ? 'back' : r < 0.55 ? 'far' : r < 0.8 ? 'mid' : 'near';
+      strike(depth);
+      if (Math.random() < 0.3) setTimeout(() => { if (svg.isConnected) strike(['back', 'far', 'mid'][Math.floor(Math.random() * 3)]); }, rnd(250, 600));
+      const slow = typeof Perf !== 'undefined' && Perf.tier === 'low' ? 1.8 : 1;
+      boltTimer = setTimeout(lightning, rnd(1500, 4000) * slow);
     }
 
     /* ── reactions + speech bubble ── */

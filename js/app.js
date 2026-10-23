@@ -346,9 +346,20 @@
     $('#mt b').textContent = deg(G.temp).replace(' °C', '°');
   }
 
+  // The thermometer is one colour that warms up step by step: cool blue → yellow → hot red (at the overheat line)
+  const THERMO = [[1.0, [79, 195, 247]], [1.75, [255, 182, 39]], [LOSE_T, [255, 91, 74]]];
+  function thermoColor(temp) {
+    let k = 0;
+    while (k < THERMO.length - 2 && temp > THERMO[k + 1][0]) k++;
+    const [t0, c0] = THERMO[k], [t1, c1] = THERMO[k + 1];
+    const f = clamp((temp - t0) / (t1 - t0), 0, 1);
+    return `rgb(${c0.map((v, n) => Math.round(v + (c1[n] - v) * f)).join(', ')})`;
+  }
+
   function updateHud() {
     // thermometer: +0.8 °C = empty, +2.5 °C (the island overheats) = full
     $('#mt .bar i').style.width = clamp((G.temp - 0.8) / (LOSE_T - 0.8) * 100, 4, 100) + '%';
+    $('#mt .bar i').style.backgroundColor = thermoColor(G.temp);
     const dots = $('#dots').children;
     for (let k = 0; k < TURNS; k++) {
       const pk = G.picks[G.seq[k]];

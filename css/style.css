@@ -96,8 +96,7 @@
 .fxh-heat { background: #ff7a2e; transition: opacity 2s; }
 .fxh-dark { background: #1d2533; }
 .fx-storm .fxh-dark { animation: dark 3.4s ease forwards; }
-.fxh-flash { background: #fff; }
-.fx-storm .fxh-flash { animation: flash 3.4s linear forwards; }
+.fxh-flash { background: #eaf2ff; }   /* (lightning flashes: gentle, driven by strike() in scene.js) */
 /* the lights + speech bubble SVG sits exactly over the island SVG */
 .scene-top { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 /* the camera slides the city sideways on phones (see Scene camTo) */
@@ -642,14 +641,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 /* storms in a hot climate: trees bend in the wind */
 .storming .crown { transform-box: fill-box; transform-origin: 50% 100%; animation: sway 0.9s ease-in-out infinite alternate; }
 .fx-storm .fxh-dark { animation: dark 3.4s ease forwards; }
-.fx-storm .fxh-flash { animation: flash 6s linear infinite; }
-.bolt { opacity: 0; }
-.storming .bolt { animation: boltA 6s linear infinite; }
-.storming .bolt.b2 { animation-name: boltB; }
-@keyframes boltA { 0%, 40.5% { opacity: 0; } 41%, 42.5% { opacity: 1; } 43%, 44.5% { opacity: 0; } 45%, 46% { opacity: 0.9; } 47%, 100% { opacity: 0; } }
-@keyframes boltB { 0%, 75.5% { opacity: 0; } 76%, 78% { opacity: 1; } 79%, 100% { opacity: 0; } }
 @keyframes dark { to { opacity: 0.35; } }
-@keyframes flash { 0%, 40% { opacity: 0; } 41% { opacity: 0.7; } 43% { opacity: 0; } 45% { opacity: 0.5; } 48%, 75% { opacity: 0; } 76% { opacity: 0.6; } 79%, 100% { opacity: 0; } }
 .heat-lines path { stroke: #fff2c4; stroke-width: 3; fill: none; opacity: 0.8; animation: rise 1.2s linear infinite; }
 @keyframes rise { from { transform: translateY(20px); opacity: 0; } 50% { opacity: 0.8; } to { transform: translateY(-30px); opacity: 0; } }
 
@@ -679,7 +671,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 @keyframes sway { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
 
 /* the thermometer in the HUD */
-.thermo .bar i { background: linear-gradient(90deg, #4fc3f7, #ffb627 45%, #ff5b4a); background-size: 220px 100%; }
+.thermo .bar i { background: #4fc3f7; }   /* (one colour that warms up with the temperature: set in app.js) */
 .meter.thermo b { min-width: 3.2em; }
 
 @media (prefers-reduced-motion: reduce) {
