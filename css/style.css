@@ -775,6 +775,10 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .fly.left { animation-name: flyLeft; }
 /* birds drift up and down as they fly, each at its own height and pace */
 .alt { animation: alt 9s ease-in-out infinite alternate; }
+/* ripples on the water: little rings that spread out and fade */
+.ripple { transform-box: fill-box; transform-origin: center; opacity: 0; animation: ripple 4.2s ease-out infinite; }
+@keyframes ripple { 0% { transform: scale(0.3); opacity: 0.75; } 100% { transform: scale(1.9); opacity: 0; } }
+:root[data-perf="low"] .ripples { display: none; }
 @keyframes alt { from { transform: translateY(calc(var(--alt, 20px) * -1)); } to { transform: translateY(var(--alt, 20px)); } }
 /* an airplane crosses the sky only now and then (most of the time it's far off-screen) */
 .plane { animation: plane 150s linear infinite; }

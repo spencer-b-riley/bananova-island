@@ -45,7 +45,7 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
   train, a veggie garden with bees and a beach clean-up
 - The climate changes the city step by step (no disasters):
   - cooler: green grass, birds, butterflies, bees, crabs, fish and a sea turtle, a long colourful coral
-    reef with many kinds of coral plus corals all around the island's shore, and little seaweed swaying on them (the seaweed dies off when it's hot)
+    reef with many kinds of coral that runs all around the island, little seaweed swaying on it, and ripples on the water (the seaweed dies off when it's hot)
   - hotter: dry brown grass, hazy sky, a bigger sun, bugs and flies, the animals leave, the sea
     rises over the beach, the coral bleaches, plastic and dead fish wash up, heat shimmers off the
     roads, and the weather gets wilder (more rain, then storms, with lightning near and far)

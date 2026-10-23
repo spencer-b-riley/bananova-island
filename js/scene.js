@@ -136,9 +136,9 @@ const Scene = (() => {
   // the long reef: a bumpy rock ridge all along the sea floor, covered in all kinds of coral
   const REEF_KINDS = ['staghorn', 'sponge', 'brain', 'table', 'anemone', 'whip', 'pillar', 'mushroom', 'fan', 'bubble', 'tube'];
   const REEF = (() => {
-    let ridge = 'M14 640 L14 618';
-    for (let x = 14; x <= 786; x += 26) ridge += ` Q${x + 13} ${606 + (x * 7 % 9)} ${x + 26} ${616 + (x * 3 % 5)}`;
-    ridge += ' L786 640Z';
+    let ridge = 'M-12 640 L-12 618';
+    for (let x = -12; x <= 786; x += 26) ridge += ` Q${x + 13} ${606 + (x * 7 % 9)} ${x + 26} ${616 + (x * 3 % 5)}`;
+    ridge += ' L812 640Z';
     let corals = '';
     for (let k = 0, x = 26; x < 780; k++, x += 24 + (k * 13 % 11)) {
       const y = 612 + (k * 5 % 6), sc = 0.42 + (k * 7 % 5) * 0.05;
@@ -146,28 +146,35 @@ const Scene = (() => {
     }
     return `<path d="${ridge}" fill="#5b6470" opacity=".9"/><path d="${ridge}" fill="none" stroke="#6f7884" stroke-width="2" opacity=".5"/>${corals}`;
   })();
-  // A fringing reef all around the island, in the shallow water just off the shore: corals follow the island's
-  // outline (the same curves as the island shape), down the right side, along the front and up the left side
-  const RING = (() => {
-    const segs = [[[766, 296], [800, 302], [808, 360], [806, 430]], [[806, 430], [804, 502], [786, 534], [744, 534]],
-      [[744, 534], [600, 534], [200, 534], [56, 534]], [[56, 534], [14, 534], [-4, 502], [-6, 430]], [[-6, 430], [-8, 360], [0, 302], [34, 296]]];
+  // The big reef also runs up both sides of the island, further out in the sea: it follows the island's outline
+  // (from the front corners up to just below the railway bridge), between the bridges' pillars, and is drawn
+  // behind the bridges (so they never cut through it)
+  const REEF_SIDES = (() => {
+    const sides = [
+      [[[56, 534], [14, 534], [-4, 502], [-6, 430]], [[-6, 430], [-8, 360], [0, 302], [34, 296]]],
+      [[[744, 534], [786, 534], [804, 502], [806, 430]], [[806, 430], [808, 360], [800, 302], [766, 296]]]];
     const at = ([a, b, c, d], t) => [0, 1].map((i) => (1 - t) ** 3 * a[i] + 3 * (1 - t) ** 2 * t * b[i] + 3 * (1 - t) * t * t * c[i] + t ** 3 * d[i]);
-    const pts = [];
-    segs.forEach((seg) => {
-      const len = Math.hypot(seg[3][0] - seg[0][0], seg[3][1] - seg[0][1]) + 40, n = Math.max(2, Math.round(len / 21));
-      for (let k = 0; k < n; k++) {
-        const t = (k + 0.5) / n, [x, y] = at(seg, t), [x2, y2] = at(seg, Math.min(1, t + 0.01));
-        const tl = Math.hypot(x2 - x, y2 - y) || 1, ox = (y2 - y) / tl, oy = -(x2 - x) / tl;   // (outwards, into the sea)
-        pts.push([x + ox * 17, y + oy * 17]);
-      }
+    let rock = '', corals = '', k = 0;
+    sides.forEach((segs, side) => {
+      const out = side === 0 ? -1 : 1, pts = [[side === 0 ? -10 : 810, 612]];   // (joins the reef in front)
+      segs.forEach((seg) => {
+        for (let n = 0; n <= 12; n++) {
+          const [x, y] = at(seg, n / 12);
+          const off = (side === 0 ? 44 : 30) + (y - 300) * 0.04;   // (in the open water between the island and the bridge pillars)
+          if (y > 338) pts.push([x + out * off, y + (y - 300) * 0.25]);
+        }
+      });
+      // (the rock is wider where it's closer to us, narrower further back)
+      pts.slice(1).forEach(([x, y], n) => {
+        const [px, py] = pts[n], w = 7 + Math.max(0, (y - 340) / 270) * 13;
+        rock += `<path d="M${px.toFixed(1)} ${py.toFixed(1)} L${x.toFixed(1)} ${y.toFixed(1)}" stroke="#66707c" stroke-width="${w.toFixed(1)}" stroke-linecap="round" opacity=".75"/>`;
+      });
+      pts.slice(1).forEach(([x, y]) => {
+        const sc = 0.26 + Math.max(0, (y - 340) / 270) * 0.26;   // (smaller further back)
+        corals += coral(+x.toFixed(1), +(y - 4).toFixed(1), REEF_KINDS[(k++ * 5) % REEF_KINDS.length], 'abcde'[(k * 2) % 5], +sc.toFixed(2));
+      });
     });
-    let corals = '', weeds = '';
-    pts.filter(([x, y]) => y > 322 && !(x > 688 && x < 736 && y > 500)).forEach(([x, y], k) => {   // (not at the horizon, not under the pier)
-      corals += coral(+x.toFixed(1), +y.toFixed(1), REEF_KINDS[(k * 5) % REEF_KINDS.length], 'abcde'[(k * 2) % 5], 0.32 + (k * 3 % 4) * 0.04);
-      if (k % 2) weeds += `<g transform="translate(${(x + 9).toFixed(1)} ${(y + 1).toFixed(1)})"><g class="kelp" style="animation-delay:${(-k * 0.37).toFixed(2)}s;animation-duration:${3 + (k % 3) * 0.5}s">
-        <path d="M0 0 C-2 -4 2 -8 0 -12 M2 0 C4 -4 1 -7 3 -10" stroke="${k % 4 === 1 ? '#3f9b5f' : '#58b26e'}" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></g>`;
-    });
-    return { corals, weeds };
+    return rock + corals;
   })();
   // small seaweed swaying on the reef (it dies off when the sea gets too warm)
   const SEAWEED = [40, 92, 150, 214, 268, 330, 388, 446, 512, 566, 628, 690, 748].map((x, k) =>
@@ -471,6 +478,8 @@ const Scene = (() => {
   <!-- one hawk circling high above the city -->
   <g data-k="hawk" class="fade"><g class="hawk-fly"><g class="alt" style="--alt:40px;animation-duration:17s"><g transform="translate(0 165) scale(-0.55 0.55)"><g class="soar">${HAWK}</g></g></g></g></g>
 
+  <g class="ripples" fill="none" stroke="#ffffff" stroke-width="1.4">${[[120, 560, 0], [300, 590, -1.6], [470, 556, -3.1], [610, 600, -0.8], [760, 566, -2.3], [-30, 420, -1.2], [835, 380, -2.7], [40, 640, -3.6], [540, 646, -0.4], [230, 630, -2.9]]
+    .map(([x, y, d]) => `<ellipse class="ripple" cx="${x}" cy="${y}" rx="12" ry="3.2" style="animation-delay:${d}s"/>`).join('')}</g>
   <g class="waves"><path d="M-260 320 q15 -8 30 0 q15 8 30 0 M900 318 q15 -8 30 0 q15 8 30 0 M-120 480 q15 -8 30 0 q15 8 30 0 M960 490 q15 -8 30 0 q15 8 30 0 M120 560 q15 -8 30 0 q15 8 30 0 M560 580 q15 -8 30 0 q15 8 30 0"/></g>
   <g data-k="seaFx"></g>
 
@@ -486,6 +495,7 @@ const Scene = (() => {
     <g class="swim" style="animation-duration:66s;animation-delay:-25s"><g transform="translate(0 360) scale(.3)">${fish('#7ad3ff')}</g></g></g>
 
   <!-- bridges: the train and the road go across the sea to the other towns -->
+  <g data-k="reefSides" class="reef">${REEF_SIDES}</g>
   ${piers(320, 50)}${piers(478, 70)}
 
   <!-- the island -->
@@ -797,8 +807,8 @@ const Scene = (() => {
   </g>
   <!-- when the sea gets too warm: plastic and dead fish floating -->
   ${item('seaJunk', 0, 0, `<g class="float">${deadFish(186, 552, 170)}${bottle(420, 566, 95, 1)}${deadFish(612, 556, 190)}<path d="M300 560 q6 -6 12 0 q-6 4 -12 0Z" fill="#e8eef2" opacity=".85"/></g>`, 'fade')}
-  <g data-k="reef" class="reef">${RING.corals}${REEF}</g>
-  <g data-k="seaweed" class="fade">${RING.weeds}${SEAWEED}</g>
+  <g data-k="reef" class="reef">${REEF}</g>
+  <g data-k="seaweed" class="fade">${SEAWEED}</g>
   <g data-k="fish">
     <g class="swim" style="animation-duration:34s"><g transform="translate(0 562) scale(.6)">${fish()}</g></g>
     <g class="swim" style="animation-delay:-14s;animation-duration:40s"><g transform="translate(0 574) scale(.45)">${fish('#ffd23f')}</g></g>
