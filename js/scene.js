@@ -119,15 +119,37 @@ const Scene = (() => {
     fan: `<path d="M-1 0 L0 -7 C-20 -9 -24 -28 -12 -38 C-4 -44 6 -44 13 -38 C24 -28 20 -9 1 -7 L1 0Z" fill="currentColor" opacity=".9"/>
       <path d="M0 -7 C-6 -18 -12 -26 -12 -36 M0 -7 C0 -20 0 -30 1 -42 M0 -7 C6 -18 12 -26 13 -36" stroke="#00000028" stroke-width="1.3" fill="none"/>`,
     tube: `<rect x="-14" y="-18" width="8" height="18" rx="3" fill="currentColor"/><rect x="-4" y="-28" width="8" height="28" rx="3" fill="currentColor"/><rect x="6" y="-14" width="8" height="14" rx="3" fill="currentColor"/>`,
+    table: `<path d="M-2 0 V-14 M2 0 V-14" stroke="currentColor" stroke-width="3"/><path d="M-22 -15 Q0 -24 22 -15 Q0 -11 -22 -15Z" fill="currentColor"/>
+      <g fill="#ffffff" opacity=".3"><circle cx="-12" cy="-16" r="1.4"/><circle cx="-3" cy="-18" r="1.4"/><circle cx="7" cy="-18" r="1.4"/><circle cx="15" cy="-16" r="1.4"/></g>`,
+    pillar: `<g fill="currentColor"><rect x="-12" y="-26" width="7" height="26" rx="3.5"/><rect x="-3" y="-36" width="7" height="36" rx="3.5"/><rect x="6" y="-20" width="7" height="20" rx="3.5"/></g>
+      <g fill="#00000022"><circle cx="-8.5" cy="-18" r="1.2"/><circle cx="0.5" cy="-28" r="1.2"/><circle cx="0.5" cy="-14" r="1.2"/><circle cx="9.5" cy="-10" r="1.2"/></g>`,
+    sponge: `<path d="M-10 0 L-12 -24 Q0 -29 12 -24 L10 0Z" fill="currentColor"/><ellipse cx="0" cy="-24.5" rx="9.5" ry="3" fill="#00000035"/>
+      <g fill="#00000020"><circle cx="-5" cy="-14" r="1.6"/><circle cx="4" cy="-9" r="1.6"/><circle cx="2" cy="-18" r="1.4"/></g>`,
+    mushroom: `<path d="M-15 0 Q-15 -15 0 -15 Q15 -15 15 0Z" fill="currentColor"/><path d="M0 -14 V-1 M-7 -12 L-4 -1 M7 -12 L4 -1 M-12 -7 L-8 -1 M12 -7 L8 -1" stroke="#00000025" stroke-width="1.2"/>`,
+    whip: `<path d="M-6 0 Q-11 -15 -4 -30 M0 0 Q3 -18 -1 -38 M5 0 Q10 -14 7 -28" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+    bubble: `<g fill="currentColor"><circle cx="-7" cy="-5" r="5.5"/><circle cx="3" cy="-6" r="6.5"/><circle cx="-2" cy="-15" r="5.5"/><circle cx="8" cy="-15" r="4.5"/></g>
+      <g fill="#ffffff" opacity=".35"><circle cx="-8.5" cy="-7" r="1.6"/><circle cx="1.5" cy="-8.5" r="1.8"/><circle cx="-3.5" cy="-17" r="1.5"/></g>`,
     anemone: `<ellipse cx="0" cy="-3" rx="9" ry="4" fill="currentColor"/>
       <g class="sway-soft" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"><path d="M-7 -4 q-6 -8 -4 -15 M-3 -5 q-3 -9 0 -17 M2 -5 q3 -9 1 -17 M6 -4 q6 -8 4 -15"/></g>`,
   };
   const coral = (x, y, type, col, sc = 1) => `<g transform="translate(${x} ${y}) scale(${sc})"><g class="coral c-${col}">${CORAL[type]}</g></g>`;
-  const kelp = (x, y, h, d) => `<g transform="translate(${x} ${y})"><g class="kelp" style="animation-delay:${d}s">
-      <path d="M0 0 C-6 ${-h * 0.3} 6 ${-h * 0.6} 0 ${-h} M4 0 C10 ${-h * 0.3} -2 ${-h * 0.55} 6 ${-h * 0.8}" stroke="#3f9b5f" stroke-width="4" fill="none" stroke-linecap="round"/></g></g>`;
-  const rock = (x, y, w) => `<ellipse cx="${x}" cy="${y}" rx="${w}" ry="${w * 0.32}" fill="#5b6470" opacity=".85"/>`;
-  const reef = (x, y, sc, a, b, c, ca, cb, cc) => `<g transform="translate(${x} ${y}) scale(${sc})">${rock(0, 2, 34)}
-      ${kelp(-30, 4, 46, (x % 7) * -0.3)}${coral(-14, 0, a, ca)}${coral(14, 2, b, cb, 0.9)}${coral(0, 4, c, cc, 0.75)}</g>`;
+  // the long reef: a bumpy rock ridge all along the sea floor, covered in all kinds of coral
+  const REEF_KINDS = ['staghorn', 'sponge', 'brain', 'table', 'anemone', 'whip', 'pillar', 'mushroom', 'fan', 'bubble', 'tube'];
+  const REEF = (() => {
+    let ridge = 'M14 640 L14 618';
+    for (let x = 14; x <= 786; x += 26) ridge += ` Q${x + 13} ${606 + (x * 7 % 9)} ${x + 26} ${616 + (x * 3 % 5)}`;
+    ridge += ' L786 640Z';
+    let corals = '';
+    for (let k = 0, x = 26; x < 780; k++, x += 24 + (k * 13 % 11)) {
+      const y = 612 + (k * 5 % 6), sc = 0.42 + (k * 7 % 5) * 0.05;
+      corals += coral(x, y, REEF_KINDS[(k * 4) % REEF_KINDS.length], 'abcde'[(k * 3) % 5], sc);
+    }
+    return `<path d="${ridge}" fill="#5b6470" opacity=".9"/><path d="${ridge}" fill="none" stroke="#6f7884" stroke-width="2" opacity=".5"/>${corals}`;
+  })();
+  // small seaweed swaying on the reef (it dies off when the sea gets too warm)
+  const SEAWEED = [40, 92, 150, 214, 268, 330, 388, 446, 512, 566, 628, 690, 748].map((x, k) =>
+    `<g transform="translate(${x} ${614 + (k * 3) % 5})"><g class="kelp" style="animation-delay:${(-k * 0.45).toFixed(2)}s;animation-duration:${3 + (k % 3) * 0.6}s">
+      <path d="M0 0 C-3 -6 3 -11 0 ${-16 - (k % 3) * 4} M3 0 C6 -5 1 -9 4 ${-12 - (k % 2) * 4}" stroke="${k % 2 ? '#3f9b5f' : '#58b26e'}" stroke-width="2.2" fill="none" stroke-linecap="round"/></g></g>`).join('');
 
   // Critters
   const butterfly = (x, y, col, d) => `<g transform="translate(${x} ${y}) scale(.6)"><g class="flutter" style="animation-delay:${d}s"><g class="bfly">
@@ -439,8 +461,8 @@ const Scene = (() => {
   ${VOLCANO}
   <g data-k="boltsFar"></g>
   <ellipse class="lagoon" cx="400" cy="446" rx="560" ry="140"/>
-  <g data-k="farFish" class="fade"><g class="swim" style="animation-duration:60s;animation-delay:-10s"><g transform="translate(0 312) scale(.3)">${fish('#ffd23f')}</g></g>
-    <g class="swim" style="animation-duration:66s;animation-delay:-25s"><g transform="translate(0 326) scale(.34)">${fish('#7ad3ff')}</g></g></g>
+  <g data-k="farFish" class="fade"><g class="swim" style="animation-duration:60s;animation-delay:-10s"><g transform="translate(0 346) scale(.28)">${fish('#ffd23f')}</g></g>
+    <g class="swim" style="animation-duration:66s;animation-delay:-25s"><g transform="translate(0 360) scale(.3)">${fish('#7ad3ff')}</g></g></g>
 
   <!-- bridges: the train and the road go across the sea to the other towns -->
   ${piers(320, 50)}${piers(478, 70)}
@@ -738,7 +760,7 @@ const Scene = (() => {
   <g data-k="crabs" class="fade">${crab(150, 484, 0)}${crab(470, 486, -5)}</g>
   ${item('heatJunk', 0, 0, `${deadFish(392, 485, -8)}${deadFish(536, 489, 12)}${bottle(452, 486, 70, 0.9)}${bottle(298, 489, -50, 0.8)}<path d="M600 487 l9 -3 l2 5 l-8 2Z" fill="#ff6fa8" opacity=".9"/>`, 'fade')}
   ${item('cleanBeach', 600, 486, `<path d="M0 0 V-22" stroke="#8b5a2b" stroke-width="2.5"/><rect x="-16" y="-36" width="32" height="18" rx="3" fill="#fff8e1" stroke="#8b5a2b" stroke-width="2"/>
-    <g transform="translate(-5 -27) scale(.5)"><path d="M-12 0 Q-4 -9 6 -3 L12 -9 V9 L6 3 Q-4 9 -12 0Z" fill="#4fc3f7"/></g><path d="M9 -28 q-2.5 -3 -5 0 q0 3 5 5.5 q5 -2.5 5 -5.5 q-2.5 -3 -5 0Z" fill="#ff5b4a" transform="translate(-3 1) scale(.8)"/>
+    <g transform="translate(-6 -27) scale(.5)"><path d="M-12 0 Q-4 -9 6 -3 L12 -9 V9 L6 3 Q-4 9 -12 0Z" fill="#4fc3f7"/></g><path d="M8.5 -22.5 L4.6 -26.4 A2.2 2.2 0 0 1 8.5 -29.2 A2.2 2.2 0 0 1 12.4 -26.4Z" fill="#ff5b4a"/>
     <g transform="translate(24 0)"><path d="M-6 -12 H6 L5 0 H-5Z" fill="#2fb35a" stroke="#23863e" stroke-width="1.2"/><rect x="-7" y="-14.5" width="14" height="3" rx="1" fill="#23863e"/></g>
     <g transform="translate(40 0)"><path d="M-6 -12 H6 L5 0 H-5Z" fill="#2f80ed" stroke="#1d5fae" stroke-width="1.2"/><rect x="-7" y="-14.5" width="14" height="3" rx="1" fill="#1d5fae"/></g>`)}
   </g>
@@ -752,7 +774,8 @@ const Scene = (() => {
   </g>
   <!-- when the sea gets too warm: plastic and dead fish floating -->
   ${item('seaJunk', 0, 0, `<g class="float">${deadFish(186, 552, 170)}${bottle(420, 566, 95, 1)}${deadFish(612, 556, 190)}<path d="M300 560 q6 -6 12 0 q-6 4 -12 0Z" fill="#e8eef2" opacity=".85"/></g>`, 'fade')}
-  <g data-k="reef" class="reef">${reef(110, 604, 0.7, 'staghorn', 'brain', 'anemone', 'a', 'd', 'b')}${reef(700, 610, 0.65, 'fan', 'tube', 'brain', 'c', 'b', 'e')}</g>
+  <g data-k="reef" class="reef">${REEF}</g>
+  <g data-k="seaweed" class="fade">${SEAWEED}</g>
   <g data-k="fish">
     <g class="swim" style="animation-duration:34s"><g transform="translate(0 562) scale(.6)">${fish()}</g></g>
     <g class="swim" style="animation-delay:-14s;animation-duration:40s"><g transform="translate(0 574) scale(.45)">${fish('#ffd23f')}</g></g>
@@ -804,6 +827,7 @@ const Scene = (() => {
   <g data-k="bubble" class="bubble hide"><g class="bubble-in">
     <rect data-k="bubbleBox" x="-60" y="-37" width="120" height="31" rx="12" fill="#fff" stroke="#23313f" stroke-width="2.2"/>
     <path d="M-7 -6.6 L0 6 L7 -6.6" fill="#fff" stroke="#23313f" stroke-width="2.4" stroke-linejoin="round"/>
+    <rect x="-5.6" y="-8.4" width="11.2" height="3.8" fill="#fff"/>
     <text data-k="bubbleText" x="0" y="-16" text-anchor="middle" font-size="16.5" font-weight="800" fill="#23313f"></text>
   </g></g>
 </svg>`;
@@ -1995,9 +2019,16 @@ const Scene = (() => {
     let bubbleW = 120;
     const bubbleScale = (feetY) => clamp(depthK(feetY) * 1.05, 0.72, 1.1);
     // keep the bubble inside the part of the city that's on screen (phones see only a slice of it)
+    // The bubble always sits right above Bobo's head (its tail points at him). Only if the text box would stick out
+    // of the screen does the box slide a little to the side, while the tail stays above his head.
+    const viewLeft = () => (vb[2] === 800 ? 0 : clamp(camFocus - vb[2] / 2, 0, 800 - vb[2]));
     const bubbleXY = (hx, hy) => {
-      const left = vb[2] === 800 ? 0 : clamp(camFocus - vb[2] / 2, 0, 800 - vb[2]), right = left + vb[2];
-      return [Math.max(left + bubbleW / 2 + 6, Math.min(right - bubbleW / 2 - 6, hx)), Math.max(vb[1] + 40, hy - 8)];
+      const left = viewLeft(), right = left + vb[2];
+      const cx = Math.max(left + bubbleW / 2 + 6, Math.min(right - bubbleW / 2 - 6, hx));
+      const lim = Math.max(0, bubbleW / 2 - 16), dx = clamp(cx - hx, -lim, lim);
+      q('bubbleBox').setAttribute('x', -bubbleW / 2 + dx);
+      q('bubbleText').setAttribute('x', dx);
+      return [hx, hy - 8];
     };
     const bubbleTransform = (x, y, sc) => `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${sc.toFixed(3)})`;
     function placeBubble(ms = 0) {
@@ -2027,7 +2058,9 @@ const Scene = (() => {
     function say(text, ms = null) {
       const b = q('bubble'), txt = q('bubbleText'), box = q('bubbleBox');
       clearTimeout(bubbleTimer);
-      if (!text || walker.classList.contains('inside')) { b.classList.add('hide'); return; }
+      // (only when Bobo can be seen: not inside a car or a house, and on the screen)
+      const left = viewLeft(), onScreen = walkPos[0] > left - 10 && walkPos[0] < left + vb[2] + 10;
+      if (!text || walker.classList.contains('inside') || !onScreen) { b.classList.add('hide'); return; }
       txt.textContent = text;
       bubbleW = Math.min(420, txt.getComputedTextLength() + 22);
       box.setAttribute('x', -bubbleW / 2);
@@ -2082,7 +2115,8 @@ const Scene = (() => {
       q('nestLife').classList.toggle('hide', level >= 2);
       q('vBirds').classList.toggle('hide', level >= 2);
       q('bugs1').classList.toggle('hide', level < 2);
-      q('heatJunk').classList.toggle('hide', level < 2);   // (dead fish and plastic wash up on the beach…)
+      q('heatJunk').classList.toggle('hide', level < 2);
+      q('seaweed').classList.toggle('hide', level >= 2);    // (the seaweed dies off in a too-warm sea)   // (dead fish and plastic wash up on the beach…)
       q('seaJunk').classList.toggle('hide', level < 3);    // (…and float in the sea)
       q('bugs2').classList.toggle('hide', level < 3);
       svg.classList.toggle('coral-pale', level === 2);
