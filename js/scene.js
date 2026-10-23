@@ -433,8 +433,8 @@ const Scene = (() => {
         <circle cx="-3.6" cy="-2" r="1.8" fill="#23313f"/><circle cx="3.6" cy="-2" r="1.8" fill="#23313f"/><path d="M-4.5 5 Q0 9.5 4.5 5" stroke="#5a2d0c" stroke-width="1.6" fill="none" stroke-linecap="round"/></g></g>`;
   // a small parked bike (side view) for the bike racks
   const PARKED_BIKE = '<g transform="scale(.29)"><circle cx="-26" cy="-14" r="14" fill="none" stroke="#23313f" stroke-width="4"/><circle cx="26" cy="-14" r="14" fill="none" stroke="#23313f" stroke-width="4"/><path d="M-26 -14 L0 -14 L-8 -36 Z M0 -14 L18 -36 L-8 -36 M26 -14 L18 -36 L16 -44 M11 -45 H22 M-14 -38 H-2" stroke="#ff5b4a" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>';
-  const rack = (x, y, k) => `<g transform="translate(${x} ${y})"><path d="M0 0 v-7 q0 -4 4 -4 q4 0 4 4 v7 M10 0 v-7 q0 -4 4 -4 q4 0 4 4 v7 M20 0 v-7 q0 -4 4 -4 q4 0 4 4 v7" stroke="#8a939d" stroke-width="1.6" fill="none"/>
-      <g data-k="bikes_${k}" class="fade hide"><g transform="translate(7 0)">${PARKED_BIKE}</g><g data-k="bikes2_${k}" class="fade hide" transform="translate(17 0)">${PARKED_BIKE}</g><g data-k="bikes3_${k}" class="fade hide" transform="translate(27 0)">${PARKED_BIKE}</g></g></g>`;
+  const rack = (x, y, k) => `<g transform="translate(${x} ${y})"><path d="${[0, 8, 16, 24].map((rx) => `M${rx} 0 v-7 q0 -4 4 -4 q4 0 4 4 v7`).join(' ')}" stroke="#8a939d" stroke-width="1.6" fill="none"/>
+      <g data-k="bikes_${k}" class="fade hide"><g transform="translate(6 0)">${PARKED_BIKE}</g>${[2, 3, 4].map((n) => `<g data-k="bikes${n}_${k}" class="fade hide" transform="translate(${6 + (n - 1) * 8} 0)">${PARKED_BIKE}</g>`).join('')}</g></g>`;
   const rider = (fur, shirt, x) => `<g class="tcar" data-lane="bike" data-x="${x}" style="transform:translateX(${x}px)"><g transform="translate(0 466.5) scale(.32)">${sideRider(fur, shirt)}</g></g>`;
 
   // cars looping along the road (lane A goes left, lane B goes right), each with a happy monkey driver
@@ -556,7 +556,7 @@ const Scene = (() => {
   <!-- a little car park by the station, to the right of the little street -->
   <rect x="244" y="333" width="56" height="21" class="road"/><path d="M246 333.5 H299.5 V353.5 H246" stroke="#d6dbe0" stroke-width="1" fill="none"/>
   <text x="274" y="351" text-anchor="middle" fill="#fff" opacity=".8" font-size="6" font-weight="900" font-family="Arial, sans-serif">P</text>
-  ${rack(182, 365, 'school')}${rack(306, 356, 'station')}${rack(596, 365, 'mall')}
+  ${rack(182, 365, 'school')}${rack(304, 356, 'station')}${rack(596, 365, 'mall')}
   <!-- street lights along the street at the back -->
   ${lamp(30, 362, false, 0.7)}${lamp(412, 362, false, 0.7)}${lamp(252, 384, false, 0.7)}${lamp(612, 384, true, 0.7)}
   <!-- road signs: the shops' car park -->
@@ -564,7 +564,7 @@ const Scene = (() => {
     <path d="M475 396 V378" stroke="#6b7280" stroke-width="1.6"/><rect x="470" y="367" width="10" height="10" rx="2" fill="#2f80ed"/><text x="475" y="375" text-anchor="middle" font-size="7.5" font-weight="900" fill="#fff" font-family="Arial, sans-serif">P</text>
   </g>
   <!-- the recycling center (a reward) behind Bobo's house -->
-  ${item('recycling', 368, 362, `<rect x="-24" y="-34" width="48" height="34" rx="3" fill="#2fb35a"/><path d="M-28 -34 H28 L24 -41 H-24Z" fill="#23863e"/>
+  ${item('recycling', 372, 362, `<rect x="-24" y="-34" width="48" height="34" rx="3" fill="#2fb35a"/><path d="M-28 -34 H28 L24 -41 H-24Z" fill="#23863e"/>
       <g transform="translate(0 -18)" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"><path d="M-7 5 A8 8 0 0 1 -5 -7"/><path d="M5 -7 A8 8 0 0 1 8 4"/><path d="M4 8 A8 8 0 0 1 -7 7"/></g>
       <rect x="-22" y="-7" width="11" height="7" fill="#2f80ed"/><rect x="-6" y="-7" width="11" height="7" fill="#ffd23f"/><rect x="10" y="-7" width="11" height="7" fill="#9aa5b1"/>`)}
   <g class="school closed">
@@ -1095,7 +1095,7 @@ const Scene = (() => {
         },
         apply(s) { s.show('trashPile'); },
       },
-      pay(s) { s.reveal('recycling', 368, 330); },
+      pay(s) { s.reveal('recycling', 372, 330); },
     },
     jacket: {
       async ev(s) {
@@ -1651,10 +1651,15 @@ const Scene = (() => {
         s.hide('bikes_home'); s.wear('bike');
         const riders = s.toBikes(people);
         await s.ridePath(rp[1] > 360 ? [[316, 455], [232, 455], [232, 374], [rp[0], 374], rp] : [[316, 455], [232, 455], [232, rp[1]], rp], riders);
-        // lock the bikes at the rack by the destination
-        s.wear('bike', false); s.show('bikes_' + rk); if (riders.length) s.show('bikes2_' + rk); if (riders.length > 1) s.show('bikes3_' + rk);
-        people = s.toWalkers(riders, kinds);
-        people.forEach((m) => { m.keep = true; });
+        // park the bikes in the rack one by one: Bobo first, then the others as they get off
+        s.wear('bike', false); s.show('bikes_' + rk);
+        people = [];
+        for (let n = 0; n < riders.length; n++) {
+          await s.w(500);
+          const [m] = s.toWalkers([riders[n]], [kinds[n]]);
+          m.keep = true; people.push(m);
+          s.show(`bikes${n + 2}_${rk}`);
+        }
         s.remote = { bikes: rk, people };
         await s.withMe(to, people);
       },
@@ -1662,10 +1667,14 @@ const Scene = (() => {
         const r = s.remote || { bikes: s.rackFor(walkPos)[0], people: [] };
         const [rk, rp] = s.rackFor(walkPos[1] < 345 ? [0, 330] : walkPos[0] < 300 ? [100, 365] : [600, 365]);
         await Promise.all([s.go(rp), ...r.people.map((m, k) => m.go([rp[0] + 14 * (k + 1), rp[1]]))]);
-        ['bikes_', 'bikes2_', 'bikes3_'].forEach((b) => s.hide(b + rk));
-        s.wear('bike');
-        const kinds = r.people.map((m) => m.kind);
-        const riders = s.toBikes(r.people);
+        // everybody takes their bike out of the rack, one after another (Bobo last)
+        const kinds = r.people.map((m) => m.kind), riders = [];
+        for (let n = r.people.length - 1; n >= 0; n--) {
+          s.hide(`bikes${n + 2}_${rk}`);
+          riders[n] = s.toBikes([r.people[n]])[0];
+          await s.w(450);
+        }
+        s.hide('bikes_' + rk); s.wear('bike');
         s.remote = null;
         await s.ridePath(rp[1] > 360 ? [[rp[0], 374], [232, 374], [232, 455], [316, 455]] : [[232, rp[1]], [232, 455], [316, 455]], riders);
         s.wear('bike', false); s.show('bikes_home');
