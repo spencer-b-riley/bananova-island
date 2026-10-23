@@ -562,9 +562,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 /* monkeys in the cars: Bobo only sits in the car while riding along */
 .passenger { opacity: 0; }
 .with-bobo .passenger { opacity: 1; }
-/* a city-wide traffic jam: the normal traffic makes room for the queues */
 [data-k^="traffic"] { transition: opacity 0.6s; }
-.jammed [data-k^="traffic"] { opacity: 0; }
 /* boats and the whale */
 .sail { animation: driveR 100s linear infinite; }
 .boat-rock { transform-box: fill-box; transform-origin: 50% 100%; animation: boatRock 3.2s ease-in-out infinite alternate; }

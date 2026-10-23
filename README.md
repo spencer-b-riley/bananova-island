@@ -21,13 +21,13 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
 - How Bobo gets to school decides how the family gets around for the rest of the game. With the
   car, every extra car trip warms the city a tiny bit (+0.03 °C, never enough to lose) and a
   little message says so.
-- Green choices are often better right away (biking past the traffic jam, a cheaper and cooler
+- Green choices are often better right away (biking to school with friends, a cheaper and cooler
   thrift jacket, swapping toys with a friend, cooling down in the shade)
 - A living city: Bobo's street with the school, skyscrapers, a thrift store, a mall, houses, a park,
   a power plant, trees, a train line and a road with bridges to other towns, cars (each with a
   happy monkey driver), trains, cyclists and sailboats. Far away there's a volcano island whose
   trees and animals also come and go with the climate.
-- Bobo really goes places: bikes or rides to school (and gets stuck in a traffic jam), takes the
+- Bobo really goes places: bikes or rides to school, takes the
   train to Grandma's, shops at the thrift store or the mall, throws a party with friends, and more
 - Speech bubbles stay up longer for longer text, so every language gets the same reading time
 - Bobo's outfits: backpack, bike, party hat, sweater, thrift jacket, plain jacket and a shopping bag
