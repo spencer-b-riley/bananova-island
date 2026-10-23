@@ -337,7 +337,21 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 
 /* ending / recap / takeaways */
 .game.ending .scene-wrap { min-height: 90px; }
-.game.ending .card { max-height: none; }
+.game.ending .card { max-height: none; padding: clamp(16px, 2.6vh, 26px); }
+/* the end (ending, recap, lessons): bigger and easier to read */
+.game.ending .card-head .pill { font-size: 14px; padding: 4px 12px; }
+.game.ending .topic { font-size: clamp(17px, 2.6vh, 21px); }
+.game.ending .verdict { font-size: clamp(20px, 3.1vh, 27px); }
+.game.ending .recap p { font-size: clamp(17px, 2.7vh, 22px); line-height: 1.4; margin: 6px 0; }
+.game.ending .fact { font-size: clamp(16px, 2.5vh, 20px); padding: 12px 16px; }
+.game.ending .end-text { font-size: clamp(17px, 2.7vh, 22px); }
+.game.ending .takeaways { gap: 10px; margin: 12px 0 16px; }
+.game.ending .takeaways li { font-size: clamp(16px, 2.6vh, 21px); padding: 12px 14px; line-height: 1.3; }
+.game.ending .takeaways li span { font-size: 34px; }
+.game.ending .card h2 { font-size: clamp(22px, 3.4vh, 30px); }
+.game.ending .btn.small { font-size: 17px; padding: 10px 20px; }
+.game.ending .read-check { font-size: 17px; padding: 9px 18px; }
+.game.ending .read-hint { font-size: 15px; }
 .end-top { display: flex; gap: 12px; align-items: center; }
 .end-emoji { font-size: clamp(44px, 8vh, 72px); line-height: 1; }
 .end-top h2 { margin: 0; font-size: clamp(22px, 3.6vh, 32px); }
@@ -521,7 +535,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .exhaust circle { fill: #9aa3ad; opacity: 0; }
 :is(.puffing, .moving) .exhaust circle { animation: exhaust 0.8s linear infinite; }
 @keyframes exhaust { 0% { transform: translate(0, 0); opacity: 0.6; } 100% { transform: translate(-10px, -7px); opacity: 0; } }
-/* monkeys on the zebra crossing: the cars (and bikes) wait for them */
+/* monkeys on the zebra crossing: the cars (and bikes) wait for them; one right at the crossing makes way */
+.yield { opacity: 0 !important; transition: opacity 0.3s; }
 .crossing :is([data-k="traffic"], [data-k="traffic2"], [data-k="traffic3"], [data-k="cyclists"]) * { animation-play-state: paused !important; }
 .cow-gas .smoke { animation-name: gasRise; }
 @keyframes gasRise { 0% { transform: translate(0, 0) scale(0.4); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translate(-6px, -40px) scale(1.4); opacity: 0; } }
@@ -671,6 +686,11 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .walker { transition: transform 1s ease-in-out, opacity 0.4s; }
 .walking .bob, .walking .bd-bob { animation: walkbob 0.26s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
 @keyframes walkbob { from { transform: translateY(0) rotate(-4deg); } to { transform: translateY(-6px) rotate(4deg); } }
+/* the feet take steps while walking (one forward and up, then the other) */
+.walking .foot.fl { animation: stepL 0.26s ease-in-out infinite alternate; }
+.walking .foot.fr { animation: stepR 0.26s ease-in-out infinite alternate; }
+@keyframes stepL { from { transform: translate(-4px, 0); } to { transform: translate(4px, -6px); } }
+@keyframes stepR { from { transform: translate(4px, -6px); } to { transform: translate(-4px, 0); } }
 .mjump.chop { animation: chop 0.25s ease-in-out 4; transform-box: fill-box; transform-origin: 50% 100%; }
 @keyframes chop { 50% { transform: rotate(-12deg) translateY(2px); } }
 .mjump.jump { animation: jump 0.7s ease; }
@@ -707,6 +727,9 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 :root[data-perf="low"] .plant-smoke .smoke:not(:first-child), :root[data-perf="low"] .exhaust circle:not(:first-child) { display: none; }
 :root[data-perf="low"] .raining .rain-fx::before { animation-duration: 0.9s; }
 :root[data-perf="low"] .bd, :root[data-perf="low"] .fxh-tint { transition-duration: 1s; }
+
+/* walking is part of the story: it moves on every level (nobody slides around) */
+:root[data-perf="low"] .walking :is(.bob, .bd-bob) { animation: walkbob 0.26s ease-in-out infinite alternate !important; }
 
 /* our own icons (js/icons.js): they size like text */
 .ic { display: inline-block; width: 1.1em; height: 1.1em; vertical-align: -0.2em; flex: none; overflow: visible; }

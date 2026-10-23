@@ -287,7 +287,7 @@ const Scene = (() => {
   const TIE = '<path d="M0 -21 l-4 4 l4 21 l4 -21Z" fill="#e63946"/><path d="M-5 -24 h10 l-5 4Z" fill="#c0392b"/>';
   const buddy = (fur, shirt, hat, face = '#f2d4b5', extra = '') => `<g class="bd-bob">
       <path d="M16 12 C46 14 52 -18 34 -26 C26 -28 24 -18 32 -16" stroke="${fur}" stroke-width="6" fill="none" stroke-linecap="round"/>
-      <ellipse cx="-11" cy="24" rx="9" ry="6" fill="${fur}"/><ellipse cx="11" cy="24" rx="9" ry="6" fill="${fur}"/>
+      <ellipse class="foot fl" cx="-11" cy="24" rx="9" ry="6" fill="${fur}"/><ellipse class="foot fr" cx="11" cy="24" rx="9" ry="6" fill="${fur}"/>
       <ellipse cx="0" cy="0" rx="22" ry="26" fill="${shirt}"/><path d="M-12 -18 Q0 -10 12 -18" stroke="#fff" stroke-width="3" fill="none" opacity=".6"/>
       <path d="M-18 -8 Q-34 6 -24 20 M18 -8 Q34 6 24 20" stroke="${shirt}" stroke-width="9" fill="none" stroke-linecap="round"/>
       <circle cx="-24" cy="21" r="5" fill="${fur}"/><circle cx="24" cy="21" r="5" fill="${fur}"/>
@@ -523,6 +523,9 @@ const Scene = (() => {
   <!-- Bobo's driveway, to the right of the house (the family car parks at the top) -->
   <path d="M416 438 V392 Q416 388 420 388 H448 Q452 388 452 392 V438Z" class="road"/>
   <rect x="14" y="426" width="772" height="12" class="pave"/>
+  <!-- the bike lane on this side of the road (Bobo bikes here, so he never has to cross the cars) -->
+  <rect x="-800" y="432.5" width="2600" height="5.5" fill="#4c9a6a"/><path d="M-800 432.5 H1800" stroke="#fff" stroke-width="1" opacity=".8"/>
+  ${[60, 180, 520, 700].map((x) => `<g transform="translate(${x} 436.4) scale(.07)" opacity=".7"><circle cx="-28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="8"/><circle cx="28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="8"/><path d="M-28 0 L-6 0 L10 -18 L28 0" stroke="#fff" stroke-width="8" fill="none"/></g>`).join('')}
   <!-- a zebra crossing where the little street meets the main road (asphalt, the cars drive across it) -->
   <rect x="218" y="426" width="28" height="12" class="road"/>
   <path d="M221 428 v8 M226 428 v8 M231 428 v8 M236 428 v8 M241 428 v8" stroke="#fff" stroke-width="3" opacity=".85"/>
@@ -583,9 +586,9 @@ const Scene = (() => {
     `<g transform="translate(${x} 441)"><path d="M0 0 q-6 -8 -2 -14 M0 0 q6 -8 2 -14 M0 0 V-12" stroke="#3d9a2e" stroke-width="2.4" fill="none"/>${k % 2 ? '<circle cx="0" cy="-2" r="3" fill="#ff8c42"/>' : '<circle cx="0" cy="-6" r="5" fill="#7fe06a"/>'}</g>`).join('')}
       ${flower(704, 438, '#ff6fa8')}${bee(728, 416, 0)}${bee(760, 420, -1.4)}`)}
 
-  ${rack(250, 426, 'home')}
+  ${rack(298, 426, 'home')}
   <!-- pigeons pecking on the pavement (behind the road, so the cars drive in front of them) -->
-  <g data-k="pigeons" class="fade">${pigeon(234, 435, false, 0)}${pigeon(596, 436, true, -1.1)}</g>
+  <g data-k="pigeons" class="fade">${pigeon(188, 430, false, 0)}${pigeon(596, 430, true, -1.1)}</g>
   <!-- the toy in front of Bobo's house -->
   ${item('toyBroken', 384, 436, `<g transform="rotate(-14)"><path d="M-14 -10 h28 v8 h-28Z" fill="#ff5b4a"/><circle cx="-8" cy="0" r="4" fill="#23313f"/></g><circle cx="12" cy="0" r="4" fill="#23313f"/><path d="M2 -14 l3 -4 l2 4" stroke="#23313f" stroke-width="1.5" fill="none"/>`)}
       ${item('toyFixed', 384, 436, `<path d="M-14 -10 h28 v8 h-28Z" fill="#ff5b4a"/><path d="M-6 -16 h12 v6 h-12Z" fill="#cfefff"/><circle cx="-8" cy="0" r="4" fill="#23313f"/><circle cx="8" cy="0" r="4" fill="#23313f"/><path d="M-2 -6 h4" stroke="#ffd23f" stroke-width="3"/>`)}
@@ -596,7 +599,7 @@ const Scene = (() => {
   <g data-k="midLayer"><g data-k="walkerWrap" transform="translate(400 400)"><g class="walker"><g transform="${MONKEY_FIT}"><g data-k="monkey"><g class="mjump"><g class="bob">
     <path d="M16 12 C46 14 52 -18 34 -26 C26 -28 24 -18 32 -16" stroke="#7a4a24" stroke-width="6" fill="none" stroke-linecap="round"/>
     <g data-k="mPack" class="fade hide"><rect x="-29" y="-20" width="58" height="38" rx="10" fill="#ff6b4a"/><rect x="-29" y="2" width="10" height="10" rx="2" fill="#e04f30"/><rect x="19" y="2" width="10" height="10" rx="2" fill="#e04f30"/></g>
-    <ellipse cx="-11" cy="24" rx="9" ry="6" fill="#7a4a24"/><ellipse cx="11" cy="24" rx="9" ry="6" fill="#7a4a24"/>
+    <ellipse class="foot fl" cx="-11" cy="24" rx="9" ry="6" fill="#7a4a24"/><ellipse class="foot fr" cx="11" cy="24" rx="9" ry="6" fill="#7a4a24"/>
     <ellipse cx="0" cy="0" rx="22" ry="26" fill="#8b5a2b"/>
     <ellipse cx="0" cy="6" rx="13" ry="16" fill="#e8c39e"/>
     <g data-k="mMud" class="fade hide"><circle cx="-8" cy="8" r="5" fill="#6b4423"/><circle cx="7" cy="-6" r="4" fill="#6b4423"/><circle cx="4" cy="16" r="3.5" fill="#6b4423"/><circle cx="-14" cy="-10" r="3" fill="#6b4423"/></g>
@@ -797,11 +800,11 @@ const Scene = (() => {
         async play(s) {
           // there's a traffic jam on the roads… and Bobo just bikes right past it
           const jam = s.jamStart(QUEUE_A, QUEUE_B, false);   // (the cars drive in as Bobo heads out)
-          await s.go([268, 456]);              // Bobo's bike is in the rack by the house
+          await s.go([316, 452]);              // Bobo's bike is in the rack by the house
           s.hide('bikes_home'); s.wear('bike');
           await jam.ready; await s.w(150);
           // along the bike lane past all the cars, up the little street (seen from behind) to the bike rack at school
-          await s.ridePath([[268, 487], [232, 487], [232, 374], [137, 370]]);
+          await s.ridePath([[316, 455], [232, 455], [232, 374], [137, 370]]);   // (along the bike lane on our side of the road)
           s.wear('bike', false); s.show('bikes_school'); await s.w(150);
           s.remote = { bikes: 'school', people: [] };
           s.jamGo(jam);
@@ -1161,7 +1164,20 @@ const Scene = (() => {
     let reactTimer = 0, bubbleTimer = 0, walkTimer = 0, walkEnd = 0;
     let boltTimer = 0;        // (the next lightning strike while there's a storm)
     let crossers = 0;         // (monkeys on the zebra crossing: the cars wait for them)
-    const crossing = (on) => { crossers = Math.max(0, crossers + (on ? 1 : -1)); container.classList.toggle('crossing', crossers > 0); };
+    const crossing = (on) => {
+      const was = crossers > 0;
+      crossers = Math.max(0, crossers + (on ? 1 : -1));
+      container.classList.toggle('crossing', crossers > 0);
+      if (crossers > 0 && !was) {
+        // the traffic stops; a car that's already at the crossing pulls aside (fades away) so nobody gets hit
+        const m = svg.getScreenCTM().inverse();
+        container.querySelectorAll('.driveL, .driveR, .ride').forEach((c) => {
+          const r = c.getBoundingClientRect(), a = new DOMPoint(r.left, r.top).matrixTransform(m), b = new DOMPoint(r.right, r.bottom).matrixTransform(m);
+          if (b.x > CROSS_F[0] - 40 && a.x < CROSS_F[0] + 40) c.classList.add('yield');
+        });
+      }
+      if (crossers === 0) container.querySelectorAll('.yield').forEach((c) => c.classList.remove('yield'));
+    };
     const hooks = { carTrip: () => {} };   // (the game listens for car trips, see onCarTrip)
     let lineFor = () => '';   // (the game gives us Bobo's lines in the player's language, see setLines)
     let walkPos = [...P.home];
@@ -1435,10 +1451,10 @@ const Scene = (() => {
         // everyone takes their bike from the rack at home and rides off together
         let people = existing || s.family(P.door, kinds);
         people.forEach((m, k) => { m.kind = kinds[k]; if (!existing) m.appear(); });
-        await Promise.all([s.go([268, 456]), ...people.map((m, k) => m.walk(286 + 16 * k, 456))]);
+        await Promise.all([s.go([316, 452]), ...people.map((m, k) => m.walk(334 + 16 * k, 452))]);
         s.hide('bikes_home'); s.wear('bike');
         const riders = s.toBikes(people);
-        await s.ridePath([[268, 487], [232, 487], [232, rp[1] > 360 ? 374 : rp[1]], rp], riders);
+        await s.ridePath([[316, 455], [232, 455], [232, rp[1] > 360 ? 374 : rp[1]], rp], riders);
         // lock the bikes at the rack by the destination
         s.wear('bike', false); s.show('bikes_' + rk); if (riders.length) s.show('bikes2_' + rk); if (riders.length > 1) s.show('bikes3_' + rk);
         people = s.toWalkers(riders, kinds);
@@ -1455,7 +1471,7 @@ const Scene = (() => {
         const kinds = r.people.map((m) => m.kind);
         const riders = s.toBikes(r.people);
         s.remote = null;
-        await s.ridePath([[232, rp[1] > 360 ? 374 : rp[1]], [232, 487], [268, 487]], riders);
+        await s.ridePath([[232, rp[1] > 360 ? 374 : rp[1]], [232, 455], [316, 455]], riders);
         s.wear('bike', false); s.show('bikes_home');
         const people = s.toWalkers(riders, kinds);
         await Promise.all([s.go(to), ...people.map(async (m, k) => { await s.w(200 * k); await m.go(P.door); await m.enter(); })]);

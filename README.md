@@ -16,6 +16,8 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
   friends, a new jacket (thrift store or fast fashion), a weekend trip (train or car), lunch
   (a yummy veggie meal or a beef burger every day), and a friend about to throw his trash into
   the sea from the pier (stop him and use the bin, or let him). Eating green is never about eating less.
+- Bobo bikes on the bike lane on the houses' side of the road, so he never rides into the cars, and
+  cars stop whenever someone walks over the zebra crossing.
 - How Bobo gets to school decides how the family gets around for the rest of the game. With the
   car, every extra car trip warms the city a tiny bit (+0.03 °C, never enough to lose) and a
   little message says so.
