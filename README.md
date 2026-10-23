@@ -23,7 +23,7 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
 - Seagulls and the hawk drift up and down at different heights, and now and then an airplane flies by.
 - Day and night: at night homes and offices light up (not every window), the school, the shops and the
   station are closed (dark windows), and street lights glow along the streets.
-- Parking: a bay by the school, a little car park by the station and one for the shops (right across
+- Parking: little car parks by the school (across the street), the station and the shops (right across
   the street from the thrift store and the mall). Bike racks at home, the school, the station and the mall.
 - How Bobo gets to school decides how the family gets around for the rest of the game. With the
   car, every extra car trip warms the city a tiny bit (+0.03 °C, never enough to lose) and a

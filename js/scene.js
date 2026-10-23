@@ -153,7 +153,7 @@ const Scene = (() => {
       for (let gx = -230; gx < 1040; gx += 24) {
         const n = gy * 7 + gx;
         const x = gx + (rnd(n) - 0.5) * 18, y = gy + (rnd(n + 3) - 0.5) * 9;
-        if (!inLagoon(x, y) || fromShore(x, y) < 30 || !clear(x, y) || rnd(n + 7) < 0.15) continue;
+        if (!inLagoon(x, y) || fromShore(x, y) < 30 || !clear(x, y) || rnd(n + 7) < 0.5) continue;
         const sc = +(0.24 + clamp((y - 340) / 290, 0, 1) * 0.32).toFixed(2);   // (smaller further back)
         corals += coral(+x.toFixed(1), +y.toFixed(1), REEF_KINDS[k % REEF_KINDS.length], 'abcde'[(k * 3) % 5], sc);
         if (k % 3 === 1) weeds += `<g transform="translate(${(x + 10 * sc / 0.4).toFixed(1)} ${y.toFixed(1)}) scale(${(sc / 0.4).toFixed(2)})"><g class="kelp" style="animation-delay:${(-k * 0.37 % 3).toFixed(2)}s;animation-duration:${3 + (k % 3) * 0.6}s">
@@ -486,8 +486,6 @@ const Scene = (() => {
   <!-- corals and seaweed on the sea floor (under everything else in the sea) -->
   <g data-k="reef" class="reef">${SCATTER.corals}</g>
   <g data-k="seaweed" class="fade">${SCATTER.weeds}</g>
-  ${piers(320, 50)}${piers(478, 70)}
-
   <!-- the island -->
   <path class="foam" d="M30 298 C160 284 640 284 770 298 C808 304 814 360 812 432 C810 508 790 538 744 538 L56 538 C10 538 -10 508 -12 432 C-14 360 -6 304 30 298Z" fill="none" stroke="#e6f9ff" stroke-width="5" opacity=".7"/>
   <path d="M34 296 C160 282 640 282 766 296 C800 302 808 360 806 430 C804 502 786 534 744 534 L56 534 C14 534 -4 502 -6 430 C-8 360 0 302 34 296Z" fill="#fbe3a2"/>
@@ -495,6 +493,8 @@ const Scene = (() => {
   <path class="grass" d="M44 304 C170 292 630 292 756 304 C786 310 792 360 790 430 C788 478 770 490 738 490 L62 490 C30 490 12 478 10 430 C8 360 14 310 44 304Z"/>
   <path class="grass light" d="M60 310 C180 300 620 300 740 310 C766 316 770 340 760 352 L40 352 C30 340 34 316 60 310Z"/>
   <path d="M44 304 C170 292 630 292 756 304 C786 310 792 360 790 430 C788 478 770 490 738 490 L62 490 C30 490 12 478 10 430 C8 360 14 310 44 304Z" fill="url(#${u}tufts)"/>
+  <!-- the bridge pillars: they stand on the beach and in the water -->
+  ${piers(320, 50)}${piers(478, 70)}
 
   <!-- lightning behind the skyscrapers (the buildings hide the bottom of it, so it looks far away) -->
   <g data-k="boltsMid"></g>
@@ -548,8 +548,9 @@ const Scene = (() => {
   <rect x="26" y="366" width="612" height="11" class="road"/><path d="M30 371.5 H214 M250 371.5 H634" stroke="#fff" stroke-width="1.1" stroke-dasharray="8 7" opacity=".8"/>
   <rect x="218" y="324" width="28" height="134" class="road"/><path d="M232 328 V364 M232 380 V440" stroke="#fff" stroke-width="1.1" stroke-dasharray="7 6" opacity=".8"/>
   <!-- parking bays on the street (school, station, shops) and bike racks -->
-  <g class="bays" stroke="#fff" stroke-width="1.2" opacity=".85"><path d="M138 373.5 v4 M200 373.5 v4 M262 373.5 v4 M318 373.5 v4"/></g>
-  <g fill="#fff" opacity=".8" font-size="6" font-weight="900" font-family="Arial, sans-serif"><text x="166" y="377">P</text><text x="287" y="377">P</text></g>
+  <!-- the school's car park, across the street from the school -->
+  <rect x="98" y="375" width="56" height="21" class="road"/><path d="M98.5 377 V395.5 H153.5 V377" stroke="#d6dbe0" stroke-width="1" fill="none"/>
+  <text x="126" y="392" text-anchor="middle" fill="#fff" opacity=".8" font-size="7" font-weight="900" font-family="Arial, sans-serif">P</text>
   <!-- the shops' car park, right across the street from the thrift store and the mall -->
   <rect x="482" y="375" width="112" height="21" class="road"/><path d="M482.5 377 V395.5 H593.5 V377" stroke="#d6dbe0" stroke-width="1" fill="none"/><path d="M538 380 v14" stroke="#fff" stroke-width="1.2" opacity=".85"/>
   <g fill="#fff" opacity=".8" font-size="7" font-weight="900" font-family="Arial, sans-serif" text-anchor="middle"><text x="511" y="393">P</text><text x="565" y="393">P</text></g>
@@ -557,12 +558,6 @@ const Scene = (() => {
   <rect x="244" y="333" width="56" height="21" class="road"/><path d="M246 333.5 H299.5 V353.5 H246" stroke="#d6dbe0" stroke-width="1" fill="none"/>
   <text x="274" y="351" text-anchor="middle" fill="#fff" opacity=".8" font-size="6" font-weight="900" font-family="Arial, sans-serif">P</text>
   ${rack(182, 365, 'school')}${rack(304, 356, 'station')}${rack(596, 365, 'mall')}
-  <!-- street lights along the street at the back -->
-  ${lamp(30, 362, false, 0.7)}${lamp(412, 362, false, 0.7)}${lamp(252, 384, false, 0.7)}${lamp(612, 384, true, 0.7)}
-  <!-- road signs: the shops' car park -->
-  <g class="signs">
-    <path d="M475 396 V378" stroke="#6b7280" stroke-width="1.6"/><rect x="470" y="367" width="10" height="10" rx="2" fill="#2f80ed"/><text x="475" y="375" text-anchor="middle" font-size="7.5" font-weight="900" fill="#fff" font-family="Arial, sans-serif">P</text>
-  </g>
   <!-- the recycling center (a reward) behind Bobo's house -->
   ${item('recycling', 372, 362, `<rect x="-24" y="-34" width="48" height="34" rx="3" fill="#2fb35a"/><path d="M-28 -34 H28 L24 -41 H-24Z" fill="#23863e"/>
       <g transform="translate(0 -18)" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"><path d="M-7 5 A8 8 0 0 1 -5 -7"/><path d="M5 -7 A8 8 0 0 1 8 4"/><path d="M4 8 A8 8 0 0 1 -7 7"/></g>
@@ -602,9 +597,17 @@ const Scene = (() => {
   <!-- the bike group (a reward): Bobo's two friends ride to school together -->
   <g data-k="bikeFriends" class="fade hide"><g class="to-school"><g transform="translate(0 376) scale(-.18 .18)">${sideRider('#d4a24c', '#ffd23f')}</g>
     <g transform="translate(20 377) scale(-.18 .18)">${sideRider('#b0602e', '#2fb35a')}</g></g></g>
+  <!-- street lights along the street at the back -->
+  ${lamp(30, 362, false, 0.7)}${lamp(412, 362, false, 0.7)}
   <g data-k="backFx"></g>
   <!-- Bobo walks here while in the back row (so the houses stay in front of Bobo) -->
   <g data-k="backLayer"></g>
+  <!-- on the near side of the street at the back (in front of whoever walks or rides along it) -->
+  ${lamp(252, 384, false, 0.7)}${lamp(612, 384, true, 0.7)}
+  <!-- road signs: the shops' car park -->
+  <g class="signs">
+    <path d="M475 396 V372" stroke="#6b7280" stroke-width="1.6"/><rect x="470" y="367" width="10" height="10" rx="2" fill="#2f80ed"/><text x="475" y="375" text-anchor="middle" font-size="7.5" font-weight="900" fill="#fff" font-family="Arial, sans-serif">P</text>
+  </g>
 
   <!-- front row: the houses, the garden, the park (drawn 20 lower than the numbers inside) -->
   <g transform="translate(0 20)">
@@ -613,7 +616,7 @@ const Scene = (() => {
   <rect x="14" y="426" width="772" height="12" class="pave"/>
   <!-- the bike lane on this side of the road (Bobo bikes here, so he never has to cross the cars) -->
   <rect x="-800" y="432.5" width="2600" height="5.5" fill="#4c9a6a"/><path d="M-800 432.5 H1800" stroke="#fff" stroke-width="1" opacity=".8"/>
-  ${[60, 180, 520, 700].map((x) => `<g transform="translate(${x} 436.4) scale(.07)" opacity=".7"><circle cx="-28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="8"/><circle cx="28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="8"/><path d="M-28 0 L-6 0 L10 -18 L28 0" stroke="#fff" stroke-width="8" fill="none"/></g>`).join('')}
+  ${[60, 180, 520, 700].map((x) => `<g transform="translate(${x} 435.35) scale(.05)" opacity=".7"><circle cx="-28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="8"/><circle cx="28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="8"/><path d="M-28 0 L-6 0 L10 -18 L28 0" stroke="#fff" stroke-width="8" fill="none"/></g>`).join('')}
   <!-- a zebra crossing where the little street meets the main road (asphalt, the cars drive across it) -->
   <rect x="218" y="426" width="28" height="12" class="road"/>
   <path d="M221 428 v8 M226 428 v8 M231 428 v8 M236 428 v8 M241 428 v8" stroke="#fff" stroke-width="3" opacity=".85"/>
@@ -761,7 +764,7 @@ const Scene = (() => {
   <rect x="317" y="437" width="26" height="32" class="road"/>
   <g fill="#fff" opacity=".92">${[440, 445, 450, 455, 460, 465].map((y) => `<rect x="320" y="${y}" width="20" height="2.2"/>`).join('')}</g>
   <rect x="-800" y="459" width="2600" height="9" fill="#4c9a6a"/><path d="M-800 459.5 H1800" stroke="#fff" stroke-width="1.6"/><path d="M-800 468 H1800" stroke="#c8cdd3" stroke-width="2"/>
-  ${[100, 300, 500, 700].map((x) => `<g transform="translate(${x} 465.5) scale(.12)" opacity=".6"><circle cx="-28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><circle cx="28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><path d="M-28 0 L-6 0 L10 -18 L28 0" stroke="#fff" stroke-width="7" fill="none"/></g>`).join('')}
+  ${[100, 300, 500, 700].map((x) => `<g transform="translate(${x} 463.7) scale(.1)" opacity=".6"><circle cx="-28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><circle cx="28" cy="0" r="14" fill="none" stroke="#fff" stroke-width="7"/><path d="M-28 0 L-6 0 L10 -18 L28 0" stroke="#fff" stroke-width="7" fill="none"/></g>`).join('')}
   <!-- cars, vans, a pickup, a delivery truck and a bus (more of them come when the family drives a lot) -->
   <!-- (the far lane is drawn first, so the near lane is always in front of it) -->
   <g data-k="traffic">${laneCar('A', 700)}</g>
@@ -922,18 +925,20 @@ const Scene = (() => {
           // …left along the school street, and stop right at the school's front door
           const side = s.vehicle('backFx', car('#e63946', '#6b4423', monkeyHead(-3, -23, '#8b5a2b')), 232, 378, -1);
           side.carry(true); side.cam = true;
-          await side.move(130, 378, 1300, 'ease-out');
+          await side.move(126, 378, 1300, 'ease-in-out');
+          await side.move(126, 391, 600, 'ease-out');               // (into the school's car park)
           side.cam = false; side.carry(false);
           side.g.querySelector('.veh').innerHTML = car('#e63946', '#6b4423', '');   // (Bobo hops out of the back seat)
           // Bobo hops out at the front of the school, dad honks goodbye from the car
-          s.place([118, 370]); s.inside(false);
+          s.place([154, 380]); s.inside(false);
           await s.go(P.school);
           sfx('honk'); s.jump(); await s.w(800);
           // (dad's drive home keeps going while the result shows)
           (async () => {
-            const back = s.vehicle('backFx', car('#e63946', '#6b4423', ''), 130, 378, 1);   // turns around…
+            const back = s.vehicle('backFx', car('#e63946', '#6b4423', ''), 126, 391, 1);   // turns around…
             side.remove();
-            await back.move(232, 378, 1100, 'ease-in-out'); back.remove();
+            await back.move(126, 378, 500, 'ease-in-out');
+            await back.move(232, 378, 1000, 'ease-in-out'); back.remove();
             const down = s.vehicle('roadFx', `<g transform="scale(.94)">${carFront('#e63946', '#6b4423')}</g>`, 232, 384, 1);
             await down.move(232, LANE_A - 14, 1200, 'ease-out');                     // …down the little street…
             await s.roadClear(HOME_ROUTE);                                            // (dad waits until the road is clear)
@@ -1630,12 +1635,12 @@ const Scene = (() => {
       // where the family car parks: the station's car park (up the little street), or a bay on the street by the school / shops
       bayFor(to) {
         if (to[1] < 345) return { x: 274, y: 346, station: true };   // (up the little street to the station's car park)
-        if (to[0] < 300) return { x: 168, y: 378 };                   // (a bay on the street by the school)
+        if (to[0] < 300) return { x: 126, y: 391, lot: true };        // (the school's car park, across the street)
         return { x: to[0] < 520 ? 511 : 565, y: 392, lot: true };     // (the shops' car park, across from the shop)
       },
       // where people stand when they get out of (or wait for) the parked car
       outOf(bay, k) {
-        if (bay.lot) return k < 0 ? [bay.x + 32, bay.y - 3] : [bay.x - 32 - 14 * k, bay.y - 3];
+        if (bay.lot) return k < 0 ? [bay.x + 28, bay.y - 11] : [bay.x - 28 - 12 * k, bay.y - 11];
         return bay.station ? (k < 0 ? [bay.x + 30, bay.y - 3] : [bay.x - 32 - 14 * k, bay.y - 3]) : (k < 0 ? [bay.x + 10, 367] : [bay.x - 10 + 14 * k, 367]);
       },
       // the street the car drives along to get to that bay (the shops' car park is just off the school street)
