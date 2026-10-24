@@ -557,7 +557,7 @@ const Scene = (() => {
   <!-- a little car park by the station, to the right of the little street -->
   <rect x="244" y="333" width="56" height="21" class="road"/><path d="M246 333.5 H299.5 V353.5 H246" stroke="#d6dbe0" stroke-width="1" fill="none"/>
   <text x="274" y="351" text-anchor="middle" fill="#fff" opacity=".8" font-size="6" font-weight="900" font-family="Arial, sans-serif">P</text>
-  ${rack(182, 365, 'school')}${rack(304, 356, 'station')}${rack(596, 365, 'mall')}
+  ${rack(182, 365, 'school')}${rack(304, 356, 'station')}
   <!-- the recycling center (a reward) behind Bobo's house -->
   ${item('recycling', 372, 362, `<rect x="-24" y="-34" width="48" height="34" rx="3" fill="#2fb35a"/><path d="M-28 -34 H28 L24 -41 H-24Z" fill="#23863e"/>
       <g transform="translate(0 -18)" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"><path d="M-7 5 A8 8 0 0 1 -5 -7"/><path d="M5 -7 A8 8 0 0 1 8 4"/><path d="M4 8 A8 8 0 0 1 -7 7"/></g>
@@ -588,6 +588,8 @@ const Scene = (() => {
     <rect x="560" y="330" width="28" height="32" fill="#cfefff" stroke="#6f93b9" stroke-width="2"/><path d="M574 330 V362" stroke="#6f93b9" stroke-width="2"/>
     <text x="609" y="347" font-size="9" font-weight="900" fill="#fff">SALE</text>
   </g>
+  <!-- (the shop's bike rack stands on the pavement in front of the shop, so it's drawn after it) -->
+  ${rack(596, 365, 'mall')}
   ${tree(640, 340, 0.75)}
   <!-- a nest at the top of the tree; the chicks are gone when it gets too hot -->
   <g transform="translate(636 296)">${NEST.replace('MOM', songbird(0, 0, '#ff5b4a', 0))}</g>
@@ -909,13 +911,17 @@ const Scene = (() => {
       },
       bad: {
         async play(s) {
-          // dad drives Bobo in the family car: out of the driveway…
+          // dad drives Bobo in the family car: Bobo strolls over and climbs in the back…
+          s.speed = 0.7;
           await s.go([444, 456]);
           await s.dadOut();
-          s.inside(true);
+          await s.w(500);
+          s.inside(true); await s.w(700);
+          s.speed = 1;
+          // …out of the driveway…
           const ride = await s.carOut(monkeyHead(-3, -23, '#8b5a2b'), headBack(-5, '#6b4423') + headBack(5, '#8b5a2b', 0.85));
           ride.cam = true;
-          await ride.move(232, LANE_A, 1100, 'ease-in-out');             // along the street to the little street…
+          await ride.drive(232);                                         // along the street to the little street…
           ride.remove();
           const up = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', headBack(-5, '#6b4423') + headBack(5, '#8b5a2b', 0.85))}</g>`, 232, LANE_A, 1);
           up.carry(true); up.cam = true;
@@ -931,9 +937,10 @@ const Scene = (() => {
           side.cam = false; side.carry(false);
           side.g.querySelector('.veh').innerHTML = car('#e63946', '#6b4423', '');   // (Bobo hops out of the back seat)
           // Bobo hops out at the front of the school, dad honks goodbye from the car
-          s.place([154, 380]); s.inside(false);
-          await s.go(P.school);
-          sfx('honk'); s.jump(); await s.w(800);
+          await s.w(500);
+          s.place([154, 380]); s.inside(false); await s.w(600);
+          s.speed = 0.7; await s.go(P.school); s.speed = 1;
+          sfx('honk'); s.jump(); await s.w(1200);
           // (dad's drive home keeps going while the result shows)
           (async () => {
             const back = s.vehicle('backFx', car('#e63946', '#6b4423', ''), 126, 391, 1);   // turns around…
@@ -947,8 +954,7 @@ const Scene = (() => {
             s.roadFree('A');   // (across lane A: those cars can go again)
             const home = s.vehicle('roadFx', familyCar('#e63946', ''), 232, LANE_B, 1);
             home.carry(true);
-            await home.move(398, LANE_B, 900, 'ease-out');                          // …and home into the driveway
-            await s.carPark(home);
+            await s.carPark(home);                                                   // …and home into the driveway
             s.dadIn();
           })().catch(() => {});
         },
@@ -1010,9 +1016,9 @@ const Scene = (() => {
         async play(s) {
           const t = s.vehicle('roadFx', truck, -260, LANE_B, 1);
           t.puff(true);
-          await t.move(330, LANE_B, 2200, 'ease-out');
+          t.vel = 130; await t.drive(330);
           s.toss(336, 430, 412, 452, BOX, 700, () => s.show('boxClosed')); await s.w(800);
-          const away = t.move(1150, LANE_B, 2400, 'ease-in');
+          const away = t.drive(1150, { stop: false });
           // Bobo unpacks it…
           await s.go([392, 456]); s.chop(); await s.w(900);
           s.hide('boxClosed'); s.show('boxPile'); s.hide('toyBroken');
@@ -1175,9 +1181,9 @@ const Scene = (() => {
           s.inside(true);
           const ride = await s.carOut(BACK_FAMILY, headBack(-6, '#6b4423') + headBack(0, '#a0703f', .9) + headBack(6, '#8b5a2b', .85), -150);
           sfx('honk');
-          await ride.move(-160, LANE_A, 2600, 'ease-in');   // (off over the bridge to Grandma's)
+          await ride.drive(-160, { stop: false });   // (off over the bridge to Grandma's)
           s.roadFree();
-          await ride.move(-650, LANE_A, 1600, 'linear'); ride.remove();
+          await ride.drive(-650, { stop: false }); ride.remove();
           s.away = 'car';
         },
         apply(s) { s.traffic++; s.hide('parkedCar'); },
@@ -1300,7 +1306,7 @@ const Scene = (() => {
       const id = 'car' + ++famIds;
       const zone = (laneY) => () => {
         const now = performance.now(), [x, y] = v.where(now), [xb] = v.where(now - 80);
-        return Math.abs(y - laneY) < 4.5 ? [x - 38, x + 38, (x - xb) / 0.08] : null;
+        return Math.abs(y - laneY) < 4.5 ? [x - 38, x + 38, v.path ? (x - xb) / 0.08 : v.vel || 0] : null;
       };
       zones.set(id + ':A', { lane: 'A', get: zone(LANE_A) });
       zones.set(id + ':B', { lane: 'B', get: zone(LANE_B) });
@@ -1379,7 +1385,8 @@ const Scene = (() => {
     const svgs = container.querySelectorAll('svg.scene-main, svg.scene-top');
     const pans = container.querySelectorAll('.bd-pan');
     let vb = [0, 0, 800, 500], camFocus = 400, camFocusY = 454, follow = false;
-    let camLeft = 0, camTop = 0, camKey = '';
+    let camLeft = 0, camTop = 0, camKey = '', zoomSize = '';
+    const CAM_BOX = [-300, -60, 1400, 700];   // (all the camera can ever see, with room to spare)
     function slide(tx, ty, ms) {
       const key = `${tx} ${ty}`;
       if (key === camKey) return;
@@ -1412,10 +1419,22 @@ const Scene = (() => {
       VIEW_H = container.classList.contains('title-scene') ? 380 : r.width > r.height ? 350 : 290;
       const W = Math.min(800, VIEW_H * r.width / r.height), top = clamp(camFocusY - VIEW_H * 0.76, 90, 590 - VIEW_H);
       const want = follow ? [(800 - W) / 2, top, W, VIEW_H] : [0, 0, 800, 500];
-      if (want.join() !== vb.join()) {
-        vb = want;
+      const size = `${r.width}x${r.height}`;
+      if (want.join() !== vb.join() || size !== zoomSize) {
+        vb = want; zoomSize = size;
         container.classList.toggle('zoomed', follow);
-        svgs.forEach((el) => el.setAttribute('viewBox', vb.map((v) => +v.toFixed(2)).join(' ')));
+        svgs.forEach((el) => {
+          el.dataset.view = vb.map((v) => +v.toFixed(2)).join(' ');   // (what the camera shows at rest: app.js lines the sky up with it)
+          if (!follow) { el.setAttribute('viewBox', '0 0 800 500'); el.removeAttribute('style'); return; }
+          // Zoomed in, the drawing is as big as the whole part of the city the camera can reach, so nothing
+          // ever hangs outside its box (some browsers then drop it for a moment when the colours change)
+          const u = Math.min(r.width / W, r.height / VIEW_H), ox = (r.width - W * u) / 2, oy = (r.height - VIEW_H * u) / 2;
+          const [bx, by, bw, bh] = CAM_BOX;
+          el.setAttribute('viewBox', CAM_BOX.join(' '));
+          Object.assign(el.style, { position: 'absolute', left: (ox + (bx - vb[0]) * u).toFixed(1) + 'px', top: (oy + (by - vb[1]) * u).toFixed(1) + 'px',
+            width: (bw * u).toFixed(1) + 'px', height: (bh * u).toFixed(1) + 'px' });
+          camKey = '';
+        });
         container.dispatchEvent(new Event('scenezoom', { bubbles: true }));
       }
       camTo(camFocus, 0, camFocusY, true);   // (the card below changes size a lot: keep looking at the same spot)
@@ -1461,7 +1480,7 @@ const Scene = (() => {
     function walkTo(x, y, msWanted = 0, ease = 'ease-in-out') {
       const [cx, cy] = walkPos;
       const dist = Math.hypot(x - cx, y - cy);
-      const ms = msWanted || Math.max(300, Math.min(2000, dist * 5.5 / s.speed));
+      const ms = msWanted || Math.max(300, Math.min(2000 / Math.min(1, s.speed), dist * 5.5 / s.speed));
       walker.style.transitionTimingFunction = ease;
       // switch layers at the start of a step (always in the side street, where nothing overlaps)
       const layer = layerFor(y);
@@ -1579,7 +1598,7 @@ const Scene = (() => {
       // …and comes back along the street (from the right) and drives up into the driveway
       async carPark(v, heads = headBack(-5, '#6b4423')) {
         const lane = v.y;
-        await v.move(434, lane, Math.max(600, Math.abs(v.x - 434) * 2.2), 'ease-out');
+        await v.drive(434);
         if (lane === LANE_B) await s.roadClear([['A', 400, 470]]);   // (across lane A into the driveway)
         v.remove();
         const r = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', heads)}</g>`, 434, lane, 1);
@@ -1743,7 +1762,7 @@ const Scene = (() => {
         const back = [monkeyHead(-3, -23, '#8b5a2b')].concat(riders.map((k, n) => `<g transform="translate(${-9 + n * 9} -22.5) scale(.55)">${monkeyHead(0, 0, FRIENDS[k][0])}</g>`)).join('');
         const v = await s.carOut(back);
         v.cam = true;
-        await v.move(232, LANE_A, 1200, 'ease-in-out');
+        await v.drive(232);
         v.remove();
         const up = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', headBack(-5, '#6b4423') + headBack(5, '#8b5a2b', .85))}</g>`, 232, LANE_A, 1);
         up.carry(true); up.cam = true;
@@ -1773,7 +1792,7 @@ const Scene = (() => {
           await fam[0].walk(408, 452); await fam[0].enter();
           const v = await s.carOut('');
           v.cam = true;
-          await v.move(232, LANE_A, 1200, 'ease-in-out'); v.remove();
+          await v.drive(232); v.remove();
           const up = s.vehicle('roadFx', `<g transform="scale(.94)">${carRear('#e63946', headBack(-5, '#6b4423'))}</g>`, 232, LANE_A, 1);
           up.carry(true); up.cam = true;
           await up.move(232, LANE_A - 14, 400, 'ease-in');
@@ -1842,7 +1861,7 @@ const Scene = (() => {
           s.hide('parkedCar'); place(P.home); s.inside(true, true);
           await s.roadClear([['A', 400, 1460]]);   // (nobody in front of us on the way in)
           const c = s.vehicle('roadFx', familyCar('#e63946'), 1400, LANE_A, -1);
-          c.carry(true);
+          c.carry(true); c.vel = -140;   // (already driving when it comes into view)
           await s.carPark(c, headBack(-6, '#6b4423') + headBack(0, '#a0703f', .9) + headBack(6, '#8b5a2b', .85));
           // the whole family gets out of the parked car and goes inside; Bobo stays out
           place([444, 456]); s.inside(false);
@@ -1873,6 +1892,48 @@ const Scene = (() => {
           if (!m) return [v.x, v.y];
           const t = clamp((now - m.t0) / m.ms, 0, 1), e = (EASE[m.ease] || EASE['ease-in-out'])(t);
           return [m.x0 + (m.x1 - m.x0) * e, m.y0 + (m.y1 - m.y0) * e];
+        };
+        // along the main road like everybody else: speed up, keep a safe distance behind the car in front
+        // (never driving into it), and slow down to stop at x2 (or drive on past it when stop is false)
+        v.drive = (x2, { stop = true, v0 = Math.abs(v.vel || 0) } = {}) => {
+          const lane = Math.abs(v.y - LANE_A) < Math.abs(v.y - LANE_B) ? 'A' : 'B', L = LANES[lane], dx = Math.sign(x2 - v.x) || 1;
+          const g0 = gen, vmax = L.v * 1.4, FRONT = 36;
+          let spd = v0, last = performance.now();
+          v.path = null; v.vel = dx * spd;
+          g.style.transition = 'opacity .6s'; g.classList.add('moving');
+          if (v.cam) camTo(x2, Math.abs(x2 - v.x) / (vmax * 0.7) * 1000, v.y);
+          const p = new Promise((done, fail) => {
+            const frame = (now) => {
+              if (gen !== g0 || !g.isConnected) { v.vel = 0; fail(CANCEL); return; }
+              const dt = Math.min(0.05, (now - last) / 1000), rem = (x2 - v.x) * dx;
+              last = now;
+              let gap = Infinity, leadV = vmax;
+              if (dx === L.dir) {
+                const me = L.dir * v.x;
+                cars.forEach((c) => {
+                  if (!c.on || c.lane !== lane || c.p <= me) return;
+                  const d = c.p + c.rear - (me + FRONT);
+                  if (d < gap) { gap = d; leadV = c.v; }
+                });
+              }
+              let target = gap === Infinity ? vmax : clamp(leadV + (gap - (20 + spd * 0.3)) * 1.6, 0, vmax);
+              if (stop) target = Math.min(target, Math.max(16, Math.sqrt(2 * 240 * Math.max(0, rem))));
+              spd = spd < target ? Math.min(target, spd + 220 * dt) : Math.max(target, spd - 360 * dt);
+              if (gap < 4) spd = Math.min(spd, leadV);
+              const step = spd * dt;
+              if (stop && rem <= step + 0.3) {
+                v.x = x2; v.vel = 0; set(); g.classList.remove('moving');
+                if (v.cam) camTo(x2, 300, v.y);
+                done(); return;
+              }
+              v.x += dx * step; v.vel = dx * spd; set();
+              if (!stop && rem <= step) { done(); return; }
+              requestAnimationFrame(frame);
+            };
+            requestAnimationFrame(frame);
+          });
+          p.catch(() => {});   // (fine to not wait for it)
+          return p;
         };
         v.move = (x2, y2, ms, ease = 'ease-in-out') => {
           const [x0, y0] = v.where();
@@ -1952,7 +2013,7 @@ const Scene = (() => {
       // The family car wants to drive on the main road: dad looks and goes as soon as nobody is close (no car in
       // those stretches, and none coming within ~140). The cars that catch up just slow down behind him.
       async roadClear(stretches) {
-        for (let k = 0; k < 40 && !stretches.every(([l, x1, x2]) => laneFree(l, x1, x2, 140)); k++) await s.w(150);
+        for (let k = 0; k < 40 && !stretches.every(([l, x1, x2]) => laneFree(l, x1, x2, 70)); k++) await s.w(150);
       },
       roadFree() {},
       // a friend walks back home by themselves and goes in (it keeps going while the next scene starts)
@@ -2053,6 +2114,7 @@ const Scene = (() => {
       if (!fromEclipse) endEclipse();
       time = t;
       document.documentElement.dataset.time = t;
+      container.querySelectorAll('.bd').forEach((el) => el.classList.toggle('bd-in', el.classList.contains('bd-' + t)));
       setClock(t);
       container.classList.toggle('heat-day', level >= 2 && (t === 'day'));
       q('heatHaze').classList.toggle('hide', !(level >= 2 && t === 'day'));
@@ -2341,11 +2403,11 @@ const Scene = (() => {
          titleGo(): he sprints home and says "Let's go!" (the game starts after that). */
       titleShow() {
         const g = gen;
-        const spots = [[505, 456], [676, 458], [596, 452], [420, 456], [300, 452], [166, 452], [740, 456], [560, 456]];
+        const spots = [[505, 456], [560, 456], [676, 458], [740, 456], [676, 458], [596, 452], [505, 456], [420, 456], [300, 452], [166, 452], [300, 452], [420, 456]];
         (async () => {
           for (let k = 0; g === gen; k++) {
-            const to = spots[(k * 3 + 1) % spots.length];
-            s.speed = k % 3 === 2 ? 1.3 : 0.7;                     // (strolling, and now and then a little run)
+            const to = spots[(k + 1) % spots.length];
+            s.speed = k % 5 === 3 ? 0.85 : 0.5;                    // (strolling, and now and then a little jog)
             await s.go(to);
             s.speed = 1;
             const what = k % 4;                                    // then he does something there
@@ -2360,7 +2422,7 @@ const Scene = (() => {
         gen++;                                                      // (stop playing…)
         const m = new DOMMatrixReadOnly(getComputedStyle(walker).transform);
         place([400 + m.m41, 400 + m.m42]);                          // (…right where he is)
-        s.speed = 1.6;
+        s.speed = 1.1;
         await s.go(P.home);                                         // hurry home…
         s.speed = 1;
         s.jump();

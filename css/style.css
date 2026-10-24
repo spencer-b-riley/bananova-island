@@ -56,6 +56,10 @@ html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout
    moon stay near the top of the view (left in the morning, high in the day, right in the evening) */
 /* (the camera slides the two .bd-pan layers, scene.js: camTo; they reach a bit above and below the screen) */
 .bd-pan { position: absolute; inset: 0; }
+/* a new sky fades in on top of the old one, and the old one goes only once it's covered (scene.js: setTime),
+   so there's never a see-through moment in between */
+.bd { transition: opacity 0s linear 2s; }
+.bd.bd-in { z-index: 1; transition: opacity 2s ease-in-out; }
 .zoomed { --bd-shift: 60vh; }
 .zoomed .bd-pan { top: calc(-1 * var(--bd-shift)); bottom: calc(-1 * var(--bd-shift)); will-change: transform; }
 .zoomed .sun-html, .zoomed .moon-html { top: calc(var(--view-top, 0px) + 30 * var(--u, 1px)); }
@@ -107,7 +111,7 @@ html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout
 /* the lights + speech bubble SVG sits exactly over the island SVG */
 .scene-top { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 /* the camera slides the city sideways on phones (see Scene camTo) */
-.zoomed > svg { will-change: transform; }
+:is(.scene-wrap, .title-scene).zoomed > svg { will-change: transform; overflow: hidden; }   /* (the drawing's box covers all the camera can see) */
 .scene-main { position: relative; z-index: 0; }
 
 /* Rain: one big image of raindrops that slides down. Moving it with transform lets the
@@ -743,7 +747,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 :root[data-perf="low"] :is([data-k="skyClouds"], [data-k^="traffic2"], [data-k^="traffic3"]) { display: none; }
 :root[data-perf="low"] .plant-smoke .smoke:not(:first-child), :root[data-perf="low"] .exhaust circle:not(:first-child) { display: none; }
 :root[data-perf="low"] .raining .rain-fx::before { animation-duration: 0.9s; }
-:root[data-perf="low"] .bd, :root[data-perf="low"] .fxh-tint { transition-duration: 1s; }
+:root[data-perf="low"] .bd.bd-in, :root[data-perf="low"] .fxh-tint { transition-duration: 1s; }
+:root[data-perf="low"] .bd { transition-delay: 1s; }
 
 /* walking is part of the story: it moves on every level (nobody slides around) */
 :root[data-perf="low"] .walking :is(.bob, .bd-bob) { animation: walkbob 0.26s ease-in-out infinite alternate !important; }

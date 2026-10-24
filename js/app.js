@@ -73,7 +73,10 @@
     if (!svg) return; // screens without the city keep the last horizon
     // Where the drawing sits on screen (worked out from its box, so the camera's sideways
     // slide on phones doesn't move the far-away sky: the sun and moon stay put)
-    const box = svg.parentElement.getBoundingClientRect(), vb = svg.viewBox.baseVal;
+    // (zoomed in, the drawing is bigger than the screen: data-view is the part the camera shows when at rest)
+    const view = svg.dataset.view && svg.dataset.view.split(' ').map(Number);
+    const box = svg.parentElement.getBoundingClientRect();
+    const vb = view ? { x: view[0], y: view[1], width: view[2], height: view[3] } : svg.viewBox.baseVal;
     if (!box.width || !box.height) return;
     const k = Math.min(box.width / vb.width, box.height / vb.height);
     const ctm = { a: k, d: k, e: box.left + (box.width - vb.width * k) / 2 - vb.x * k, f: box.top + (box.height - vb.height * k) / 2 - vb.y * k };
@@ -449,8 +452,11 @@
     sayLine(() => '');
     if (turn === 1 && scene.atSchool()) {
       // the school day goes by first: Bobo goes in, the sun moves on, and school's out in the afternoon
-      // (never at night). Then, if the next thing happens later (or on another day), time moves on again.
+      // (never at night). Bobo goes home right away (still in the afternoon: by bike, or dad picks him up),
+      // and only then, if the next thing happens later (or on another day), time moves on again.
       await scene.schoolDay('day');
+      if (G !== game) return;
+      await scene.goHome();
       if (G !== game) return;
       if (G.newDay[turn] || G.times[turn] !== 'day') {
         if (G.newDay[turn]) toast('sun', t('newDay'));

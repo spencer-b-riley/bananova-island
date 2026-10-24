@@ -63,7 +63,10 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
   each happens at a fitting time of day (the sun rises on the left and sets on the right), and the
   weather is random (wilder when the city is hotter). Lunch is always on a different day than school.
 - After the ride to school the school day goes by (the clock on the school tower spins from 8 to 3),
-  and school's always out in the afternoon, never at night
+  school's always out in the afternoon (never at night), and Bobo goes home right away (by bike, or
+  dad picks him up) before the day moves on
+- The family car drives with the traffic: it speeds up, keeps its distance to the car in front and
+  never drives into it; the other cars slow down behind it
 - Cars and trains have headlights (and trains lit windows) in the evening and at night
 - If there's a solar eclipse, Bobo jumps and says "Whoa!" before putting on his eclipse glasses
 - The camera is close up (closest on phones, a little further out on computers) and follows Bobo,
@@ -76,7 +79,9 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
   little extras (only strong ones like Apple M-chips or gaming graphics cards get everything). It
   guesses from the CPU, memory, graphics chip and iPhone screen size, then watches the real frame
   rate and switches off little extras (flapping wings, swaying plants) as soon as it looks choppy
-  (below ~45 fps, then ~33 fps). Little animations the camera can't see are paused until it gets near. The
+  (below ~45 fps, then ~33 fps). A device that stays perfectly smooth gets one level more (Safari hides
+  the graphics chip's name, so strong Macs and iPhones prove it by running smoothly). Little animations
+  the camera can't see are paused until it gets near. The
   animals always stay and keep moving: they show how healthy the island is. Big changes happen one at a time (the sky changes first, then Bobo moves).
 - All icons are our own drawings (`js/icons.js`), no emoji
 - A recap of every decision with "Did you know?" facts, then simple takeaways. The first time,
