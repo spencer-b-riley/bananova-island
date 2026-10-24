@@ -202,7 +202,7 @@
     s.setStats(START_T);
     s.showcase();
     s.calm();          // a calm title screen: just a few birds
-    s.titleShow();     // …and Banjo playing around town (the camera follows him)
+    s.titleShow();     // …and Bobo playing around town (the camera follows him)
     titleScene = s;
     watchScene($('#titleScene'));
   }

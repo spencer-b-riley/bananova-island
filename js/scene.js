@@ -858,11 +858,11 @@ const Scene = (() => {
 
   // Full-screen layers drawn with plain HTML (the GPU fades and moves these cheaply)
   const BACKDROP = `<div class="backdrop" aria-hidden="true">
-      <div class="bd bd-morning"></div><div class="bd bd-day"></div><div class="bd bd-evening"></div><div class="bd bd-night"><div class="bd-stars">${STARS}</div></div><div class="bd bd-eclipse"><div class="bd-stars">${STARS}</div></div>
+      <div class="bd-pan"><div class="bd bd-morning"></div><div class="bd bd-day"></div><div class="bd bd-evening"></div><div class="bd bd-night"><div class="bd-stars">${STARS}</div></div><div class="bd bd-eclipse"><div class="bd-stars">${STARS}</div></div></div>
       <div class="moon-html"><div class="moon-halo"></div><div class="moon-disc"></div><div class="moon-cut"></div></div>
       <div class="sun-html"><div data-k="heatGlow" class="sun-heat fade hide"></div><div class="sun-halo"></div><div class="sun-disc"></div><div class="sun-tint"></div><div class="corona"></div><div class="eclipse-moon"></div></div>
-      <div class="bd-haze"></div><div class="bd-gloom"></div>
-      <div class="bd-cover bd-rain"></div><div class="bd-cover bd-storm"></div>
+      <div class="bd-pan"><div class="bd-haze"></div><div class="bd-gloom"></div>
+      <div class="bd-cover bd-rain"></div><div class="bd-cover bd-storm"></div></div>
     </div>`;
   const FX_LAYERS = `<div class="fx-html" aria-hidden="true">
       <div class="fxh fxh-tint"></div><div class="fxh fxh-heat"></div><div class="fxh fxh-dark"></div><div class="fxh fxh-flash"></div>
@@ -1371,36 +1371,52 @@ const Scene = (() => {
 
     /* Camera: close up on the city, following Bobo (sideways and up and down), on phones and computers alike.
        It shows VIEW_H city units from top to bottom (as wide as the screen allows, up to the whole city), and
-       slides the drawing (and the sky + sea behind it) with the GPU, so it stays smooth. */
-    // (in a game the camera is close; on the title screen a little further out, under the logo)
-    let VIEW_H = 290, VIEW_TOP = 200;
+       slides the drawing (and the sky + sea behind it) with the GPU, so it stays smooth.
+       To keep it light, the camera only moves when Bobo gets near the edge of the middle of the view, and it
+       moves the few layers directly (no page-wide style changes). */
+    let VIEW_H = 290;
     const svgs = container.querySelectorAll('svg.scene-main, svg.scene-top');
+    const pans = container.querySelectorAll('.bd-pan');
     let vb = [0, 0, 800, 500], camFocus = 400, camFocusY = 454, follow = false;
-    function camTo(x, ms = 0, y = camFocusY) {
+    let camLeft = 0, camTop = 0, camKey = '';
+    function slide(tx, ty, ms) {
+      const key = `${tx} ${ty}`;
+      if (key === camKey) return;
+      camKey = key;
+      const tr = ms ? `transform ${Math.round(ms)}ms ease-in-out` : 'none';
+      svgs.forEach((el) => { el.style.transition = tr; el.style.transform = `translate3d(${tx}px, ${ty}px, 0)`; });
+      pans.forEach((el) => { el.style.transition = tr; el.style.transform = `translate3d(0, ${ty}px, 0)`; });
+    }
+    function camTo(x, ms = 0, y = camFocusY, snap = false) {
       camFocus = x; camFocusY = y;
       const r = container.getBoundingClientRect();
-      if (!follow || !r.height) { container.style.setProperty('--camx', '0px'); container.style.setProperty('--camy', '0px'); return; }
-      const u = Math.min(r.width / vb[2], r.height / vb[3]);
-      const left = vb[2] >= 800 ? vb[0] : clamp(x - vb[2] / 2, 0, 800 - vb[2]);
-      const top = clamp(y - vb[3] * 0.76, 90, 590 - vb[3]);     // (Bobo's feet a little below the middle)
-      container.style.setProperty('--camt', Math.round(ms) + 'ms');
-      container.style.setProperty('--camx', (-(left - vb[0]) * u).toFixed(1) + 'px');
-      container.style.setProperty('--camy', (-(top - vb[1]) * u).toFixed(1) + 'px');
+      if (!follow || !r.height) { camLeft = vb[0]; camTop = vb[1]; slide(0, 0, 0); return; }
+      const [, , W, H] = vb, u = Math.min(r.width / W, r.height / H);
+      // sideways: keep Bobo in the middle 40% of the view
+      if (W >= 800) camLeft = vb[0];
+      else if (snap) camLeft = clamp(x - W / 2, 0, 800 - W);
+      else camLeft = clamp(clamp(camLeft, x - W * 0.7, x - W * 0.3), 0, 800 - W);
+      // up and down: Bobo's feet a little below the middle (only moves for a real change, like going to school)
+      const wantTop = clamp(y - H * 0.76, 90, 590 - H);
+      if (snap || Math.abs(wantTop - camTop) > H * 0.1) camTop = wantTop;
+      slide(+(-(camLeft - vb[0]) * u).toFixed(1), +(-(camTop - vb[1]) * u).toFixed(1), ms);
     }
     function applyZoom() {
       const r = container.getBoundingClientRect();
       if (!r.height) return;
       follow = container.classList.contains('scene-wrap') || container.classList.contains('title-scene');
-      if (container.classList.contains('title-scene')) { VIEW_H = 360; VIEW_TOP = 180; }
-      const W = Math.min(800, VIEW_H * r.width / r.height);
-      const want = follow ? [(800 - W) / 2, VIEW_TOP, W, VIEW_H] : [0, 0, 800, 500];
+      // close up on phones; on wide screens (computers, tablets sideways) a little further out;
+      // on the title screen further out still, under the logo
+      VIEW_H = container.classList.contains('title-scene') ? 380 : r.width > r.height ? 350 : 290;
+      const W = Math.min(800, VIEW_H * r.width / r.height), top = clamp(camFocusY - VIEW_H * 0.76, 90, 590 - VIEW_H);
+      const want = follow ? [(800 - W) / 2, top, W, VIEW_H] : [0, 0, 800, 500];
       if (want.join() !== vb.join()) {
         vb = want;
         container.classList.toggle('zoomed', follow);
         svgs.forEach((el) => el.setAttribute('viewBox', vb.map((v) => +v.toFixed(2)).join(' ')));
         container.dispatchEvent(new Event('scenezoom', { bubbles: true }));
       }
-      camTo(camFocus, 0);   // (the card below changes size a lot: keep looking at the same spot)
+      camTo(camFocus, 0, camFocusY, true);   // (the card below changes size a lot: keep looking at the same spot)
     }
     if (typeof ResizeObserver !== 'undefined') new ResizeObserver(applyZoom).observe(container);
     const CANCEL = { cancelled: true };
@@ -1438,13 +1454,14 @@ const Scene = (() => {
       camTo(x, ms, y);
       placeBubble(ms);
       monkey.classList.toggle('walking', dist > 4);
+      monkey.classList.toggle('running', dist > 4 && s.speed > 1.5);
       walker.classList.toggle('pedaling', dist > 4);
       if (Math.abs(x - cx) > 2) rideDir.setAttribute('transform', `scale(${x < cx ? -RIDE_SC : RIDE_SC} ${RIDE_SC})`);
       const towardsUs = y - cy > Math.abs(x - cx);
       rideDir.querySelector('.rv-front').style.display = towardsUs ? '' : 'none';
       rideDir.querySelector('.rv-back').style.display = towardsUs ? 'none' : '';
       clearTimeout(walkTimer);
-      return new Promise((done) => { walkTimer = setTimeout(() => { monkey.classList.remove('walking'); walker.classList.remove('pedaling'); done(); }, ms); });
+      return new Promise((done) => { walkTimer = setTimeout(() => { monkey.classList.remove('walking', 'running'); walker.classList.remove('pedaling'); done(); }, ms); });
     }
     // Plan a route: between the back and front rows Bobo always goes through the side street
     function route(from, to) {
@@ -2103,7 +2120,7 @@ const Scene = (() => {
       return `M${l + R} ${t} H${r - R} Q${r} ${t} ${r} ${t + R} V${b - R} Q${r} ${b} ${r - R} ${b} H${tx + 7} L${tx} ${b + 12} L${tx - 7} ${b}`
         + ` H${l + R} Q${l} ${b} ${l} ${b - R} V${t + R} Q${l} ${t} ${l + R} ${t}Z`;
     };
-    const viewLeft = () => (vb[2] === 800 ? 0 : clamp(camFocus - vb[2] / 2, 0, 800 - vb[2]));
+    const viewLeft = () => (vb[2] === 800 ? 0 : camLeft);
     const bubbleXY = (hx, hy) => {
       const left = viewLeft(), right = left + vb[2];
       const cx = Math.max(left + bubbleW / 2 + 6, Math.min(right - bubbleW / 2 - 6, hx));
@@ -2277,37 +2294,35 @@ const Scene = (() => {
       goHome() { begin(); return s.travel(P.home).catch(() => {}); },
       // for the title screen: a happy, clean city
       calm() { container.classList.add('calm'); },
-      /* The title screen: Banjo (Bobo's friend) plays around the city and the camera follows him.
+      /* The title screen: Bobo plays around the city and the camera follows him.
          titleGo(): he sprints home and says "Let's go!" (the game starts after that). */
       titleShow() {
-        const b = s.buddy('golden', '#ffd23f', [505, 456]);
-        b.free = true; b.keep = true; b.cam = true;
-        s.titleBuddy = b;
+        const g = gen;
         const spots = [[505, 456], [676, 458], [596, 452], [420, 456], [300, 452], [166, 452], [740, 456], [560, 456]];
         (async () => {
-          for (let k = 0; !s.titleDone; k++) {
+          for (let k = 0; g === gen; k++) {
             const to = spots[(k * 3 + 1) % spots.length];
-            b.run = k % 3 === 2;                                  // (now and then he runs)
-            await b.go(to);
-            if (s.titleDone) break;
+            s.speed = k % 3 === 2 ? 2.2 : 1;                       // (now and then he runs)
+            await s.go(to);
+            s.speed = 1;
             const what = k % 4;                                    // then he does something there
-            if (what === 0) { b.jump(); await sleep(700); b.jump(); }
-            else if (what === 1) { b.chop(); s.toss(to[0], to[1] - 20, to[0] + 6, to[1] - 24, BALL, 700); await sleep(900); }
-            else if (what === 2) { b.jump(); s.sparkle(to[0], to[1] - 26); }
-            await sleep(900 + (k % 3) * 400);
+            if (what === 0) { s.jump(); await s.w(700); s.jump(); }
+            else if (what === 1) { s.chop(); s.toss(to[0], to[1] - 20, to[0] + 6, to[1] - 24, BALL, 700); await s.w(900); }
+            else if (what === 2) { s.jump(); s.sparkle(to[0], to[1] - 26); }
+            await s.w(900 + (k % 3) * 400);
           }
         })().catch(() => {});
       },
       async titleGo(line) {
-        const b = s.titleBuddy;
-        if (!b) return;
-        s.titleDone = true;
-        b.run = true;
-        await b.go([P.friend[0], P.friend[1] + 4]);                 // sprint home…
-        b.jump();
-        buddySay(b, line);                                         // …"Let's go!"
-        await sleep(1600);
-        await b.enter();
+        gen++;                                                      // (stop playing…)
+        const m = new DOMMatrixReadOnly(getComputedStyle(walker).transform);
+        place([400 + m.m41, 400 + m.m42]);                          // (…right where he is)
+        s.speed = 2.6;
+        await s.go(P.home);                                         // sprint home…
+        s.speed = 1;
+        s.jump();
+        say(line, 2000);                                            // …"Let's go!"
+        await sleep(1700);
       },
       showcase() { ['solarRoof', 'solarSchool', 'turbines', 'cyclists', 'bikeFriends', 'shadeTrees', 'veggieGarden'].forEach(s.show); s.renew = 3; s.updatePlant(); },
       jump: s.jump,

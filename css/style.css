@@ -54,10 +54,10 @@ html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout
 .raining .sun-html, .storming .sun-html { opacity: 0; }
 /* the close-up camera (games and the title): the sky and sea slide up and down with the city, and the sun and
    moon stay near the top of the view (left in the morning, high in the day, right in the evening) */
-.zoomed { --bd-shift: 100vh; }
-.zoomed :is(.bd, .bd-haze, .bd-gloom) { top: calc(-1 * var(--bd-shift)); bottom: calc(-1 * var(--bd-shift)); }
-.zoomed .bd-cover { top: calc(-1 * var(--bd-shift)); }
-.zoomed :is(.bd, .bd-haze, .bd-gloom, .bd-cover) { transform: translate3d(0, var(--camy, 0px), 0); transition: opacity 2s ease-in-out, transform var(--camt, 0ms) ease-in-out; }
+/* (the camera slides the two .bd-pan layers, scene.js: camTo; they reach a bit above and below the screen) */
+.bd-pan { position: absolute; inset: 0; }
+.zoomed { --bd-shift: 60vh; }
+.zoomed .bd-pan { top: calc(-1 * var(--bd-shift)); bottom: calc(-1 * var(--bd-shift)); will-change: transform; }
 .zoomed .sun-html, .zoomed .moon-html { top: calc(var(--view-top, 0px) + 30 * var(--u, 1px)); }
 .zoomed .sun-html { left: 50vw; transform: translate(22vw, 0); }
 :root[data-time="morning"] .zoomed .sun-html { transform: translate(-30vw, calc(26 * var(--u, 1px))); }
@@ -107,7 +107,7 @@ html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout
 /* the lights + speech bubble SVG sits exactly over the island SVG */
 .scene-top { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 /* the camera slides the city sideways on phones (see Scene camTo) */
-:is(.scene-wrap, .title-scene) > svg { transform: translate3d(var(--camx, 0px), var(--camy, 0px), 0); transition: transform var(--camt, 0ms) ease-in-out; }
+.zoomed > svg { will-change: transform; }
 .scene-main { position: relative; z-index: 0; }
 
 /* Rain: one big image of raindrops that slides down. Moving it with transform lets the
@@ -694,7 +694,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .sparkle { transform-box: fill-box; transform-origin: center; animation: spark 1.2s ease-out forwards; }
 .walker { transition: transform 1s ease-in-out, opacity 0.4s; }
 .walking .bob, .walking .bd-bob { animation: walkbob 0.26s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
-.running .bd-bob { animation-duration: 0.15s; }
+.running :is(.bob, .bd-bob) { animation-duration: 0.15s; }
 .running .foot { animation-duration: 0.15s !important; }
 @keyframes walkbob { from { transform: translateY(0) rotate(-4deg); } to { transform: translateY(-6px) rotate(4deg); } }
 /* the feet take steps while walking (one forward and up, then the other) */

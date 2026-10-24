@@ -62,10 +62,11 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
   the birthday party comes later on),
   each happens at a fitting time of day (the sun rises on the left and sets on the right), and the
   weather is random (wilder when the city is hotter). Lunch is always on a different day than school.
-- The camera is close up on every screen (phone and computer) and follows Bobo, cars, bikes and
-  trains around, so the action is big and easy to see
-- Title screen: Banjo runs around the island doing tricks while the camera follows him; when the
-  player presses Play he sprints to Bobo's house and shouts "Let's go!" before the game starts
+- The camera is close up (closest on phones, a little further out on computers) and follows Bobo,
+  cars, bikes and trains around, so the action is big and easy to see. To stay smooth it only moves
+  when Bobo nears the edge of the middle of the view, and it slides just a few GPU layers
+- Title screen: Bobo runs around the island doing tricks while the camera follows him; when the
+  player presses Play he sprints home and shouts "Let's go!" before the game starts
 - Text in the game can't be selected or highlighted by accident (taps and long-presses on phones)
 - Animation scaler (`js/perf.js`): to go easy on graphics chips, most devices start with fewer
   little extras (only strong ones like Apple M-chips or gaming graphics cards get everything). It
