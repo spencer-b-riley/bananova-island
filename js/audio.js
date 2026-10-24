@@ -82,29 +82,59 @@ const Sound = (() => {
     FX[name](ctx.currentTime + 0.01);
   }
 
-  /* ── Music: a cheerful pentatonic island loop (8 bars) ── */
-  const STEP = 0.19;
-  const MELODY = [
-    76, 0, 79, 0, 81, 79, 76, 0, 74, 0, 76, 0, 72, 0, 0, 0,
-    76, 0, 79, 0, 81, 84, 81, 79, 76, 0, 74, 0, 72, 0, 0, 0,
-    81, 0, 84, 0, 86, 84, 81, 0, 79, 0, 81, 0, 76, 0, 0, 0,
-    74, 76, 79, 0, 76, 74, 72, 0, 74, 0, 76, 0, 72, 0, 0, 0,
+  /* ── Music: three cheerful island tunes (all our own). Each loops for a while (about a minute), then the
+     music fades into the next one, so it changes only now and then. ── */
+  const TUNES = [
+    { // "Island": bright, in C
+      step: 0.19, lead: 'triangle', vol: 0.22,
+      melody: [76, 0, 79, 0, 81, 79, 76, 0, 74, 0, 76, 0, 72, 0, 0, 0,
+        76, 0, 79, 0, 81, 84, 81, 79, 76, 0, 74, 0, 72, 0, 0, 0,
+        81, 0, 84, 0, 86, 84, 81, 0, 79, 0, 81, 0, 76, 0, 0, 0,
+        74, 76, 79, 0, 76, 74, 72, 0, 74, 0, 76, 0, 72, 0, 0, 0],
+      bass: [48, 45, 41, 43, 48, 45, 41, 43] },   // C Am F G
+    { // "Breeze": slower and gentle, in G
+      step: 0.23, lead: 'sine', vol: 0.26,
+      melody: [71, 0, 74, 0, 76, 0, 74, 71, 69, 0, 67, 0, 69, 0, 0, 0,
+        71, 0, 74, 0, 79, 0, 76, 74, 76, 0, 74, 0, 71, 0, 0, 0,
+        74, 0, 76, 0, 79, 0, 81, 79, 76, 0, 74, 0, 76, 0, 0, 0,
+        74, 0, 71, 0, 69, 71, 74, 0, 71, 0, 69, 0, 67, 0, 0, 0],
+      bass: [43, 40, 36, 38, 43, 40, 36, 38] },   // G Em C D
+    { // "Bounce": quicker and playful, in F
+      step: 0.17, lead: 'square', vol: 0.1,
+      melody: [72, 0, 72, 74, 77, 0, 74, 72, 69, 0, 72, 0, 67, 0, 0, 0,
+        72, 0, 72, 74, 77, 0, 79, 77, 74, 0, 72, 0, 74, 0, 0, 0,
+        77, 0, 77, 79, 81, 0, 79, 77, 74, 0, 77, 0, 72, 0, 0, 0,
+        74, 72, 69, 0, 72, 69, 67, 0, 69, 0, 67, 0, 65, 0, 0, 0],
+      bass: [41, 38, 34, 36, 41, 38, 34, 36] },   // F Dm Bb C
   ];
-  const BASS = [48, 45, 41, 43, 48, 45, 41, 43]; // C Am F G, one per 8 steps
+  const LOOPS_PER_TUNE = 4;
+  let tune = 0, loops = 0;
 
   function playStep(i, t) {
-    const m = MELODY[i];
-    if (m) note(midi(m), t, 0.28, { vol: 0.22, bus: musicBus });
-    if (i % 8 === 0) note(midi(BASS[i / 8]), t, 0.5, { type: 'sine', vol: 0.4, bus: musicBus });
-    if (i % 8 === 4) note(midi(BASS[(i - 4) / 8] + 7), t, 0.4, { type: 'sine', vol: 0.3, bus: musicBus });
+    const T = TUNES[tune], m = T.melody[i];
+    if (m) note(midi(m), t, T.step * 1.5, { type: T.lead, vol: T.vol, bus: musicBus });
+    if (i % 8 === 0) note(midi(T.bass[i / 8]), t, T.step * 2.6, { type: 'sine', vol: 0.4, bus: musicBus });
+    if (i % 8 === 4) note(midi(T.bass[(i - 4) / 8] + 7), t, T.step * 2.1, { type: 'sine', vol: 0.3, bus: musicBus });
     if (i % 2 === 1) noise(t, 0.05, { vol: 0.05, freq: 7000, type: 'highpass', attack: 0.005, bus: musicBus });
   }
 
   function tick() {
     while (nextTime < ctx.currentTime + 0.3) {
       playStep(step, nextTime);
-      nextTime += STEP;
-      step = (step + 1) % MELODY.length;
+      nextTime += TUNES[tune].step;
+      step = (step + 1) % TUNES[tune].melody.length;
+      if (step === 0 && ++loops >= LOOPS_PER_TUNE) {
+        // time for the next tune: a short fade out, a little pause, and in again
+        loops = 0;
+        tune = (tune + 1) % TUNES.length;
+        const t = nextTime;
+        musicBus.gain.cancelScheduledValues(t - 0.8);
+        musicBus.gain.setValueAtTime(0.16, t - 0.8);
+        musicBus.gain.linearRampToValueAtTime(0.0001, t);
+        nextTime += 0.6;
+        musicBus.gain.setValueAtTime(0.0001, nextTime);
+        musicBus.gain.linearRampToValueAtTime(0.16, nextTime + 1.2);
+      }
     }
   }
 

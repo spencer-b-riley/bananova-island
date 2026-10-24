@@ -61,8 +61,12 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
 - Every game is different: questions come in a random order (getting to school is always first and
   the birthday party comes later on),
   each happens at a fitting time of day (the sun rises on the left and sets on the right), and the
-  weather is random (wilder when the city is hotter)
-- On phones the city is zoomed in and the view follows Bobo around
+  weather is random (wilder when the city is hotter). Lunch is always on a different day than school.
+- The camera is close up on every screen (phone and computer) and follows Bobo, cars, bikes and
+  trains around, so the action is big and easy to see
+- Title screen: Banjo runs around the island doing tricks while the camera follows him; when the
+  player presses Play he sprints to Bobo's house and shouts "Let's go!" before the game starts
+- Text in the game can't be selected or highlighted by accident (taps and long-presses on phones)
 - Animation scaler (`js/perf.js`): to go easy on graphics chips, most devices start with fewer
   little extras (only strong ones like Apple M-chips or gaming graphics cards get everything). It
   guesses from the CPU, memory, graphics chip and iPhone screen size, then watches the real frame
@@ -73,7 +77,8 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
   players tick "I read this" on every card before going on; after that the recap can be skipped
 - 16 achievements
 - English, German, Italian and French (switch anytime, top-right)
-- Music and sound effects, generated in the browser (no audio files)
+- Music and sound effects, generated in the browser (no audio files): three tunes (Island, Breeze,
+  Bounce) that take turns, each playing a few times before fading into the next
 - My Games history and achievements, saved **only on the player's own device**
   (deleting game history keeps achievements unless the player confirms a second question)
 - Privacy tab that explains this and teaches online-safety tips
@@ -129,7 +134,7 @@ Then go to http://localhost:8000.
   formal trademark clearance. The character and city are our own.
 - **Art:** every drawing (city, Bobo, friends, animals, vehicles) is original SVG made in code
   for this project. No images, sprites or fonts are downloaded.
-- **Music and sounds:** an original melody and effects, generated live with the Web Audio API.
+- **Music and sounds:** three original melodies and effects, generated live with the Web Audio API.
   No audio files or samples are used.
 - **Text:** all game text and facts were written for this project.
 - **Emoji:** shown with the player's own device font (Unicode characters). No emoji images

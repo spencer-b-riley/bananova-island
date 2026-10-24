@@ -1369,31 +1369,35 @@ const Scene = (() => {
     const vehicles = [];
     const buddies = [];
 
-    /* Camera. Phones (narrow, portrait): zoomed in, and the view slides sideways to follow Bobo.
-       Laptops and tablets: the whole width, but with less empty sky so the city is closer.
-       Sliding moves the pictures with the GPU, so it stays smooth. */
+    /* Camera: close up on the city, following Bobo (sideways and up and down), on phones and computers alike.
+       It shows VIEW_H city units from top to bottom (as wide as the screen allows, up to the whole city), and
+       slides the drawing (and the sky + sea behind it) with the GPU, so it stays smooth. */
+    // (in a game the camera is close; on the title screen a little further out, under the logo)
+    let VIEW_H = 290, VIEW_TOP = 200;
     const svgs = container.querySelectorAll('svg.scene-main, svg.scene-top');
-    let vb = [0, 0, 800, 500], camFocus = 400;
-    function camTo(x, ms = 0) {
-      camFocus = x;
-      if (vb[2] === 800) { container.style.setProperty('--camx', '0px'); return; }
+    let vb = [0, 0, 800, 500], camFocus = 400, camFocusY = 454, follow = false;
+    function camTo(x, ms = 0, y = camFocusY) {
+      camFocus = x; camFocusY = y;
       const r = container.getBoundingClientRect();
+      if (!follow || !r.height) { container.style.setProperty('--camx', '0px'); container.style.setProperty('--camy', '0px'); return; }
       const u = Math.min(r.width / vb[2], r.height / vb[3]);
-      const cx = clamp(x - vb[2] / 2, 0, 800 - vb[2]);
+      const left = vb[2] >= 800 ? vb[0] : clamp(x - vb[2] / 2, 0, 800 - vb[2]);
+      const top = clamp(y - vb[3] * 0.76, 90, 590 - vb[3]);     // (Bobo's feet a little below the middle)
       container.style.setProperty('--camt', Math.round(ms) + 'ms');
-      container.style.setProperty('--camx', (-(cx - vb[0]) * u).toFixed(1) + 'px');
+      container.style.setProperty('--camx', (-(left - vb[0]) * u).toFixed(1) + 'px');
+      container.style.setProperty('--camy', (-(top - vb[1]) * u).toFixed(1) + 'px');
     }
     function applyZoom() {
       const r = container.getBoundingClientRect();
       if (!r.height) return;
-      const game = container.classList.contains('scene-wrap');
-      const phone = game && r.width / r.height < 1.1 && r.width < 760;
-      const want = !game ? [0, 0, 800, 500] : phone ? [150, 0, 500, 500] : [0, 90, 800, 410];
+      follow = container.classList.contains('scene-wrap') || container.classList.contains('title-scene');
+      if (container.classList.contains('title-scene')) { VIEW_H = 360; VIEW_TOP = 180; }
+      const W = Math.min(800, VIEW_H * r.width / r.height);
+      const want = follow ? [(800 - W) / 2, VIEW_TOP, W, VIEW_H] : [0, 0, 800, 500];
       if (want.join() !== vb.join()) {
         vb = want;
-        container.classList.toggle('zoomed', phone);
-        container.classList.toggle('cropped', game && !phone);
-        svgs.forEach((el) => el.setAttribute('viewBox', vb.join(' ')));
+        container.classList.toggle('zoomed', follow);
+        svgs.forEach((el) => el.setAttribute('viewBox', vb.map((v) => +v.toFixed(2)).join(' ')));
         container.dispatchEvent(new Event('scenezoom', { bubbles: true }));
       }
       camTo(camFocus, 0);   // (the card below changes size a lot: keep looking at the same spot)
@@ -1431,7 +1435,7 @@ const Scene = (() => {
       walker.style.transitionDuration = ms + 'ms';
       walker.style.transform = `translate(${x - 400}px, ${y - 400}px) scale(${depthK(y).toFixed(3)})`;
       walkEnd = performance.now() + ms;
-      camTo(x, ms);
+      camTo(x, ms, y);
       placeBubble(ms);
       monkey.classList.toggle('walking', dist > 4);
       walker.classList.toggle('pedaling', dist > 4);
@@ -1459,7 +1463,7 @@ const Scene = (() => {
       walker.style.transform = `translate(${x - 400}px, ${y - 400}px) scale(${depthK(y).toFixed(3)})`;
       void walker.getBoundingClientRect();
       walker.style.transitionDuration = '';
-      camTo(x, 0);
+      camTo(x, 0, y);
     }
 
     const WEAR = { pack: ['mPack', 'mStraps'], bike: ['mRide'], hat: ['mHat'], sweater: ['mSweater'], cool: ['mJacketCool'], plain: ['mJacketPlain'],
@@ -1835,7 +1839,7 @@ const Scene = (() => {
           v.x = x2; v.y = y2;
           g.classList.add('moving');   // (exhaust puffs while it drives)
           clearTimeout(v.stop); v.stop = setTimeout(() => g.classList.remove('moving'), ms);
-          if (v.cam) camTo(x2, ms);
+          if (v.cam) camTo(x2, ms, y2);
           g.style.transition = `transform ${ms}ms ${ease}, opacity .6s`; set();
           const p = s.w(ms); p.catch(() => {});   // (fine to not wait for it)
           return p;
@@ -1874,10 +1878,11 @@ const Scene = (() => {
         };
         set(from[0], from[1], 0); void g.getBoundingClientRect();
         b.walk = (x, y) => {
-          const ms = Math.max(300, Math.hypot(x - b.pos[0], y - b.pos[1]) * 5.5);
+          const ms = Math.max(b.run ? 200 : 300, Math.hypot(x - b.pos[0], y - b.pos[1]) * (b.run ? 2.4 : 5.5));
           b.pos = [x, y]; set(x, y, ms);
-          g.classList.add('walking');
-          const p = (b.free ? sleep(ms) : s.w(ms)).finally(() => g.classList.remove('walking')); p.catch(() => {});
+          if (b.cam) camTo(x, ms, y);
+          g.classList.add('walking'); g.classList.toggle('running', !!b.run);
+          const p = (b.free ? sleep(ms) : s.w(ms)).finally(() => g.classList.remove('walking', 'running')); p.catch(() => {});
           return p;
         };
         // walk somewhere, through the side street if it's between the back and the front
@@ -2129,6 +2134,18 @@ const Scene = (() => {
       b.style.transition = `transform ${Math.round(left)}ms ease-out, opacity .25s`;
       b.style.transform = bubbleTransform(x1, y1, bubbleScale(walkPos[1]));
     }
+    // a friend says something (a little bubble above their head)
+    function buddySay(b, text) {
+      if (!text) return;
+      const g = document.createElementNS(NS, 'g'), [x, y] = b.pos, k = depthK(y);
+      g.innerHTML = `<path fill="#fff" stroke="#23313f" stroke-width="2.2" stroke-linejoin="round"/><text x="0" y="-16" text-anchor="middle" font-size="16.5" font-weight="800" fill="#23313f"></text>`;
+      g.lastChild.textContent = text;
+      q('bubble').parentNode.appendChild(g);
+      const w = Math.min(420, g.lastChild.getComputedTextLength() + 22);
+      g.firstChild.setAttribute('d', bubbleShape(w, 0));
+      g.setAttribute('transform', `translate(${x} ${(y - HEAD_H * k - 8).toFixed(1)}) scale(${clamp(k * 1.05, 0.72, 1.1).toFixed(2)})`);
+      setTimeout(() => g.remove(), 2200);
+    }
     // How long a bubble stays: by the length of the text, so every language gets the same reading time
     // (a young reader needs about 1.5 s plus 80 ms per letter; never under 3 s, never over 7 s)
     const readMs = (text) => clamp(1500 + text.length * 80, 3000, 7000);
@@ -2260,6 +2277,38 @@ const Scene = (() => {
       goHome() { begin(); return s.travel(P.home).catch(() => {}); },
       // for the title screen: a happy, clean city
       calm() { container.classList.add('calm'); },
+      /* The title screen: Banjo (Bobo's friend) plays around the city and the camera follows him.
+         titleGo(): he sprints home and says "Let's go!" (the game starts after that). */
+      titleShow() {
+        const b = s.buddy('golden', '#ffd23f', [505, 456]);
+        b.free = true; b.keep = true; b.cam = true;
+        s.titleBuddy = b;
+        const spots = [[505, 456], [676, 458], [596, 452], [420, 456], [300, 452], [166, 452], [740, 456], [560, 456]];
+        (async () => {
+          for (let k = 0; !s.titleDone; k++) {
+            const to = spots[(k * 3 + 1) % spots.length];
+            b.run = k % 3 === 2;                                  // (now and then he runs)
+            await b.go(to);
+            if (s.titleDone) break;
+            const what = k % 4;                                    // then he does something there
+            if (what === 0) { b.jump(); await sleep(700); b.jump(); }
+            else if (what === 1) { b.chop(); s.toss(to[0], to[1] - 20, to[0] + 6, to[1] - 24, BALL, 700); await sleep(900); }
+            else if (what === 2) { b.jump(); s.sparkle(to[0], to[1] - 26); }
+            await sleep(900 + (k % 3) * 400);
+          }
+        })().catch(() => {});
+      },
+      async titleGo(line) {
+        const b = s.titleBuddy;
+        if (!b) return;
+        s.titleDone = true;
+        b.run = true;
+        await b.go([P.friend[0], P.friend[1] + 4]);                 // sprint home…
+        b.jump();
+        buddySay(b, line);                                         // …"Let's go!"
+        await sleep(1600);
+        await b.enter();
+      },
       showcase() { ['solarRoof', 'solarSchool', 'turbines', 'cyclists', 'bikeFriends', 'shadeTrees', 'veggieGarden'].forEach(s.show); s.renew = 3; s.updatePlant(); },
       jump: s.jump,
       droop: s.droop,

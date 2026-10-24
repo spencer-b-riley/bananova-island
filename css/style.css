@@ -11,23 +11,24 @@
   --sky-top-c: #5ec8f5; --sky-bot-c: #c4f0ff; --sea-top-c: #2bb3e0; --sea-bot-c: #1279b8; --cloud-c: #ffffff; --sea-deep-c: #0b3a66;
 }
 /* ── Full-screen layers as plain HTML: the phone's GPU fades/moves these almost for free ── */
+html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .backdrop { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
 .bd, .bd-haze, .bd-gloom, .bd-cover { position: absolute; inset: 0; opacity: 0; transition: opacity 2s ease-in-out; }
 /* sky + sea for each time of day; the horizon lines up with the island drawing (app.js: syncHorizon) */
-.bd-morning { background: linear-gradient(#7cc8ef var(--sky-top, 0%), #ffe3c4 var(--horizon, 58%), #45b4dc var(--horizon, 58%), #1a7fb6 var(--deep, 80%), #0e406e var(--abyss, 100%)); }
-.bd-day     { background: linear-gradient(#5ec8f5 var(--sky-top, 0%), #c4f0ff var(--horizon, 58%), #2bb3e0 var(--horizon, 58%), #1279b8 var(--deep, 80%), #0b3a66 var(--abyss, 100%)); }
-.bd-evening { background: linear-gradient(#5b5fb0 var(--sky-top, 0%), #ffae80 var(--horizon, 58%), #3f86b8 var(--horizon, 58%), #1b4f86 var(--deep, 80%), #0c2a52 var(--abyss, 100%)); }
-.bd-night   { background: linear-gradient(#142a5e var(--sky-top, 0%), #3e5aa6 var(--horizon, 58%), #2a5f95 var(--horizon, 58%), #133a6c var(--deep, 80%), #071a36 var(--abyss, 100%)); }
-.bd-eclipse { background: linear-gradient(#1c2850 var(--sky-top, 0%), #4a5590 var(--horizon, 58%), #2a5480 var(--horizon, 58%), #133a6c var(--deep, 80%), #071a36 var(--abyss, 100%)); }
+.bd-morning { background: linear-gradient(#7cc8ef calc(var(--sky-top, 0%) + var(--bd-shift, 0px)), #ffe3c4 calc(var(--horizon, 58%) + var(--bd-shift, 0px)), #45b4dc calc(var(--horizon, 58%) + var(--bd-shift, 0px)), #1a7fb6 calc(var(--deep, 80%) + var(--bd-shift, 0px)), #0e406e calc(var(--abyss, 100%) + var(--bd-shift, 0px))); }
+.bd-day     { background: linear-gradient(#5ec8f5 calc(var(--sky-top, 0%) + var(--bd-shift, 0px)), #c4f0ff calc(var(--horizon, 58%) + var(--bd-shift, 0px)), #2bb3e0 calc(var(--horizon, 58%) + var(--bd-shift, 0px)), #1279b8 calc(var(--deep, 80%) + var(--bd-shift, 0px)), #0b3a66 calc(var(--abyss, 100%) + var(--bd-shift, 0px))); }
+.bd-evening { background: linear-gradient(#5b5fb0 calc(var(--sky-top, 0%) + var(--bd-shift, 0px)), #ffae80 calc(var(--horizon, 58%) + var(--bd-shift, 0px)), #3f86b8 calc(var(--horizon, 58%) + var(--bd-shift, 0px)), #1b4f86 calc(var(--deep, 80%) + var(--bd-shift, 0px)), #0c2a52 calc(var(--abyss, 100%) + var(--bd-shift, 0px))); }
+.bd-night   { background: linear-gradient(#142a5e calc(var(--sky-top, 0%) + var(--bd-shift, 0px)), #3e5aa6 calc(var(--horizon, 58%) + var(--bd-shift, 0px)), #2a5f95 calc(var(--horizon, 58%) + var(--bd-shift, 0px)), #133a6c calc(var(--deep, 80%) + var(--bd-shift, 0px)), #071a36 calc(var(--abyss, 100%) + var(--bd-shift, 0px))); }
+.bd-eclipse { background: linear-gradient(#1c2850 calc(var(--sky-top, 0%) + var(--bd-shift, 0px)), #4a5590 calc(var(--horizon, 58%) + var(--bd-shift, 0px)), #2a5480 calc(var(--horizon, 58%) + var(--bd-shift, 0px)), #133a6c calc(var(--deep, 80%) + var(--bd-shift, 0px)), #071a36 calc(var(--abyss, 100%) + var(--bd-shift, 0px))); }
 :root[data-time="morning"] .bd-morning, :root[data-time="day"] .bd-day, :root:not([data-time]) .bd-day,
 :root[data-time="evening"] .bd-evening, :root[data-time="night"] .bd-night, :root[data-time="eclipse"] .bd-eclipse { opacity: 1; }
-.bd-stars { position: absolute; left: 0; right: 0; top: 0; height: var(--horizon, 58%); }
+.bd-stars { position: absolute; left: 0; right: 0; top: var(--bd-shift, 0px); height: var(--horizon, 58%); }
 .bd-stars svg { display: block; }
-.bd-haze { background: linear-gradient(#9c8f86 var(--sky-top, 0%), #e9b98a var(--horizon, 58%), transparent var(--horizon, 58%)); }
+.bd-haze { background: linear-gradient(#9c8f86 calc(var(--sky-top, 0%) + var(--bd-shift, 0px)), #e9b98a calc(var(--horizon, 58%) + var(--bd-shift, 0px)), transparent calc(var(--horizon, 58%) + var(--bd-shift, 0px))); }
 .bd-gloom { background: #4b5563; }
 .raining .bd-gloom { opacity: 0.3; }
 /* rain / storm: the whole sky is one cloud cover with a soft bumpy edge */
-.bd-cover { bottom: auto; height: var(--cloud-base, 30%); }
+.bd-cover { bottom: auto; height: calc(var(--cloud-base, 30%) + var(--bd-shift, 0px)); }
 /* the bumpy bottom edge is sized in city units, so it never reaches past the horizon on small phones */
 .bd-cover::after {
   content: ""; position: absolute; left: 0; right: 0; top: 100%; height: calc(44 * var(--u, 1px));
@@ -35,7 +36,7 @@
 }
 .bd-rain { background: linear-gradient(#7c8591, #9aa3ae); }
 .bd-rain::after { background-image: radial-gradient(circle at 50% 0, #9aa3ae calc(36 * var(--u, 1px)), transparent calc(37 * var(--u, 1px))); }
-.bd-storm { background: linear-gradient(#2f3540, #4a525f); height: calc(var(--cloud-base, 30%) + 10 * var(--u, 1px)); }
+.bd-storm { background: linear-gradient(#2f3540, #4a525f); height: calc(var(--cloud-base, 30%) + var(--bd-shift, 0px) + 10 * var(--u, 1px)); }
 .bd-storm::after { background-image: radial-gradient(circle at 50% 0, #4a525f calc(36 * var(--u, 1px)), transparent calc(37 * var(--u, 1px))); }
 .raining .bd-rain, .storming .bd-storm { opacity: 1; }
 /* The sun and moon are HTML too, so moving them never redraws the island.
@@ -51,10 +52,18 @@
 :root[data-time="evening"] .sun-html { transform: translate(calc(30 * var(--u, 1px)), calc(165 * var(--u, 1px))); }
 :root[data-time="night"] .sun-html { transform: translate(calc(80 * var(--u, 1px)), calc(260 * var(--u, 1px))); opacity: 0; }
 .raining .sun-html, .storming .sun-html { opacity: 0; }
-/* zoomed in on a phone: the sun rises and sets a bit closer to the middle so it stays in view */
-:root[data-time="morning"] .zoomed .sun-html { transform: translate(calc(-500 * var(--u, 1px)), calc(85 * var(--u, 1px))); }
-:root[data-time="evening"] .zoomed .sun-html { transform: translate(calc(-60 * var(--u, 1px)), calc(165 * var(--u, 1px))); }
-.zoomed .moon-html { left: calc(var(--ox, 0px) + 190 * var(--u, 1px)); }
+/* the close-up camera (games and the title): the sky and sea slide up and down with the city, and the sun and
+   moon stay near the top of the view (left in the morning, high in the day, right in the evening) */
+.zoomed { --bd-shift: 100vh; }
+.zoomed :is(.bd, .bd-haze, .bd-gloom) { top: calc(-1 * var(--bd-shift)); bottom: calc(-1 * var(--bd-shift)); }
+.zoomed .bd-cover { top: calc(-1 * var(--bd-shift)); }
+.zoomed :is(.bd, .bd-haze, .bd-gloom, .bd-cover) { transform: translate3d(0, var(--camy, 0px), 0); transition: opacity 2s ease-in-out, transform var(--camt, 0ms) ease-in-out; }
+.zoomed .sun-html, .zoomed .moon-html { top: calc(var(--view-top, 0px) + 30 * var(--u, 1px)); }
+.zoomed .sun-html { left: 50vw; transform: translate(22vw, 0); }
+:root[data-time="morning"] .zoomed .sun-html { transform: translate(-30vw, calc(26 * var(--u, 1px))); }
+:root[data-time="evening"] .zoomed .sun-html { transform: translate(30vw, calc(50 * var(--u, 1px))); }
+:root[data-time="night"] .zoomed .sun-html { transform: translate(36vw, calc(90 * var(--u, 1px))); }
+.zoomed .moon-html { left: 26vw; }
 /* a very hot city: the sun looks bigger and the air glows orange */
 .clim-hot .sun-html > .sun-disc, .clim-hot .sun-html > .sun-halo { transform: scale(1.3); }
 .clim-hot.heat-day .fxh-heat { opacity: 0.16; }
@@ -82,8 +91,6 @@
 @keyframes moonPassHtml { 0% { transform: translateX(calc(-120 * var(--u, 1px))); opacity: 1; } 40%, 62% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(calc(120 * var(--u, 1px))); opacity: 1; } }
 @keyframes corona { 0%, 33% { opacity: 0; } 42%, 60% { opacity: 1; } 70%, 100% { opacity: 0; } }
 :root[data-time="eclipse"] .bd-stars { opacity: 0.8; }
-/* laptops: the view is closer to the city, so the sun and moon sit a little lower to stay in view */
-.cropped .sun-html, .cropped .moon-html { top: calc(var(--oy, 0px) + 125 * var(--u, 1px)); }
 
 /* night tint + storm flashes, on top of the island (but under the lights and speech bubble) */
 .fx-html { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
@@ -100,7 +107,7 @@
 /* the lights + speech bubble SVG sits exactly over the island SVG */
 .scene-top { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 /* the camera slides the city sideways on phones (see Scene camTo) */
-.scene-wrap > svg { transform: translate3d(var(--camx, 0px), 0, 0); transition: transform var(--camt, 0ms) ease-in-out; }
+:is(.scene-wrap, .title-scene) > svg { transform: translate3d(var(--camx, 0px), var(--camy, 0px), 0); transition: transform var(--camt, 0ms) ease-in-out; }
 .scene-main { position: relative; z-index: 0; }
 
 /* Rain: one big image of raindrops that slides down. Moving it with transform lets the
@@ -151,7 +158,7 @@ body {
   color: var(--ink);
   /* --sky-top / --horizon / --deep are measured from the island drawing (app.js: syncHorizon)
      so the sea outside the game lines up exactly with the sea inside it. */
-  background: linear-gradient(var(--sky-top-c) var(--sky-top, 0%), var(--sky-bot-c) var(--horizon, 58%), var(--sea-top-c) var(--horizon, 58%), var(--sea-bot-c) var(--deep, 85%), var(--sea-deep-c) 100%);
+  background: linear-gradient(var(--sky-top-c) calc(var(--sky-top, 0%) + var(--bd-shift, 0px)), var(--sky-bot-c) calc(var(--horizon, 58%) + var(--bd-shift, 0px)), var(--sea-top-c) calc(var(--horizon, 58%) + var(--bd-shift, 0px)), var(--sea-bot-c) var(--deep, 85%), var(--sea-deep-c) 100%);
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
@@ -255,7 +262,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   font-size: clamp(10.5px, 1.5vh, 12.5px); line-height: 1.3;
   color: #fff; font-weight: 700; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
-@media (max-width: 600px) { .credits { max-width: 58vw; font-size: 10px; } }
+@media (max-width: 600px) { .credits { top: 8px; left: 10px; max-width: 48vw; font-size: 8px; line-height: 1.25; } }
 
 /* ── intro ── */
 .big-emoji { font-size: clamp(44px, 8vh, 72px); line-height: 1; }
@@ -687,6 +694,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .sparkle { transform-box: fill-box; transform-origin: center; animation: spark 1.2s ease-out forwards; }
 .walker { transition: transform 1s ease-in-out, opacity 0.4s; }
 .walking .bob, .walking .bd-bob { animation: walkbob 0.26s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+.running .bd-bob { animation-duration: 0.15s; }
+.running .foot { animation-duration: 0.15s !important; }
 @keyframes walkbob { from { transform: translateY(0) rotate(-4deg); } to { transform: translateY(-6px) rotate(4deg); } }
 /* the feet take steps while walking (one forward and up, then the other) */
 .walking .foot.fl { animation: stepL 0.26s ease-in-out infinite alternate; }

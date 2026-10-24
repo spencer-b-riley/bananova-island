@@ -88,6 +88,7 @@
     root.setProperty('--u', ctm.a.toFixed(4) + 'px');
     root.setProperty('--ox', ctm.e.toFixed(1) + 'px');
     root.setProperty('--oy', ctm.f.toFixed(1) + 'px');
+    root.setProperty('--view-top', y(vb.y));   // (the top of what the camera shows: the sun and moon sit just below it)
   }
   const horizonWatcher = new ResizeObserver(() => syncHorizon());
   document.addEventListener('scenezoom', () => syncHorizon());
@@ -180,6 +181,7 @@
 
   /* ═════════════════════ MENU SCREENS ═════════════════════ */
 
+  let titleScene = null, starting = false;
   function renderTitle() {
     rerender = renderTitle;
     G = null;
@@ -200,6 +202,8 @@
     s.setStats(START_T);
     s.showcase();
     s.calm();          // a calm title screen: just a few birds
+    s.titleShow();     // …and Banjo playing around town (the camera follows him)
+    titleScene = s;
     watchScene($('#titleScene'));
   }
 
@@ -288,13 +292,16 @@
     // Time of day only moves forward (morning → day → evening → night), like a real day.
     // When the next situation needs an earlier time (school is in the morning), a new day starts.
     const DAY = ['morning', 'day', 'evening', 'night'];
-    let now = 0;
+    let now = 0, days = 0;
     const times = [], newDay = [];
     seq.forEach((ci, turn) => {
       const ok = CHOICES[ci].times.map((tm) => DAY.indexOf(tm));
       const later = ok.filter((k) => k >= now);
-      newDay.push(turn > 0 && !later.length);
-      now = turn === 0 ? Math.min(...ok) : later.length ? Math.min(...later) : Math.min(...ok);
+      // (lunch is always on another day than school: if it would still be the first day, a new day starts)
+      const fresh = turn > 0 && (!later.length || (CHOICES[ci].id === 'food' && days === 0));
+      newDay.push(fresh);
+      if (fresh) days++;
+      now = turn === 0 ? Math.min(...ok) : !fresh ? Math.min(...later) : Math.min(...ok);
       times.push(DAY[now]);
       if (turn === 0) now = Math.max(now, 1);   // (school takes the morning: what comes next happens later in the day)
     });
@@ -440,14 +447,21 @@
     const newSky = turn > 0 && (G.times[turn] !== G.times[turn - 1] || G.weather[turn] !== G.weather[turn - 1]);
     cardWait();
     sayLine(() => '');
-    if (G.newDay[turn]) toast('sun', t('newDay'));
     if (turn === 1 && scene.atSchool()) {
       // the school day goes by first: Bobo goes in, the sun moves on, and later school's out
-      await scene.schoolDay(G.times[turn]);
+      // (if the next thing happens on another day, the school day ends in the evening first)
+      await scene.schoolDay(G.newDay[turn] ? 'evening' : G.times[turn]);
       if (G !== game) return;
+      if (G.newDay[turn]) {
+        toast('sun', t('newDay'));
+        scene.setTime(G.times[turn]);
+        await wait(2500);
+        if (G !== game) return;
+      }
       scene.setWeather(G.weather[turn]);
       if (G.weather[turn] === 'storm') Sound.play('storm');
     } else {
+      if (G.newDay[turn]) toast('sun', t('newDay'));
       scene.setTime(G.times[turn]);
       scene.setWeather(G.weather[turn]);
       if (G.weather[turn] === 'storm') Sound.play('storm');
@@ -664,7 +678,16 @@
       case 'tab':
         ({ title: renderTitle, games: renderGames, ach: renderAch, privacy: renderPrivacy })[el.dataset.tab]();
         break;
-      case 'play': startGame(); break;
+      case 'play': {
+        // Banjo sprints home and says "Let's go!", then the game starts
+        if (starting) break;
+        starting = true;
+        const ts = titleScene;
+        if (ts) await Promise.race([ts.titleGo(L().say.letsGo), wait(4500)]);
+        starting = false;
+        startGame();
+        break;
+      }
       case 'setLang': setLang(el.dataset.lang); break;
       case 'qr': showQR(); break;
       case 'closeModal': closeModal(); break;

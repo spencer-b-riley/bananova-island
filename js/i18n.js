@@ -69,7 +69,7 @@ const I18N = {
     // Speech bubbles: [problem, green choice, other choice, reward] for each choice
     say: {
       idle: ['Hey you! Are you still there?', 'Can you help me choose?', 'Psst… which one is better for our city?', 'Help me keep the city cool!', 'I need your help!', 'Which choice helps our planet?', 'Hello? Anybody there?', 'Let’s make a choice that’s good for Earth!'],
-      schoolOut: 'School’s out!', thanksMom: 'Thanks, Mom!', thanksDad: 'Thanks, Dad!', thanksBanjo: 'Thanks for helping, Banjo!',
+      letsGo: 'Let’s go!', schoolOut: 'School’s out!', thanksMom: 'Thanks, Mom!', thanksDad: 'Thanks, Dad!', thanksBanjo: 'Thanks for helping, Banjo!',
       hello: 'Hi! I’m Bobo!', eclipse: 'Eclipse glasses on!', whale: 'A whale! Hi there!', heat: 'Phew… so hot and dry!', storm: 'What a storm!', bugs: 'Ugh, bugs!', warrior: 'We did it!',
       choices: [
         ['Time for school!', 'Wheee! Fastest way!', 'Off we go… vroom.', 'A bike group!'],
@@ -338,7 +338,7 @@ const I18N = {
     },
     say: {
       idle: ['Hey du! Bist du noch da?', 'Kannst du mir beim Entscheiden helfen?', 'Psst… was ist besser für unsere Stadt?', 'Hilf mir, die Stadt kühl zu halten!', 'Ich brauche deine Hilfe!', 'Was hilft unserem Planeten?', 'Hallo? Ist da jemand?', 'Lass uns etwas Gutes für die Erde wählen!'],
-      schoolOut: 'Schule ist aus!', thanksMom: 'Danke, Mama!', thanksDad: 'Danke, Papa!', thanksBanjo: 'Danke fürs Helfen, Banjo!',
+      letsGo: 'Los geht’s!', schoolOut: 'Schule ist aus!', thanksMom: 'Danke, Mama!', thanksDad: 'Danke, Papa!', thanksBanjo: 'Danke fürs Helfen, Banjo!',
       hello: 'Hallo! Ich bin Bobo!', eclipse: 'Finsternis-Brille auf!', whale: 'Ein Wal! Hallo!', heat: 'Puh… so heiss und trocken!', storm: 'Was für ein Sturm!', bugs: 'Igitt, Insekten!', warrior: 'Geschafft!',
       choices: [
         ['Zeit für die Schule!', 'Juhu! Am schnellsten!', 'Los geht’s… brumm.', 'Eine Velo-Gruppe!'],
@@ -607,7 +607,7 @@ const I18N = {
     },
     say: {
       idle: ['Ehi tu! Ci sei ancora?', 'Mi aiuti a scegliere?', 'Psst… cosa è meglio per la nostra città?', 'Aiutami a tenere fresca la città!', 'Ho bisogno del tuo aiuto!', 'Cosa aiuta il nostro pianeta?', 'Pronto? C’è qualcuno?', 'Scegliamo qualcosa di buono per la Terra!'],
-      schoolOut: 'Scuola finita!', thanksMom: 'Grazie, mamma!', thanksDad: 'Grazie, papà!', thanksBanjo: 'Grazie dell’aiuto, Banjo!',
+      letsGo: 'Andiamo!', schoolOut: 'Scuola finita!', thanksMom: 'Grazie, mamma!', thanksDad: 'Grazie, papà!', thanksBanjo: 'Grazie dell’aiuto, Banjo!',
       hello: 'Ciao! Sono Bobo!', eclipse: 'Occhiali per l’eclissi!', whale: 'Una balena! Ciao!', heat: 'Uff… che caldo secco!', storm: 'Che tempesta!', bugs: 'Bleah, insetti!', warrior: 'Ce l’abbiamo fatta!',
       choices: [
         ['Si va a scuola!', 'Evviva! Velocissimo!', 'Si parte… brum.', 'Un gruppo in bici!'],
@@ -876,7 +876,7 @@ const I18N = {
     },
     say: {
       idle: ['Hé toi ! Tu es encore là ?', 'Tu peux m’aider à choisir ?', 'Psst… qu’est-ce qui est mieux pour notre ville ?', 'Aide-moi à garder la ville au frais !', 'J’ai besoin de ton aide !', 'Qu’est-ce qui aide notre planète ?', 'Allô ? Il y a quelqu’un ?', 'Choisissons quelque chose de bien pour la Terre !'],
-      schoolOut: 'Fini l’école !', thanksMom: 'Merci, maman !', thanksDad: 'Merci, papa !', thanksBanjo: 'Merci pour ton aide, Banjo !',
+      letsGo: 'C’est parti !', schoolOut: 'Fini l’école !', thanksMom: 'Merci, maman !', thanksDad: 'Merci, papa !', thanksBanjo: 'Merci pour ton aide, Banjo !',
       hello: 'Salut ! Je suis Bobo !', eclipse: 'Lunettes d’éclipse !', whale: 'Une baleine ! Coucou !', heat: 'Pff… si chaud et sec !', storm: 'Quelle tempête !', bugs: 'Beurk, des insectes !', warrior: 'On a réussi !',
       choices: [
         ['C’est l’heure de l’école !', 'Youpi ! Le plus rapide !', 'C’est parti… vroum.', 'Un groupe à vélo !'],
