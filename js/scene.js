@@ -334,7 +334,7 @@ const Scene = (() => {
   const TRAIN = `${carriage(-194)}${carriage(-129)}
       <path d="M-64 -42 H-12 Q6 -42 8 -24 L8 -6 H-64Z" fill="#e63946"/><path d="M-64 -17 H8" stroke="#fff" stroke-width="4"/>
       <path d="M-16 -36 H-4 Q3 -36 4 -26 H-16Z" fill="#cfefff"/><rect class="win" x="-56" y="-35" width="12" height="11" rx="2"/><rect class="win" x="-38" y="-35" width="12" height="11" rx="2"/>
-      <circle cx="6" cy="-12" r="2.6" fill="#fff3a8"/>${wheel(-50, 5)}${wheel(-26, 5)}${wheel(-6, 5)}`;
+      <circle cx="6" cy="-12" r="2.6" fill="#fff3a8"/><path class="beam" d="M8 -13 L62 -25 L62 0Z"/>${wheel(-50, 5)}${wheel(-26, 5)}${wheel(-6, 5)}`;
   const SHIP = `<g transform="scale(.8)">${puffs(-36, -60, 3, 7, '#8a8f98', 3.5)}
       <path d="M-70 -14 H64 L52 4 H-62Z" fill="#c0392b"/><path d="M-70 -14 H64 L62 -8 H-68Z" fill="#23313f"/>
       <rect x="-60" y="-30" width="22" height="16" fill="#2f80ed"/><rect x="-36" y="-30" width="22" height="16" fill="#ffb627"/><rect x="-12" y="-30" width="22" height="16" fill="#2fb35a"/><rect x="12" y="-30" width="22" height="16" fill="#e63946"/>
@@ -530,8 +530,8 @@ const Scene = (() => {
 
   <!-- the railway -->
   <rect x="-800" y="316" width="2600" height="6" fill="#8b7a68"/><path d="M-800 316 H1800" stroke="#4a5563" stroke-width="2"/>
-  <g data-k="trains"><g class="trainrun" style="animation-duration:26s;animation-delay:-6s"><g transform="translate(0 316) scale(.95)">${TRAIN}</g></g>
-    <g data-k="train2" class="fade hide"><g class="trainrun back" style="animation-duration:26s;animation-delay:-19s"><g transform="translate(0 316) scale(-.95 .95)">${TRAIN}</g></g></g></g>
+  <g data-k="trains"><g class="trainrun" style="animation-duration:26s;animation-delay:-6s"><g transform="translate(0 316) scale(.95)" class="train">${TRAIN}</g></g>
+    <g data-k="train2" class="fade hide"><g class="trainrun back" style="animation-duration:26s;animation-delay:-19s"><g transform="translate(0 316) scale(-.95 .95)" class="train">${TRAIN}</g></g></g></g>
   <g data-k="trainFx"></g>
   <g class="station closed">
     <rect x="188" y="321" width="90" height="9" fill="#c9c2b0"/><path d="M188 321 H278" stroke="#fff" stroke-width="2" opacity=".6"/>
@@ -564,7 +564,8 @@ const Scene = (() => {
       <rect x="-22" y="-7" width="11" height="7" fill="#2f80ed"/><rect x="-6" y="-7" width="11" height="7" fill="#ffd23f"/><rect x="10" y="-7" width="11" height="7" fill="#9aa5b1"/>`)}
   <g class="school closed">
     <rect x="40" y="312" width="136" height="50" fill="#ffcf5a"/><rect x="36" y="306" width="144" height="7" rx="2" fill="#c98f4f"/>
-    <path d="M90 306 V290 L108 276 L126 290 V306Z" fill="#ffcf5a" stroke="#c98f4f" stroke-width="3"/><circle cx="108" cy="292" r="7" fill="#fff" stroke="#23313f" stroke-width="1.5"/><path d="M108 292 V287 M108 292 h4" stroke="#23313f" stroke-width="1.5"/>
+    <path d="M90 306 V290 L108 276 L126 290 V306Z" fill="#ffcf5a" stroke="#c98f4f" stroke-width="3"/><circle cx="108" cy="292" r="7" fill="#fff" stroke="#23313f" stroke-width="1.5"/>
+    <path data-k="clockH" class="clock-hand" d="M108 292 V288.6" stroke="#23313f" stroke-width="1.6" stroke-linecap="round"/><path data-k="clockM" class="clock-hand" d="M108 292 V286.6" stroke="#23313f" stroke-width="1.1" stroke-linecap="round"/><circle cx="108" cy="292" r="1" fill="#23313f"/>
     ${[50, 70, 136, 156].map((x) => `<rect class="win" x="${x}" y="320" width="13" height="12" rx="1"/><rect class="win" x="${x}" y="337" width="13" height="11" rx="1"/>`).join('')}
     <rect x="98" y="336" width="20" height="26" fill="#2f80ed"/><path d="M108 336 V362" stroke="#1d5fae" stroke-width="2"/>
     <text x="108" y="328" text-anchor="middle" font-size="9" font-weight="900" fill="#c0392b">A B C</text>
@@ -1386,6 +1387,7 @@ const Scene = (() => {
       const tr = ms ? `transform ${Math.round(ms)}ms ease-in-out` : 'none';
       svgs.forEach((el) => { el.style.transition = tr; el.style.transform = `translate3d(${tx}px, ${ty}px, 0)`; });
       pans.forEach((el) => { el.style.transition = tr; el.style.transform = `translate3d(0, ${ty}px, 0)`; });
+      clearTimeout(cullTimer); cullTimer = setTimeout(cullAnims, ms + 60);
     }
     function camTo(x, ms = 0, y = camFocusY, snap = false) {
       camFocus = x; camFocusY = y;
@@ -1419,6 +1421,28 @@ const Scene = (() => {
       camTo(camFocus, 0, camFocusY, true);   // (the card below changes size a lot: keep looking at the same spot)
     }
     if (typeof ResizeObserver !== 'undefined') new ResizeObserver(applyZoom).observe(container);
+    /* Little animations the camera can't see (bees, smoke, ripples… on the other side of the island) are paused,
+       so the phone only works on what's on screen; they start again as soon as the camera gets near.
+       Things that travel across the whole city (trains, planes, birds, fish, the far cars) always keep going. */
+    const TRAVELS = /^(train|trainBack|plane|planeLeft|fly|flyLeft|swim|drift|driveR|toSchool)$/;
+    let cullTimer = 0;
+    function cullAnims() {
+      clearTimeout(cullTimer);
+      if (!container.isConnected) return;
+      cullTimer = setTimeout(cullAnims, 1500);
+      if (!follow || !container.getAnimations) return;
+      const vw = innerWidth, vh = innerHeight, mx = Math.max(80, vw * 0.35), my = Math.max(80, vh * 0.25), seen = new Set();
+      container.getAnimations({ subtree: true }).forEach((a) => {
+        const el = a.effect && a.effect.target;
+        if (!a.animationName || !el || !el.classList || seen.has(el)) return;
+        seen.add(el);
+        if (TRAVELS.test(a.animationName)) { el.classList.remove('offcam'); return; }
+        const r = el.getBoundingClientRect();
+        const off = r.right < -mx || r.left > vw + mx || r.bottom < -my || r.top > vh + my;
+        if (off !== el.classList.contains('offcam')) el.classList.toggle('offcam', off);
+      });
+    }
+    setTimeout(cullAnims, 600);
     const CANCEL = { cancelled: true };
     const guard = (g) => { if (g !== gen) throw CANCEL; };
 
@@ -1454,7 +1478,7 @@ const Scene = (() => {
       camTo(x, ms, y);
       placeBubble(ms);
       monkey.classList.toggle('walking', dist > 4);
-      monkey.classList.toggle('running', dist > 4 && s.speed > 1.5);
+      monkey.classList.toggle('running', dist > 4 && s.speed > 1.2);
       walker.classList.toggle('pedaling', dist > 4);
       if (Math.abs(x - cx) > 2) rideDir.setAttribute('transform', `scale(${x < cx ? -RIDE_SC : RIDE_SC} ${RIDE_SC})`);
       const towardsUs = y - cy > Math.abs(x - cx);
@@ -2009,11 +2033,27 @@ const Scene = (() => {
     }
 
     /* ── time of day + weather ── */
+    // the school clock: morning 8 o'clock, day 3 (school's out), evening 6, night 9; the hands only go forwards
+    const CLOCK = { morning: 8, day: 15, eclipse: 15, evening: 18, night: 21 };
+    let clockAt = null;
+    function setClock(t) {
+      const h = CLOCK[t];
+      if (h === undefined) return;
+      const ahead = clockAt === null ? 0 : ((h - clockAt % 24) + 24) % 24;
+      const first = clockAt === null || ahead > 14;   // (a fresh city: set the clock without spinning it)
+      clockAt = clockAt === null ? h : clockAt + ahead;
+      [['clockH', clockAt * 30], ['clockM', clockAt * 360]].forEach(([k, deg]) => {
+        const el = q(k);
+        el.style.transition = first ? 'none' : 'transform 5s ease-in-out';
+        el.style.transform = `rotate(${deg}deg)`;
+      });
+    }
     function setTime(t, fromEclipse = false) {
       if (!TIMES.includes(t)) t = 'day';
       if (!fromEclipse) endEclipse();
       time = t;
       document.documentElement.dataset.time = t;
+      setClock(t);
       container.classList.toggle('heat-day', level >= 2 && (t === 'day'));
       q('heatHaze').classList.toggle('hide', !(level >= 2 && t === 'day'));
       updateGlows();
@@ -2023,6 +2063,9 @@ const Scene = (() => {
     let eclipseTimer = 0, beforeEclipse = 'day';
     function eclipse() {
       if (container.classList.contains('eclipse-on')) return;
+      // Bobo is surprised (jumps, big eyes, "Whoa!"), then puts on the eclipse glasses (style.css: .shades)
+      s.jump(); react('scared', 1600);
+      say(lineFor('eclipseWow'), 1800);
       beforeEclipse = time;
       container.classList.add('eclipse-on');
       setTime('eclipse', true);
@@ -2302,7 +2345,7 @@ const Scene = (() => {
         (async () => {
           for (let k = 0; g === gen; k++) {
             const to = spots[(k * 3 + 1) % spots.length];
-            s.speed = k % 3 === 2 ? 2.2 : 1;                       // (now and then he runs)
+            s.speed = k % 3 === 2 ? 1.3 : 0.7;                     // (strolling, and now and then a little run)
             await s.go(to);
             s.speed = 1;
             const what = k % 4;                                    // then he does something there
@@ -2317,8 +2360,8 @@ const Scene = (() => {
         gen++;                                                      // (stop playing…)
         const m = new DOMMatrixReadOnly(getComputedStyle(walker).transform);
         place([400 + m.m41, 400 + m.m42]);                          // (…right where he is)
-        s.speed = 2.6;
-        await s.go(P.home);                                         // sprint home…
+        s.speed = 1.6;
+        await s.go(P.home);                                         // hurry home…
         s.speed = 1;
         s.jump();
         say(line, 2000);                                            // …"Let's go!"

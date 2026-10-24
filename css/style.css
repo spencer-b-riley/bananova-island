@@ -495,6 +495,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 /* ───────── the city (SVG) ───────── */
 .hide { opacity: 0 !important; visibility: hidden; }
 .hide, .hide * { animation-play-state: paused !important; }
+.offcam { animation-play-state: paused !important; }   /* (off camera, scene.js: cullAnims) */
 .pop {
   transform-box: fill-box; transform-origin: 50% 100%;
   transition: opacity 0.5s, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), visibility 0.5s;
@@ -584,7 +585,12 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 @keyframes spout { 0%, 55% { transform: scale(0.2); opacity: 0; } 65% { transform: scale(1.1); opacity: 1; } 90% { transform: scale(1); opacity: 0.8; } 100% { opacity: 0; } }
 /* eclipse glasses */
 .shades { opacity: 0; transition: opacity 0.4s; }
-.eclipse-on .shades { opacity: 1; }
+.eclipse-on .shades { opacity: 1; transition-delay: 1.8s; }   /* (after Bobo's "Whoa!") */
+/* the school clock's hands (scene.js: setClock) */
+.clock-hand { transform-box: view-box; transform-origin: 108px 292px; }
+/* trains: headlight at dusk and at night */
+:root[data-time="evening"] .train .beam { opacity: 0.35; }
+:root:is([data-time="night"], [data-time="eclipse"]) .train .beam { opacity: 0.65; }
 .trainrun { animation: train 26s linear infinite; }
 .trainrun.back { animation-name: trainBack; }
 @keyframes train { 0% { transform: translateX(-750px); } 60%, 100% { transform: translateX(1700px); } }

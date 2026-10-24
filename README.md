@@ -62,6 +62,10 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
   the birthday party comes later on),
   each happens at a fitting time of day (the sun rises on the left and sets on the right), and the
   weather is random (wilder when the city is hotter). Lunch is always on a different day than school.
+- After the ride to school the school day goes by (the clock on the school tower spins from 8 to 3),
+  and school's always out in the afternoon, never at night
+- Cars and trains have headlights (and trains lit windows) in the evening and at night
+- If there's a solar eclipse, Bobo jumps and says "Whoa!" before putting on his eclipse glasses
 - The camera is close up (closest on phones, a little further out on computers) and follows Bobo,
   cars, bikes and trains around, so the action is big and easy to see. To stay smooth it only moves
   when Bobo nears the edge of the middle of the view, and it slides just a few GPU layers
@@ -71,7 +75,8 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
 - Animation scaler (`js/perf.js`): to go easy on graphics chips, most devices start with fewer
   little extras (only strong ones like Apple M-chips or gaming graphics cards get everything). It
   guesses from the CPU, memory, graphics chip and iPhone screen size, then watches the real frame
-  rate and switches off little extras (flapping wings, swaying plants) if the device struggles. The
+  rate and switches off little extras (flapping wings, swaying plants) as soon as it looks choppy
+  (below ~45 fps, then ~33 fps). Little animations the camera can't see are paused until it gets near. The
   animals always stay and keep moving: they show how healthy the island is. Big changes happen one at a time (the sky changes first, then Bobo moves).
 - All icons are our own drawings (`js/icons.js`), no emoji
 - A recap of every decision with "Did you know?" facts, then simple takeaways. The first time,

@@ -56,8 +56,8 @@ const Perf = (() => {
     listeners.forEach((fn) => fn(t));
   }
 
-  // Watch the frame rate (after the first few seconds of loading). About 3 seconds below ~33 frames a
-  // second = step down from 'high' to 'mid'; only a device that really struggles (below ~22 fps) goes 'low'.
+  // Watch the frame rate (after the first few seconds of loading). About 2 seconds below ~45 frames a
+  // second = step down from 'high' to 'mid'; below ~33 fps (it looks choppy) = 'low'.
   function watch() {
     let last = performance.now(), frames = 0, sum = 0, slowWindows = 0;
     const start = performance.now();
@@ -69,8 +69,8 @@ const Perf = (() => {
         frames++;
         if (frames >= 60) {
           const avg = sum / frames;                  // ms per frame: 16 = 60 fps, 33 = 30 fps
-          slowWindows = avg > (tier === 'high' ? 30 : 45) ? slowWindows + 1 : 0;
-          if (slowWindows >= 3 && tier !== 'low') {
+          slowWindows = avg > (tier === 'high' ? 22 : 30) ? slowWindows + 1 : 0;
+          if (slowWindows >= 2 && tier !== 'low') {
             set(ORDER[ORDER.indexOf(tier) - 1]);
             slowWindows = 0;
           }

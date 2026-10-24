@@ -448,14 +448,14 @@
     cardWait();
     sayLine(() => '');
     if (turn === 1 && scene.atSchool()) {
-      // the school day goes by first: Bobo goes in, the sun moves on, and later school's out
-      // (if the next thing happens on another day, the school day ends in the evening first)
-      await scene.schoolDay(G.newDay[turn] ? 'evening' : G.times[turn]);
+      // the school day goes by first: Bobo goes in, the sun moves on, and school's out in the afternoon
+      // (never at night). Then, if the next thing happens later (or on another day), time moves on again.
+      await scene.schoolDay('day');
       if (G !== game) return;
-      if (G.newDay[turn]) {
-        toast('sun', t('newDay'));
+      if (G.newDay[turn] || G.times[turn] !== 'day') {
+        if (G.newDay[turn]) toast('sun', t('newDay'));
         scene.setTime(G.times[turn]);
-        await wait(2500);
+        await wait(Perf.tier === 'low' ? 1400 : 3000);
         if (G !== game) return;
       }
       scene.setWeather(G.weather[turn]);
@@ -483,8 +483,8 @@
       G.eclipseDone = true;
       setTimeout(() => {
         if (G !== game || G.turn !== turn) return;
-        scene.eclipse();
-        sayLine((sy) => sy.eclipse);
+        scene.eclipse();   // (Bobo: "Whoa!"… and then the glasses go on)
+        setTimeout(() => { if (G === game && G.turn === turn) sayLine((sy) => sy.eclipse); }, 2000);
         toast('moon', t('eclipseTitle'), t('eclipseTip'), true);
       }, 1600);
     }
