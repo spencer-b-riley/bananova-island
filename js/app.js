@@ -681,26 +681,47 @@
   /* Like at the end of a cartoon: a dark circle closes in on Bobo (it pauses around him for a moment), the next
      screen is put in place in the dark, and the circle opens up again (on Bobo, if he's on the new screen).
      from / to: [x, y, size] on the screen (or a function giving that once the new screen is there); none = the middle. */
-  const irisEl = document.createElement('div');
+  // (drawn on a canvas: the graphics chip fills it almost for free, so the circle stays smooth on phones too)
+  const irisEl = document.createElement('canvas');
   irisEl.className = 'iris';
   irisEl.hidden = true;
   document.body.appendChild(irisEl);
+  const irisCtx = irisEl.getContext('2d');
   const IRIS_C = '#121826';
+  let irisK = 1;
+  function irisSize() {
+    irisK = Math.min(devicePixelRatio || 1, 1.5);   // (a soft dark edge doesn't need every pixel)
+    irisEl.width = Math.round(innerWidth * irisK);
+    irisEl.height = Math.round(innerHeight * irisK);
+  }
+  function irisDraw(x, y, r) {
+    irisCtx.globalCompositeOperation = 'source-over';
+    irisCtx.fillStyle = IRIS_C;
+    irisCtx.fillRect(0, 0, irisEl.width, irisEl.height);
+    if (r <= 0) return;
+    irisCtx.globalCompositeOperation = 'destination-out';
+    irisCtx.beginPath();
+    irisCtx.arc(x * irisK, y * irisK, r * irisK, 0, Math.PI * 2);
+    irisCtx.fill();
+  }
   function irisTo(x, y, r0, r1, ms) {
     return new Promise((done) => {
       const t0 = performance.now();
       const frame = (now) => {
-        const k = Math.min(1, (now - t0) / ms), e = k < 0.5 ? 2 * k * k : 1 - 2 * (1 - k) ** 2, r = r0 + (r1 - r0) * e;
-        irisEl.style.background = `radial-gradient(circle at ${x.toFixed(1)}px ${y.toFixed(1)}px, transparent ${r.toFixed(1)}px, ${IRIS_C} ${(r + 1).toFixed(1)}px)`;
+        const k = Math.min(1, (now - t0) / ms), e = k < 0.5 ? 2 * k * k : 1 - 2 * (1 - k) ** 2;
+        irisDraw(x, y, r0 + (r1 - r0) * e);
         if (k < 1) requestAnimationFrame(frame); else done();
       };
       requestAnimationFrame(frame);
     });
   }
+  const frames = (n) => new Promise((done) => { const f = () => (n-- > 0 ? requestAnimationFrame(f) : done()); f(); });
   let irisBusy = false;
   async function iris(render, from = null, to = null) {
     if (irisBusy) return;
     irisBusy = true;
+    irisSize();
+    irisDraw(0, 0, 1e5);     // (fully open to start with)
     irisEl.hidden = false;   // (it also catches taps, so nothing gets pressed twice)
     try {
       if (matchMedia('(prefers-reduced-motion: reduce)').matches) { render(); return; }
@@ -711,9 +732,10 @@
       await irisTo(x0, y0, far(x0, y0), ring, 800);
       await wait(from ? 450 : 120);
       await irisTo(x0, y0, ring, 0, 280);
-      irisEl.style.background = IRIS_C;
+      irisDraw(0, 0, 0);
       render();
-      await wait(350);                                         // (let the new screen settle in the dark)
+      await frames(2);                                         // (the new screen gets drawn in the dark…)
+      await wait(300);                                         // (…and settles)
       const [x1, y1, h1] = (typeof to === 'function' ? to() : to) || mid();
       const ring1 = Math.max(56, (h1 || 0) * 1.1);
       await irisTo(x1, y1, 0, ring1, 280);
@@ -721,7 +743,6 @@
       await irisTo(x1, y1, ring1, far(x1, y1), 800);
     } finally {
       irisEl.hidden = true;
-      irisEl.style.background = '';
       irisBusy = false;
     }
   }
