@@ -314,7 +314,7 @@
       eclipseTurn: Math.random() < 1 / 15 ? 1 + Math.floor(Math.random() * 9) : -1, eclipseDone: false,
       temp: START_T, turn: 0, picks: [], order: [], payQueue: [],
       next: null, cardView: null, busy: false,
-      ending: null, newAch: [], recapIdx: 0, langs: new Set([lang]),
+      ending: null, newAch: [], recapIdx: 0, lessonFrom: 0, lessonTo: 0, readSet: new Set(), langs: new Set([lang]),
     };
     renderIntro();
   }
@@ -534,8 +534,11 @@
     applyDelta(dt);
     if (good) G.payQueue.push({ idx, due: turn + PAYOFF_DELAY });
 
-    // too hot before the end: the island overheated and the game is over
-    G.next = G.temp >= LOSE_T ? () => { G.turn++; finish(true); } : () => { G.turn++; step(); };
+    // too hot before the end: the island overheated and the game is over.
+    // After every 3 choices there's a short lesson break first (a few cards at a time, not all 12 at the end).
+    const lessonTime = G.made.length % LESSON_EVERY === 0;
+    G.next = G.temp >= LOSE_T ? () => { G.turn++; finish(true); }
+      : lessonTime ? () => { G.turn++; lessons(step); } : () => { G.turn++; step(); };
     cardShow(() => card(`
       <div class="card-head"><span class="pill">${t('turn', { n: turn + 1 })}</span><span class="topic">${ct(idx, 'topic')}</span></div>
       <div class="result"><span class="emo">${Icon(d.icon)}</span><p>${ct(idx, good ? 'resGood' : 'resBad')}</p></div>
@@ -627,6 +630,26 @@
 
   // The recap ("what did you learn") must be read once, card by card; after that it can be skipped
   const readOnce = () => !!store.ach.learner;
+  // Lessons come in small bites: after every 3 choices, the cards for those 3 (kids read a few at a time).
+  // Whatever's left when the game ends (e.g. the island overheated early) comes at the end.
+  const LESSON_EVERY = 3;
+  const lessonsLeft = () => G.lessonFrom < G.made.length;
+  function lessons(after) {
+    G.lessonTo = G.made.length;
+    G.recapIdx = G.lessonFrom;
+    G.afterLesson = after;
+    if (!G.ending) { scene.react('think', 0); sayLine((sy) => sy.lessonTime); }
+    cardShow(recapView);
+  }
+  function lessonsDone() {
+    G.lessonFrom = G.lessonTo;
+    if (!lessonsLeft() && (G.ending || G.made.length >= TURNS)) unlockWithToast('learner');
+    const after = G.afterLesson;
+    G.afterLesson = null;
+    if (!G.ending) { scene.react(null); sayLine(() => ''); }
+    if (after) after();
+  }
+  const toTakeaways = () => { G.cardView = takeawaysView; takeawaysView(); };
 
   function endingView() {
     const e = G.ending, [title, text] = L().endings[e];
@@ -640,26 +663,27 @@
       ${G.newAch.length ? `<div class="new-ach"><b>${Icon('trophy')} ${t('newAch')}</b> ${G.newAch.map((id) =>
         G.newAch.length <= 2 ? `<span class="chip ach-chip">${Icon(achIcon(id))} ${achName(id)}</span>`
           : `<span class="ach-mini" title="${achName(id)}" aria-label="${achName(id)}">${Icon(achIcon(id))}</span>`).join('')}</div>` : ''}
-      <div class="row">
-        <button class="btn primary" data-action="recap">${Icon('book')} ${t('recapBtn')}</button>
-        ${readOnce() ? `<button class="btn ghost" data-action="takeaways">${t('skip')} ${Icon('skip')}</button>` : ''}
+      <div class="row">${lessonsLeft()
+        ? `<button class="btn primary" data-action="recap">${Icon('book')} ${t('recapBtn')}</button>
+           ${readOnce() ? `<button class="btn ghost" data-action="takeaways">${t('skip')} ${Icon('skip')}</button>` : ''}`
+        : `<button class="btn primary" data-action="takeaways">${t('next')} ${Icon('next')}</button>`}
       </div>`);
   }
 
   function recapView() {
-    const made = G.made.length;
+    const from = G.lessonFrom, count = G.lessonTo - from;
     const pos = G.recapIdx, k = G.made[pos], good = G.picks[k], ch = CHOICES[k], read = G.readSet.has(pos);
     card(`
       <div class="recap">
-        <div class="card-head"><span class="pill">${pos + 1} / ${made}</span><span class="topic">${ct(k, 'topic')}</span>
-          <span class="spacer"></span>${readOnce() ? `<button class="link-btn" data-action="takeaways">${t('skip')} ${Icon('skip')}</button>` : ''}</div>
+        <div class="card-head"><span class="pill">${Icon('book')} ${pos - from + 1} / ${count}</span><span class="topic">${ct(k, 'topic')}</span>
+          <span class="spacer"></span>${readOnce() ? `<button class="link-btn" data-action="lessonsDone">${t('skip')} ${Icon('skip')}</button>` : ''}</div>
         <p class="verdict ${good ? 'good' : 'bad'}">${good ? Icon('check') + ' ' + t('great') : Icon('think') + ' ' + t('couldBetter')}</p>
         <p>${t('youChose')} ${Icon(good ? ch.good.icon : ch.bad.icon)} ${ct(k, good ? 'good' : 'bad')}</p>
         <p>${ct(k, good ? 'recapGood' : 'recapBad')}</p>
         ${good ? '' : `<p><b>${t('better')}</b> ${Icon(ch.good.icon)} ${ct(k, 'good')}</p>`}
         <div class="fact"><b>${Icon('bulb')} ${t('didYouKnow')}</b>${ct(k, 'fact')}</div>
         <div class="recap-nav">
-          <button class="btn ghost small" data-action="recapPrev" ${pos === 0 ? 'disabled' : ''}>${Icon('back')} ${t('prev')}</button>
+          <button class="btn ghost small" data-action="recapPrev" ${pos === from ? 'disabled' : ''}>${Icon('back')} ${t('prev')}</button>
           <button class="read-check ${read ? 'on' : ''}" data-action="readIt" aria-pressed="${read}">${Icon(read ? 'check' : 'book')} ${t('readIt')}</button>
           <button class="btn primary small" data-action="recapNext" ${read || readOnce() ? '' : 'disabled'}>${t('next')} ${Icon('next')}</button>
         </div>
@@ -773,31 +797,30 @@
         if (r) r(a === 'confirmYes');
         break;
       }
-      case 'go': iris(() => { renderGame(); step(); }, null, () => scene && scene.boboScreen()); break;
+      case 'go': renderGame(); step(); break;
       case 'pick': pick(el.dataset.good === '1'); break;
       case 'cont': {
         const next = G && G.next;
         if (next) { G.next = null; next(); }
         break;
       }
-      case 'recap': G.recapIdx = 0; G.readSet = G.readSet || new Set(); G.cardView = recapView; recapView(); break;
+      case 'recap': lessons(toTakeaways); break;
+      case 'lessonsDone': lessonsDone(); break;
       case 'readIt': G.readSet.add(G.recapIdx); recapView(); break;
-      case 'recapPrev': G.recapIdx = Math.max(0, G.recapIdx - 1); recapView(); break;
+      case 'recapPrev': G.recapIdx = Math.max(G.lessonFrom, G.recapIdx - 1); recapView(); break;
       case 'recapNext':
         if (!G.readSet.has(G.recapIdx) && !readOnce()) break;   // (read it first: tick "I read this")
-        if (G.recapIdx < G.made.length - 1) { G.recapIdx++; recapView(); }
-        else {
-          unlockWithToast('learner');
-          G.cardView = takeawaysView; takeawaysView();
-        }
+        if (G.recapIdx < G.lessonTo - 1) { G.recapIdx++; recapView(); }
+        else lessonsDone();
         break;
-      case 'takeaways': G.cardView = takeawaysView; takeawaysView(); break;
+      case 'takeaways': G.lessonFrom = G.made.length; toTakeaways(); break;
       case 'playAgain': iris(startGame, scene && $('#game') && scene.boboScreen()); break;
       case 'menu': iris(renderTitle, scene && $('#game') && scene.boboScreen(), () => titleScene && titleScene.boboScreen()); break;
       case 'home':
         if (G && !G.ending && $('#game')) {
-          if (await confirmBox(t('quit'))) iris(renderTitle, scene.boboScreen(), () => titleScene && titleScene.boboScreen());
-        } else iris(renderTitle, null, () => titleScene && titleScene.boboScreen());
+          if (await confirmBox(t('quit'))) renderTitle();
+        } else if (G && G.ending && $('#game')) iris(renderTitle, scene.boboScreen(), () => titleScene && titleScene.boboScreen());
+        else renderTitle();
         break;
       case 'pagePrev': gamesPage--; renderGames(); break;
       case 'pageNext': gamesPage++; renderGames(); break;

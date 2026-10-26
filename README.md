@@ -3,8 +3,8 @@
 A climate game for kids aged 8–10. Bobo the monkey lives in a busy city on an island, and the
 player helps Bobo make **12 everyday choices**: how to get to school, what to do with the lights,
 a broken toy, a birthday party, a new jacket, lunch and more. Every choice changes
-🌡️ **the city's temperature**, and the city visibly changes with the climate. Green choices "pay back" two turns later, and at the end players see a recap that
-explains why each decision mattered.
+🌡️ **the city's temperature**, and the city visibly changes with the climate. Green choices "pay back" two turns later, and after every three choices players get a short
+lesson break that explains why each of those decisions mattered.
 
 *Made by students of the class "Climate Change Communication: Unraveling Communication and
 Acceptance Challenges" at the University of St. Gallen (HSG).*
@@ -74,8 +74,8 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
   when Bobo nears the edge of the middle of the view, and it slides just a few GPU layers
 - Title screen: Bobo strolls around the island doing tricks while the camera follows him; when the
   player presses Play he hurries home and shouts "Let's go!" before the game starts
-- Between screens, a cartoon-style circle closes in on Bobo (and pauses around him), the next
-  screen appears in the dark, and the circle opens again (on Bobo when he's on the new screen)
+- At the start (after "Let's go!") and when leaving a finished game, a cartoon-style circle closes in
+  on Bobo (and pauses around him), the next screen appears in the dark, and the circle opens again
 - Text in the game can't be selected or highlighted by accident (taps and long-presses on phones)
 - Animation scaler (`js/perf.js`): to go easy on graphics chips, most devices start with fewer
   little extras (only strong ones like Apple M-chips or gaming graphics cards get everything). It
@@ -86,8 +86,10 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
   the camera can't see are paused until it gets near. The
   animals always stay and keep moving: they show how healthy the island is. Big changes happen one at a time (the sky changes first, then Bobo moves).
 - All icons are our own drawings (`js/icons.js`), no emoji
-- A recap of every decision with "Did you know?" facts, then simple takeaways. The first time,
-  players tick "I read this" on every card before going on; after that the recap can be skipped
+- Lessons in small bites: after every 3 choices, Bobo says "Let's see what we learned!" and the
+  cards for those 3 decisions come up ("Did you know?" facts), then the game goes on (anything left
+  when the island overheats early comes at the end). Simple takeaways at the end. The first time,
+  players tick "I read this" on every card before going on; after that the lessons can be skipped
 - 16 achievements
 - English, German, Italian and French (switch anytime, top-right)
 - Music and sound effects, generated in the browser (no audio files): three tunes (Island, Breeze,
