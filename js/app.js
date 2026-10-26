@@ -677,6 +677,55 @@
       </div>`);
   }
 
+  /* ═════════════════════ SCREEN CHANGES ═════════════════════ */
+  /* Like at the end of a cartoon: a dark circle closes in on Bobo (it pauses around him for a moment), the next
+     screen is put in place in the dark, and the circle opens up again (on Bobo, if he's on the new screen).
+     from / to: [x, y, size] on the screen (or a function giving that once the new screen is there); none = the middle. */
+  const irisEl = document.createElement('div');
+  irisEl.className = 'iris';
+  irisEl.hidden = true;
+  document.body.appendChild(irisEl);
+  const IRIS_C = '#121826';
+  function irisTo(x, y, r0, r1, ms) {
+    return new Promise((done) => {
+      const t0 = performance.now();
+      const frame = (now) => {
+        const k = Math.min(1, (now - t0) / ms), e = k < 0.5 ? 2 * k * k : 1 - 2 * (1 - k) ** 2, r = r0 + (r1 - r0) * e;
+        irisEl.style.background = `radial-gradient(circle at ${x.toFixed(1)}px ${y.toFixed(1)}px, transparent ${r.toFixed(1)}px, ${IRIS_C} ${(r + 1).toFixed(1)}px)`;
+        if (k < 1) requestAnimationFrame(frame); else done();
+      };
+      requestAnimationFrame(frame);
+    });
+  }
+  let irisBusy = false;
+  async function iris(render, from = null, to = null) {
+    if (irisBusy) return;
+    irisBusy = true;
+    irisEl.hidden = false;   // (it also catches taps, so nothing gets pressed twice)
+    try {
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) { render(); return; }
+      const mid = () => [innerWidth / 2, innerHeight / 2, 0];
+      const far = (x, y) => Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y)) + 4;
+      const [x0, y0, h0] = from || mid();
+      const ring = Math.max(56, (h0 || 0) * 1.1);              // (just around Bobo)
+      await irisTo(x0, y0, far(x0, y0), ring, 800);
+      await wait(from ? 450 : 120);
+      await irisTo(x0, y0, ring, 0, 280);
+      irisEl.style.background = IRIS_C;
+      render();
+      await wait(350);                                         // (let the new screen settle in the dark)
+      const [x1, y1, h1] = (typeof to === 'function' ? to() : to) || mid();
+      const ring1 = Math.max(56, (h1 || 0) * 1.1);
+      await irisTo(x1, y1, 0, ring1, 280);
+      await wait(to ? 300 : 80);
+      await irisTo(x1, y1, ring1, far(x1, y1), 800);
+    } finally {
+      irisEl.hidden = true;
+      irisEl.style.background = '';
+      irisBusy = false;
+    }
+  }
+
   /* ═════════════════════ INPUT ═════════════════════ */
 
   async function onAction(a, el) {
@@ -685,13 +734,13 @@
         ({ title: renderTitle, games: renderGames, ach: renderAch, privacy: renderPrivacy })[el.dataset.tab]();
         break;
       case 'play': {
-        // Banjo sprints home and says "Let's go!", then the game starts
+        // Bobo hurries home and says "Let's go!", the circle closes in on him, and the game starts
         if (starting) break;
         starting = true;
         const ts = titleScene;
         if (ts) await Promise.race([ts.titleGo(L().say.letsGo), wait(4500)]);
+        await iris(startGame, ts && ts.boboScreen());
         starting = false;
-        startGame();
         break;
       }
       case 'setLang': setLang(el.dataset.lang); break;
@@ -703,7 +752,7 @@
         if (r) r(a === 'confirmYes');
         break;
       }
-      case 'go': renderGame(); step(); break;
+      case 'go': iris(() => { renderGame(); step(); }, null, () => scene && scene.boboScreen()); break;
       case 'pick': pick(el.dataset.good === '1'); break;
       case 'cont': {
         const next = G && G.next;
@@ -722,12 +771,12 @@
         }
         break;
       case 'takeaways': G.cardView = takeawaysView; takeawaysView(); break;
-      case 'playAgain': startGame(); break;
-      case 'menu': renderTitle(); break;
+      case 'playAgain': iris(startGame, scene && $('#game') && scene.boboScreen()); break;
+      case 'menu': iris(renderTitle, scene && $('#game') && scene.boboScreen(), () => titleScene && titleScene.boboScreen()); break;
       case 'home':
         if (G && !G.ending && $('#game')) {
-          if (await confirmBox(t('quit'))) renderTitle();
-        } else renderTitle();
+          if (await confirmBox(t('quit'))) iris(renderTitle, scene.boboScreen(), () => titleScene && titleScene.boboScreen());
+        } else iris(renderTitle, null, () => titleScene && titleScene.boboScreen());
         break;
       case 'pagePrev': gamesPage--; renderGames(); break;
       case 'pageNext': gamesPage++; renderGames(); break;

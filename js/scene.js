@@ -2418,6 +2418,21 @@ const Scene = (() => {
           }
         })().catch(() => {});
       },
+      // where Bobo is on the screen (the middle of him) and how tall he looks, in pixels
+      // (worked out from where he stands in the city: the browser's box for a scaled figure can be a bit off)
+      boboScreen() {
+        const m = svg.getScreenCTM();
+        if (!m) return null;
+        let [x, y] = walkPos;
+        if (performance.now() < walkEnd) {   // (mid-walk: where he is right now)
+          const t = new DOMMatrixReadOnly(getComputedStyle(walker).transform);
+          x = 400 + t.m41; y = 400 + t.m42;
+        }
+        const h = HEAD_H * depthK(y), p = svg.createSVGPoint();
+        p.x = x; p.y = y - h * 0.55;
+        const r = p.matrixTransform(m);
+        return [r.x, r.y, h * m.a];
+      },
       async titleGo(line) {
         gen++;                                                      // (stop playing…)
         const m = new DOMMatrixReadOnly(getComputedStyle(walker).transform);

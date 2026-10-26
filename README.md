@@ -72,8 +72,10 @@ Acceptance Challenges" at the University of St. Gallen (HSG).*
 - The camera is close up (closest on phones, a little further out on computers) and follows Bobo,
   cars, bikes and trains around, so the action is big and easy to see. To stay smooth it only moves
   when Bobo nears the edge of the middle of the view, and it slides just a few GPU layers
-- Title screen: Bobo runs around the island doing tricks while the camera follows him; when the
-  player presses Play he sprints home and shouts "Let's go!" before the game starts
+- Title screen: Bobo strolls around the island doing tricks while the camera follows him; when the
+  player presses Play he hurries home and shouts "Let's go!" before the game starts
+- Between screens, a cartoon-style circle closes in on Bobo (and pauses around him), the next
+  screen appears in the dark, and the circle opens again (on Bobo when he's on the new screen)
 - Text in the game can't be selected or highlighted by accident (taps and long-presses on phones)
 - Animation scaler (`js/perf.js`): to go easy on graphics chips, most devices start with fewer
   little extras (only strong ones like Apple M-chips or gaming graphics cards get everything). It
