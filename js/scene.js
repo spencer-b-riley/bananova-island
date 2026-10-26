@@ -354,14 +354,19 @@ const Scene = (() => {
 
   // A friend monkey (different fur and shirt). hat = party hat.
   const BOW = '<path d="M14 -24 l11 -7 v14Z M14 -24 l-10 -8 v15Z" fill="#ff5b7a" stroke="#c9304f" stroke-width="1.5"/><circle cx="14" cy="-24" r="3.4" fill="#ff8fa3"/>';
+  // Mom looks like a grown-up: a dress, a pearl necklace and a handbag (body), eyelashes (head); no bow (that's the sister's)
+  const MOM_DRESS = (c) => `<path d="M-19 2 Q-24 16 -29 27 H29 Q24 16 19 2Z" fill="${c}"/><path d="M-27 24 H27" stroke="#fff" stroke-width="2.5" opacity=".5"/>`;
+  const MOM_BODY = `${[-12, -8, -4, 0, 4, 8, 12].map((x) => `<circle cx="${x}" cy="${-19 + Math.abs(x) * -0.12 + (12 - Math.abs(x)) * 0.35}" r="2.1" fill="#fff" stroke="#d9dde2" stroke-width=".6"/>`).join('')}
+      <path d="M22 4 Q30 0 34 12" stroke="#7a4b24" stroke-width="2" fill="none"/><rect x="26" y="11" width="15" height="12" rx="3" fill="#ffb627" stroke="#c98a12" stroke-width="1.5"/><path d="M26 15 h15" stroke="#c98a12" stroke-width="1.2"/>`;
+  const MOM_LASHES = '<path d="M-14 -9 l-4 -3 M-12 -12 l-2 -4 M14 -9 l4 -3 M12 -12 l2 -4" stroke="#23313f" stroke-width="1.8" stroke-linecap="round"/>';
   const TIE = '<path d="M0 -21 l-4 4 l4 21 l4 -21Z" fill="#e63946"/><path d="M-5 -24 h10 l-5 4Z" fill="#c0392b"/>';
   const buddy = (fur, shirt, hat, face = '#f2d4b5', extra = '') => `<g class="bd-bob">
       <path d="M16 12 C46 14 52 -18 34 -26 C26 -28 24 -18 32 -16" stroke="${fur}" stroke-width="6" fill="none" stroke-linecap="round"/>
       <ellipse class="foot fl" cx="-11" cy="24" rx="9" ry="6" fill="${fur}"/><ellipse class="foot fr" cx="11" cy="24" rx="9" ry="6" fill="${fur}"/>
-      <ellipse cx="0" cy="0" rx="22" ry="26" fill="${shirt}"/><path d="M-12 -18 Q0 -10 12 -18" stroke="#fff" stroke-width="3" fill="none" opacity=".6"/>
+      <ellipse cx="0" cy="0" rx="22" ry="26" fill="${shirt}"/>${extra === 'mom' ? MOM_DRESS(shirt) : ''}<path d="M-12 -18 Q0 -10 12 -18" stroke="#fff" stroke-width="3" fill="none" opacity=".6"/>
       <path d="M-18 -8 Q-34 6 -24 20 M18 -8 Q34 6 24 20" stroke="${shirt}" stroke-width="9" fill="none" stroke-linecap="round"/>
       <circle cx="-24" cy="21" r="5" fill="${fur}"/><circle cx="24" cy="21" r="5" fill="${fur}"/>
-      ${extra === 'tie' ? TIE : ''}
+      ${extra === 'tie' ? TIE : ''}${extra === 'mom' ? MOM_BODY : ''}
       <g class="umbrella"><path d="M14 18 L4 -86" stroke="#6b4423" stroke-width="3" stroke-linecap="round"/><path d="M-44 -78 Q2 -118 48 -78 Q36 -85 25 -78 Q14 -85 2 -78 Q-10 -85 -21 -78 Q-32 -85 -44 -78Z" fill="#ff5b4a" stroke="#c0392b" stroke-width="2.5" stroke-linejoin="round"/><path d="M2 -78 Q4 -100 2 -112 M-21 -78 Q-14 -98 0 -110 M25 -78 Q18 -98 4 -110" stroke="#c0392b" stroke-width="1.6" fill="none"/></g>
       <g transform="translate(0 -40)">
         <circle cx="-26" cy="0" r="10" fill="${fur}"/><circle cx="-26" cy="0" r="6" fill="${face}"/><circle cx="26" cy="0" r="10" fill="${fur}"/><circle cx="26" cy="0" r="6" fill="${face}"/>
@@ -370,7 +375,7 @@ const Scene = (() => {
         <circle cx="-7" cy="-4" r="3.6" fill="#23313f"/><circle cx="7" cy="-4" r="3.6" fill="#23313f"/><circle cx="-6" cy="-5.5" r="1.2" fill="#fff"/><circle cx="8" cy="-5.5" r="1.2" fill="#fff"/>
         <path d="M-9 10 Q0 21 9 10 Z" fill="#5a2d0c"/><circle cx="-15" cy="6" r="4" fill="#ff9aa2" opacity=".6"/><circle cx="15" cy="6" r="4" fill="#ff9aa2" opacity=".6"/>
         ${SHADES}
-        ${extra === 'bow' ? BOW : ''}
+        ${extra === 'bow' ? BOW : ''}${extra === 'mom' ? MOM_LASHES : ''}
         ${hat ? `<path d="M-15 -20 L5 -66 L17 -16Z" fill="${hat}"/><path d="M-9 -32 L13 -28 M-3 -46 L10 -43" stroke="#fff" stroke-width="3"/><circle cx="5" cy="-66" r="5" fill="#ffd23f"/>` : ''}
       </g></g>`;
   // Eclipse glasses (dark lenses), shown only during a solar eclipse
@@ -1634,7 +1639,7 @@ const Scene = (() => {
       remote: null,   // where the family car or the bikes are while Bobo is across town
       // a grown-up or the sister riding a bike (side view; from behind going away; from the front coming towards us)
       cyclist(kind, at) {
-        const look = { dad: '#2f80ed', mom: '#ff6fa8', sister: '#ffd23f' }, [fur] = FRIENDS[kind];
+        const look = { dad: '#2f80ed', mom: '#d94f8a', sister: '#ffd23f' }, [fur] = FRIENDS[kind];
         const size = kind === 'sister' ? RIDE_SC * 0.76 : RIDE_SC;
         const g = document.createElementNS(NS, 'g');
         g.classList.add('cv');
@@ -1954,9 +1959,10 @@ const Scene = (() => {
         vehicles.push(v);
         return v;
       },
-      // Bobo's family: dad (with a tie), mom (with a bow) and a little sister (with a bow)
+      // Bobo's family: dad (with a tie), mom (a dress, pearls and a handbag) and a little sister (with a bow).
+      // The grown-ups are a head taller than Bobo, the sister is small.
       family(spots, who = ['dad', 'mom', 'sister']) {
-        const look = { dad: ['#2f80ed', 'tie', 1.1], mom: ['#ff6fa8', 'bow', 1.04], sister: ['#ffd23f', 'bow', 0.76] };
+        const look = { dad: ['#2f80ed', 'tie', 1.24], mom: ['#d94f8a', 'mom', 1.2], sister: ['#ffd23f', 'bow', 0.76] };
         return who.map((k, n) => s.buddy(k, look[k][0], Array.isArray(spots[0]) ? spots[n] : spots, null, look[k][1], look[k][2]));
       },
       // a friend monkey who can walk around
